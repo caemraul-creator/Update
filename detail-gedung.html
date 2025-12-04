@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detail Gedung - Inventaris</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Layout global -->
+  <link rel="stylesheet" href="layout.css">
+
+  <!-- CSS khusus halaman detail gedung -->
+  <style>
+    .badge{white-space:nowrap}
+
+    .info-list{
+      list-style:none;
+      padding-left:0;
+      margin:0;
+      font-size:.9rem;
+    }
+    .info-list li{
+      display:flex;
+      gap:.75rem;
+      margin-bottom:.25rem;
+    }
+    .info-label{
+      width:90px;
+      color:#6b7280;
+    }
+
+    .grid-main{
+      display:grid;
+      grid-template-columns:2fr 1.3fr;
+      gap:1.5rem;
+    }
+    .card-glass{
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(20px);
+      border-radius:var(--radius);
+      padding:1.25rem 1.25rem 1rem;
+      box-shadow:var(--shadow);
+    }
+    .card-title-sm{
+      font-size:.95rem;
+      font-weight:600;
+      margin-bottom:.6rem;
+    }
+    .table{
+      font-size:.86rem;
+    }
+    .table thead th{
+      white-space:nowrap;
+    }
+
+    .tabs{
+      border-bottom:1px solid rgba(226,232,240,.8);
+      margin-bottom:.75rem;
+    }
+    .tabs button{
+      border:none;
+      background:none;
+      padding:.45rem .9rem;
+      font-size:.86rem;
+      border-radius:999px 999px 0 0;
+      margin-right:.25rem;
+      color:#6b7280;
+    }
+    .tabs button.active{
+      background:#eef2ff;
+      color:#1d4ed8;
+    }
+
+    /* === PRINT AREA (KARTU INVENTARIS BARANG) === */
+    #kibPrint{
+      display:none;
+    }
+
+    @media(max-width:992px){
+      .grid-main{
+        grid-template-columns:1fr;
+      }
+    }
+
+    /* === PRINT MODE === */
+    @media print {
+      body{
+        background:#fff !important;
+      }
+      .sidebar{
+        display:none !important;
+      }
+      .page-header,
+      .grid-main{
+        display:none !important;
+      }
+      .main-content{
+        margin:0 !important;
+        padding:1cm !important;
+      }
+      #kibPrint{
+        display:block !important;
+      }
+
+      /* Tebalkan garis tabel KIB HANYA untuk tabel isi (kib-body) */
+      #kibPrint table.kib-body{
+        border-collapse:collapse !important;
+      }
+      #kibPrint table.kib-body th,
+      #kibPrint table.kib-body td{
+        border:2px solid #000 !important;
+      }
+      #kibPrint table.kib-body thead th{
+        font-weight:700;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="main-wrapper">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="brand">
+      <i class="bi bi-box-seam"></i>
+      <h4>Inventaris</h4>
+    </div>
+    <div class="nav flex-column">
+      <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
+      <a class="nav-link active" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Toggle sidebar untuk HP/Tablet -->
+        <button type="button"
+                id="btnToggleSidebar"
+                class="btn btn-outline-primary btn-sm d-md-none btn-rounded">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-title mb-0" id="gdNama">Nama Gedung</h1>
+          <p class="page-subtitle mb-0" id="gdKode">Kode: -</p>
+          <ul class="info-list mt-2">
+            <li><span class="info-label">Fungsi</span><span id="gdFungsi">-</span></li>
+            <li><span class="info-label">Kapasitas</span><span id="gdKap">-</span></li>
+            <li><span class="info-label">Deskripsi</span><span id="gdKet">-</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="text-end">
+        <div class="mb-2">
+          <span class="badge bg-primary me-1" id="gdJmlRuangan">0 Ruangan</span>
+          <span class="badge bg-success" id="gdJmlBarang">0 Barang</span>
+        </div>
+        <!-- PRINT PER GEDUNG -->
+        <button class="btn btn-primary btn-sm mb-2 btn-rounded" onclick="handlePrintKIB()">
+          <i class="bi bi-printer"></i> Cetak Kartu Inventaris Barang
+        </button>
+        <div>
+          <a href="gedung-ruangan.html" class="btn btn-outline-light btn-sm border btn-rounded">
+            <i class="bi bi-arrow-left"></i> Kembali ke Gedung
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-main">
+      <!-- kiri: tabel -->
+      <div class="card-glass">
+        <div class="tabs">
+          <button id="tabRuangan" class="active" onclick="showTab('ruangan')">Ruangan</button>
+          <button id="tabBarang" onclick="showTab('barang')">Barang di Gedung</button>
+        </div>
+
+        <!-- Tabel ruangan -->
+        <div id="panelRuangan">
+          <div class="card-title-sm d-flex justify-content-between align-items-center">
+            <span>Daftar Ruangan</span>
+            <small class="text-muted" id="infoRuangan">0 ruangan</small>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Nama Ruangan</th>
+                  <th>Kapasitas</th>
+                  <th>Jumlah Barang</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyRuangan">
+                <tr><td colspan="5" class="text-center text-muted">Memuat...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabel barang -->
+        <div id="panelBarang" class="d-none">
+          <div class="card-title-sm d-flex justify-content-between align-items-center">
+            <span>Barang di Gedung Ini</span>
+            <small class="text-muted" id="infoBarang">0 barang</small>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nama Barang</th>
+                  <th>Ruangan</th>
+                  <th>Kategori</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyBarang">
+                <tr><td colspan="5" class="text-center text-muted">Memuat...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- kanan: chart -->
+      <div class="card-glass">
+        <div class="card-title-sm mb-2">Distribusi Barang per Ruangan</div>
+        <div style="height:230px">
+          <canvas id="chartPerRuangan"></canvas>
+        </div>
+        <small class="text-muted d-block mt-2">
+          Menampilkan jumlah barang per ruangan di gedung ini.
+        </small>
+      </div>
+    </div>
+
+    <!-- AREA CETAK KIB (HANYA MUNCUL SAAT PRINT) -->
+    <div id="kibPrint">
+      <!-- Diisi via JS buildKIB() / buildKIBRuangan() -->
+    </div>
+  </main>
+</div>
+
+<!-- Script -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Layout global -->
+<script src="layout.js"></script>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec';
+
+function api(action, params = {}) {
+  const body = new URLSearchParams({ action });
+
+  const token = localStorage.getItem('token');
+  if (token) body.append('token', token);
+
+  Object.entries(params).forEach(([k,v]) => {
+    if (v !== undefined && v !== null) body.append(k, v);
+  });
+
+  return fetch(GAS_URL, { method: 'POST', body })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+function cekLogin(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+  }
+}
+
+function getQueryParam(name){
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
+}
+
+function badgeStatus(s){
+  let cls = 'bg-secondary';
+  if(s==='Aktif') cls = 'bg-success';
+  else if(s==='Perawatan') cls = 'bg-warning text-dark';
+  else if(s==='Rusak') cls = 'bg-danger';
+  else if(s==='Nonaktif') cls = 'bg-secondary';
+  else if(s==='Tersedia') cls = 'bg-primary';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+/* === FORMAT TANGGAL DD/MM/YYYY === */
+function formatDateDMY(dateStr){
+  if(!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr; // fallback kalau format tidak dikenali
+  const day   = String(d.getDate()).padStart(2,'0');
+  const month = String(d.getMonth()+1).padStart(2,'0');
+  const year  = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+let detail = {
+  gedung:null,
+  ruangan:[],
+  barang:[]
+};
+let chartInstance;
+
+function renderHeader(){
+  const g = detail.gedung;
+  if(!g) return;
+  document.getElementById('gdNama').textContent   = g.nama;
+  document.getElementById('gdKode').textContent   = 'Kode: ' + g.kode;
+  document.getElementById('gdFungsi').textContent = g.fungsi || '-';
+  document.getElementById('gdKap').textContent    = g.kapasitas || '-';
+  document.getElementById('gdKet').textContent    = g.deskripsi || '-';
+
+  const jmlRuangan = detail.ruangan.length;
+  const jmlBarang  = detail.barang.length;
+
+  document.getElementById('gdJmlRuangan').textContent = jmlRuangan + ' Ruangan';
+  document.getElementById('gdJmlBarang').textContent  = jmlBarang + ' Barang';
+  document.getElementById('infoRuangan').textContent  = jmlRuangan + ' ruangan';
+  document.getElementById('infoBarang').textContent   = jmlBarang + ' barang';
+}
+
+function renderRuangan(){
+  const tbody = document.getElementById('tbodyRuangan');
+  tbody.innerHTML = '';
+  if(!detail.ruangan.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada ruangan.</td></tr>';
+    return;
+  }
+  detail.ruangan.forEach((r,idx)=>{
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${r.nama}</td>
+        <td>${r.kapasitas || '-'}</td>
+        <td>${r.jmlBarang || 0}</td>
+        <td>${badgeStatus(r.status || 'Aktif')}</td>
+        <td>
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm btn-rounded"
+                  title="Cetak barang di ruangan ini"
+                  onclick="handlePrintRuanganByIndex(${idx})">
+            <i class="bi bi-printer"></i>
+          </button>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+function renderBarang(){
+  const tbody = document.getElementById('tbodyBarang');
+  tbody.innerHTML = '';
+  if(!detail.barang.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada barang di gedung ini.</td></tr>';
+    return;
+  }
+  detail.barang.forEach(b=>{
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${b.id}</td>
+        <td>${b.nama}</td>
+        <td>${b.ruangan || '-'}</td>
+        <td>${b.kategori || '-'}</td>
+        <td>${badgeStatus(b.status)}</td>
+      </tr>
+    `);
+  });
+}
+
+function initChart(){
+  const ctx = document.getElementById('chartPerRuangan');
+  const labels = detail.ruangan.map(r=>r.nama);
+  const data   = detail.ruangan.map(r=>r.jmlBarang || 0);
+
+  if(chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Jumlah Barang',
+        data
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,precision:0}}
+    }
+  });
+}
+
+function showTab(tab){
+  const tabR = document.getElementById('tabRuangan');
+  const tabB = document.getElementById('tabBarang');
+  const panelR = document.getElementById('panelRuangan');
+  const panelB = document.getElementById('panelBarang');
+
+  if(tab==='ruangan'){
+    tabR.classList.add('active');
+    tabB.classList.remove('active');
+    panelR.classList.remove('d-none');
+    panelB.classList.add('d-none');
+  }else{
+    tabR.classList.remove('active');
+    tabB.classList.add('active');
+    panelR.classList.add('d-none');
+    panelB.classList.remove('d-none');
+  }
+}
+
+async function loadDetail(){
+  try{
+    const kode = getQueryParam('kode');
+    if(!kode){
+      alert('Kode gedung tidak ditemukan di URL.');
+      window.location.href = 'gedung-ruangan.html';
+      return;
+    }
+
+    const [gedung, ruanganAll, barang] = await Promise.all([
+      api('getGedungByKode', { kode }),
+      api('getRuangan'),
+      api('getBarangByGedung', { kodeGedung:kode })
+    ]);
+
+    const ruanganList = (ruanganAll || []).filter(r=>r.kodeGedung === kode);
+    const barangList  = barang || [];
+
+    ruanganList.forEach(r=>{
+      r.jmlBarang = barangList.filter(b=>b.ruangan === r.nama).length;
+    });
+
+    detail = {
+      gedung,
+      ruangan:ruanganList,
+      barang:barangList
+    };
+
+    renderHeader();
+    renderRuangan();
+    renderBarang();
+    initChart();
+    buildKIB(); // siapkan layout print gedung
+  }catch(err){
+    console.error(err);
+    alert('Gagal memuat detail gedung: ' + err.message);
+  }
+}
+
+/* ====== KARTU INVENTARIS BARANG (PRINT PER GEDUNG) ====== */
+function buildKIB(){
+  if(!detail.gedung) return;
+
+  const container = document.getElementById('kibPrint');
+  const g = detail.gedung;
+  const today = new Date();
+  const tglStr = formatDateDMY(today.toISOString());
+
+  // grup barang per ruangan
+  const grupRuangan = {};
+  (detail.barang || []).forEach(b=>{
+    const key = b.ruangan && b.ruangan.trim() ? b.ruangan : 'Tanpa Ruangan';
+    if(!grupRuangan[key]) grupRuangan[key] = [];
+    grupRuangan[key].push(b);
+  });
+
+  let html = `
+    <div class="text-center mb-3">
+      <h4 class="mb-0 text-uppercase">Kartu Inventaris Barang</h4>
+    </div>
+
+    <div class="mb-3">
+      <table class="table table-sm table-borderless mb-0 kib-header" style="font-size:0.9rem;">
+        <tr>
+          <th style="width:140px;">Nama Gedung</th><td>: ${g.nama}</td>
+        </tr>
+        <tr>
+          <th>Kode Gedung</th><td>: ${g.kode}</td>
+        </tr>
+        <tr>
+          <th>Tanggal Cetak</th><td>: ${tglStr}</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  const ruangNames = Object.keys(grupRuangan);
+  if (ruangNames.length === 0){
+    html += `
+      <p class="text-muted">Belum ada barang yang tercatat di gedung ini.</p>
+    `;
+  } else {
+    ruangNames.forEach(ruangName=>{
+      const list = grupRuangan[ruangName];
+
+      html += `
+        <div class="mt-4 mb-1">
+          <strong>${ruangName}</strong>
+        </div>
+        <table class="table table-sm table-bordered kib-body" style="font-size:0.85rem;">
+          <thead class="table-light">
+            <tr>
+              <th style="width:5%;">No</th>
+              <th style="width:18%;">ID Barang</th>
+              <th>Nama Barang</th>
+              <th style="width:18%;">Merk/Model</th>
+              <th style="width:12%;">Jumlah</th>
+              <th style="width:14%;">Tgl Masuk</th>
+              <th style="width:12%;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      list.forEach((b,idx)=>{
+        const jumlahText = (b.jumlah != null && b.jumlah !== '') ? b.jumlah : 1;
+        const satuanText = b.satuan || '';
+        const tglMasuk   = formatDateDMY(b.tglMasuk);
+
+        html += `
+          <tr>
+            <td>${idx+1}</td>
+            <td>${b.id}</td>
+            <td>${b.nama}</td>
+            <td>${b.merk || '-'}</td>
+            <td>${jumlahText} ${satuanText}</td>
+            <td>${tglMasuk}</td>
+            <td>${b.status || '-'}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+      `;
+    });
+  }
+
+  /* === BLOK TANDA TANGAN (PER GEDUNG) === */
+  html += `
+    <div class="row mt-5" style="font-size:0.9rem;">
+      <div class="col-6 text-center">
+        <div>Petugas,</div>
+        <br><br><br>
+        <div>(________________________)</div>
+      </div>
+      <div class="col-6 text-center">
+        <div>Mengetahui,</div>
+        <br><br><br>
+        <div>(________________________)</div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function handlePrintKIB(){
+  if(!detail.gedung){
+    alert('Data gedung belum siap. Silakan tunggu sebentar lalu coba lagi.');
+    return;
+  }
+  buildKIB();
+  window.print();
+}
+
+/* ====== PRINT PER RUANGAN ====== */
+function buildKIBRuangan(ruangName){
+  if(!detail.gedung) return;
+
+  const container = document.getElementById('kibPrint');
+  const g = detail.gedung;
+  const today = new Date();
+  const tglStr = formatDateDMY(today.toISOString());
+
+  const list = (detail.barang || []).filter(b =>
+    (b.ruangan || '').trim() === ruangName
+  );
+
+  let html = `
+    <div class="text-center mb-3">
+      <h4 class="mb-0 text-uppercase">Kartu Inventaris Barang</h4>
+    </div>
+
+    <div class="mb-3">
+      <table class="table table-sm table-borderless mb-0 kib-header" style="font-size:0.9rem;">
+        <tr>
+          <th style="width:140px;">Nama Gedung</th><td>: ${g.nama}</td>
+        </tr>
+        <tr>
+          <th>Kode Gedung</th><td>: ${g.kode}</td>
+        </tr>
+        <tr>
+          <th>Nama Ruangan</th><td>: ${ruangName}</td>
+        </tr>
+        <tr>
+          <th>Tanggal Cetak</th><td>: ${tglStr}</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  if (!list.length){
+    html += `<p class="text-muted">Belum ada barang yang tercatat di ruangan ini.</p>`;
+  } else {
+    html += `
+      <table class="table table-sm table-bordered kib-body" style="font-size:0.85rem;">
+        <thead class="table-light">
+          <tr>
+            <th style="width:5%;">No</th>
+            <th style="width:18%;">ID Barang</th>
+            <th>Nama Barang</th>
+            <th style="width:18%;">Merk/Model</th>
+            <th style="width:12%;">Jumlah</th>
+            <th style="width:14%;">Tgl Masuk</th>
+            <th style="width:12%;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    list.forEach((b,idx)=>{
+      const jumlahText = (b.jumlah != null && b.jumlah !== '') ? b.jumlah : 1;
+      const satuanText = b.satuan || '';
+      const tglMasuk   = formatDateDMY(b.tglMasuk);
+
+      html += `
+        <tr>
+          <td>${idx+1}</td>
+          <td>${b.id}</td>
+          <td>${b.nama}</td>
+          <td>${b.merk || '-'}</td>
+          <td>${jumlahText} ${satuanText}</td>
+          <td>${tglMasuk}</td>
+          <td>${b.status || '-'}</td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+  }
+
+  /* === BLOK TANDA TANGAN (PER RUANGAN) === */
+  html += `
+    <div class="row mt-5" style="font-size:0.9rem;">
+      <div class="col-6 text-center">
+        <div>Petugas,</div>
+        <br><br><br>
+        <div>(________________________)</div>
+      </div>
+      <div class="col-6 text-center">
+        <div>Mengetahui,</div>
+        <br><br><br>
+        <div>(________________________)</div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function handlePrintRuanganByIndex(idx){
+  const r = detail.ruangan[idx];
+  if(!r){
+    alert('Ruangan tidak ditemukan.');
+    return;
+  }
+  const ruangName = r.nama;
+  const list = (detail.barang || []).filter(b =>
+    (b.ruangan || '').trim() === ruangName
+  );
+  if(!list.length){
+    alert('Belum ada barang di ruangan "' + ruangName + '".');
+    return;
+  }
+  buildKIBRuangan(ruangName);
+  window.print();
+}
+
+/* ====== INIT ====== */
+window.onload = () => {
+  cekLogin();
+  loadDetail();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Cetak Barcode / QR Barang</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap & Icon -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- QRCode JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ===== TAMPILAN LAYAR ===== */
+    body{
+      background:#f5f6f8;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      padding:1rem;
+    }
+    h1.title{
+      font-size:1.3rem;
+      font-weight:600;
+      margin-bottom:1rem;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:1rem;
+      background:#fff;
+      padding:1rem;
+      border-radius:10px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom:1rem;
+    }
+    .toolbar .form-label{
+      font-size:.75rem;
+      margin-bottom:2px;
+    }
+    .toolbar input{
+      font-size:.85rem;
+    }
+    .btn-reset{
+      background:#ef4444;
+      color:#fff;
+    }
+
+    /* Grid di layar (fleksibel) */
+    .label-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+      gap:10px;
+    }
+
+    .label-box{
+      background:#fff;
+      border-radius:6px;
+      padding:4px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* Satu border: QR + ID di dalamnya */
+    .qr-box{
+      padding:5px 7px 6px;
+      border:1px solid #9ca3af;
+      border-radius:6px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+    }
+
+    .qr-box canvas{
+      width:90px !important;
+      height:90px !important;
+    }
+
+    .label-id{
+      font-size:.8rem;
+      font-weight:600;
+      letter-spacing:0.06em;
+      text-align:center;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* ===== MODE CETAK: A4 LANDSCAPE, 9 x 5 ===== */
+    @page{
+      size:A4 landscape;
+      margin:6mm;
+    }
+
+    @media print{
+      body{
+        padding:0;
+        background:#ffffff;
+      }
+      .toolbar,
+      h1.title{
+        display:none !important;
+      }
+
+      /* 9 kolom; gap kecil biar muat */
+      .label-grid{
+        grid-template-columns:repeat(9, 1fr);
+        gap:2mm;
+      }
+
+      /* Hitungan:
+         tinggi area isi ≈ 198mm (210 - 2*6mm margin)
+         5 baris, 4 gap*2mm = 8mm
+         198 - 8 = 190mm → 190/5 = 38mm per baris
+      */
+      .label-box{
+        width:100%;
+        height:38mm;  /* 5 baris pas A4 */
+        padding:0;
+        border:none;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+
+      .qr-box{
+        border-color:#000;
+        border-width:1px;
+        padding:1.5mm 2mm 1.8mm;
+        gap:1.2mm;
+      }
+
+      .qr-box canvas{
+        width:26mm !important;
+        height:26mm !important;
+      }
+
+      .label-id{
+        font-size:7pt;
+        letter-spacing:0.05em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="title">
+    <i class="bi bi-upc-scan"></i> Cetak Barcode / QR Barang (9 × 5 per halaman A4)
+  </h1>
+
+  <!-- FILTER (hanya layar) -->
+  <div class="toolbar">
+    <div>
+      <label class="form-label">Dari Tanggal Masuk</label>
+      <input type="date" id="tglFrom" class="form-control form-control-sm">
+    </div>
+    <div>
+      <label class="form-label">Sampai Tanggal</label>
+      <input type="date" id="tglTo" class="form-control form-control-sm">
+    </div>
+    <div style="min-width:260px;">
+      <label class="form-label">Cari Semua</label>
+      <input
+        type="text"
+        id="filterGlobal"
+        class="form-control form-control-sm"
+        placeholder="Cari: ID / nama / kategori / lokasi / status">
+    </div>
+    <div class="ms-auto d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="filterLabels()">
+        <i class="bi bi-funnel"></i> Tampilkan
+      </button>
+      <button type="button" class="btn btn-reset btn-sm" onclick="resetFilter()">
+        <i class="bi bi-arrow-clockwise"></i> Reset
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+        <i class="bi bi-printer"></i> Cetak PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- GRID LABEL -->
+  <div id="labelContainer" class="label-grid"></div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec";
+let semuaBarang = [];
+
+/* === API helper === */
+function api(action, params = {}){
+  const body = new URLSearchParams({ action });
+  Object.entries(params).forEach(([k,v]) => {
+    if (v !== undefined && v !== null) body.append(k, v);
+  });
+
+  return fetch(GAS_URL, { method:'POST', body })
+    .then(r => r.json())
+    .then(res => {
+      if(!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+/* === LOAD DATA AWAL === */
+function loadData(){
+  api('getBarang')
+    .then(data => {
+      semuaBarang = data || [];
+      render(semuaBarang);
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal memuat data barang: ' + err.message);
+    });
+}
+
+/* === RESET FILTER === */
+function resetFilter(){
+  document.getElementById('tglFrom').value = '';
+  document.getElementById('tglTo').value   = '';
+  document.getElementById('filterGlobal').value = '';
+  render(semuaBarang);
+}
+
+/* === FILTER === */
+function filterLabels(){
+  const tFrom = document.getElementById('tglFrom').value;
+  const tTo   = document.getElementById('tglTo').value;
+  const keyword = document.getElementById('filterGlobal').value.trim().toLowerCase();
+
+  let fromDate = tFrom ? new Date(tFrom) : null;
+  let toDate   = tTo   ? new Date(tTo)   : null;
+
+  if(fromDate && toDate && toDate < fromDate){
+    alert('Tanggal "Sampai" tidak boleh lebih awal dari "Dari".');
+    return;
+  }
+
+  const filtered = semuaBarang.filter(b => {
+    // filter tanggal
+    if (b.tglMasuk) {
+      const d = new Date(b.tglMasuk);
+      if(fromDate && d < fromDate) return false;
+      if(toDate){
+        const end = new Date(toDate);
+        end.setHours(23,59,59,999);
+        if(d > end) return false;
+      }
+    } else {
+      if(fromDate || toDate) return false;
+    }
+
+    // filter keyword global
+    if (keyword){
+      const text = (
+        String(b.id) + ' ' +
+        String(b.nama) + ' ' +
+        String(b.kategori) + ' ' +
+        String(b.gedungNama || b.gedung || '') + ' ' +
+        String(b.ruangan || '') + ' ' +
+        String(b.status || '')
+      ).toLowerCase();
+      if (!text.includes(keyword)) return false;
+    }
+
+    return true;
+  });
+
+  render(filtered);
+}
+
+/* === RENDER LABELS === */
+function render(data){
+  const container = document.getElementById('labelContainer');
+  container.innerHTML = '';
+
+  // Samakan dengan label.html
+  var BASE_URL = 'https://invenruangan.netlify.app/';
+
+  data.forEach(item => {
+    const wrap = document.createElement('div');
+    wrap.className = 'label-box';
+    wrap.innerHTML = `
+      <div class="qr-box">
+        <div id="qr_${item.id}"></div>
+        <div class="label-id">${item.id}</div>
+      </div>
+    `;
+    container.appendChild(wrap);
+
+    const target = document.getElementById('qr_' + item.id);
+    target.innerHTML = '';
+
+    const detailUrl = BASE_URL + 'detail-barang.html?id=' + encodeURIComponent(item.id);
+
+    new QRCode(target, {
+      text: detailUrl,
+      width: 100,
+      height: 100
+    });
+  });
+}
+
+/* INIT */
+window.onload = loadData;
+</script>
+</body>
+</html>

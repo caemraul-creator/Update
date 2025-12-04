@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gedung & Ruangan - Inventaris</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Layout global -->
+  <link rel="stylesheet" href="layout.css">
+
+  <!-- CSS khusus halaman Gedung & Ruangan -->
+  <style>
+    .top-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:1.5rem;
+      gap:.75rem;
+      flex-wrap:wrap;
+    }
+
+    .search-box{
+      position:relative;
+      width:260px;
+      max-width:100%;
+    }
+    .search-box input{
+      border-radius:999px;
+      padding-left:2.2rem;
+    }
+    .search-box i{
+      position:absolute;
+      top:50%;
+      left:.75rem;
+      transform:translateY(-50%);
+      color:#9ca3af;
+    }
+
+    .card-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:1.5rem;
+    }
+
+    /* ==== KARTU GEDUNG ==== */
+    .building-card{
+      border-radius:24px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      box-shadow:var(--shadow);
+      padding:18px 20px 16px;
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      min-height:220px;
+    }
+    .building-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:1rem;
+    }
+    .building-title{
+      font-size:1.25rem;
+      font-weight:700;
+      margin:0 0 .15rem;
+    }
+    .building-sub{
+      margin:0;
+      font-size:.85rem;
+      opacity:.9;
+    }
+    .building-status-pill{
+      font-size:.7rem;
+      padding:.2rem .6rem;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.6);
+      text-transform:uppercase;
+      letter-spacing:.02em;
+      background:rgba(255,255,255,.12);
+      white-space:nowrap;
+    }
+    .building-status-perawatan{
+      background:#facc15;
+      color:#854d0e;
+      border:none;
+    }
+    .building-status-nonaktif{
+      background:#fecaca;
+      color:#7f1d1d;
+      border:none;
+    }
+
+    .building-separator{
+      height:1px;
+      background:linear-gradient(90deg,rgba(255,255,255,.15),rgba(255,255,255,.4),rgba(255,255,255,.05));
+      margin:18px 0 12px;
+    }
+
+    .building-stats-row{
+      display:flex;
+      gap:2.5rem;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .building-stat{
+      min-width:70px;
+    }
+    .building-stat-number{
+      font-size:1.4rem;
+      font-weight:700;
+      line-height:1.1;
+    }
+    .building-stat-label{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      opacity:.85;
+    }
+
+    /* area list ruangan yang scroll */
+    .building-body{
+      margin-top:10px;
+      background:#f9fafb;
+      border-radius:16px;
+      padding:8px 8px 6px;
+      color:#111827;
+      max-height:260px;
+      overflow-y:auto;
+    }
+
+    /* ==== LIST RUANGAN DALAM KARTU ==== */
+    .room-card{
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      padding:6px 10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:.75rem;
+      background:#fff;
+    }
+    .room-card + .room-card{
+      margin-top:4px;
+    }
+    .room-main{
+      min-width:0;
+    }
+    .room-name{
+      font-size:.85rem;
+      font-weight:600;
+      margin-bottom:1px;
+    }
+    .room-sub{
+      font-size:.72rem;
+      color:#6b7280;
+    }
+    .room-status-badge{
+      font-size:.65rem;
+      padding:.15rem .5rem;
+      border-radius:999px;
+      font-weight:600;
+      white-space:nowrap;
+    }
+    .room-status-aktif{
+      background:#16a34a;
+      color:#fff;
+    }
+    .room-status-perawatan{
+      background:#fbbf24;
+      color:#78350f;
+    }
+    .room-status-nonaktif{
+      background:#e5e7eb;
+      color:#374151;
+    }
+
+    .room-empty{
+      font-size:.82rem;
+      color:#6b7280;
+    }
+
+    /* ==== AKSI DI BAWAH KARTU (TIDAK IKUT SCROLL) ==== */
+    .building-actions{
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px solid #e5e7eb;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:.72rem;
+    }
+
+    .left-actions{
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+    }
+    .link-delete{
+      border:none;
+      background:none;
+      padding:0;
+      color:#fecaca;
+      display:inline-flex;
+      align-items:center;
+      gap:.25rem;
+      cursor:pointer;
+      font-size:.7rem;
+    }
+    .link-delete i{
+      font-size:.8rem;
+    }
+
+    .btn-pill-sm{
+      border-radius:999px;
+      font-size:.7rem;
+      padding:.25rem .65rem;
+    }
+
+    .btn-outline-light-blue{
+      background:#eef2ff;
+      border:none;
+      color:#4338ca;
+    }
+    .btn-outline-light-blue:hover{
+      background:#e0e7ff;
+      color:#312e81;
+    }
+    .btn-green{
+      background:#16a34a;
+      color:#fff;
+      border:none;
+    }
+    .btn-green:hover{
+      background:#15803d;
+      color:#fff;
+    }
+  </style>
+</head>
+<body>
+<div class="main-wrapper">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="brand">
+      <i class="bi bi-box-seam"></i>
+      <h4>Inventaris</h4>
+    </div>
+    <div class="nav flex-column">
+      <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
+      <a class="nav-link active" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <!-- HEADER + USER + LOGOUT -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Toggle sidebar untuk HP/Tablet -->
+        <button type="button"
+                id="btnToggleSidebar"
+                class="btn btn-outline-primary btn-sm d-md-none btn-rounded">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-title mb-0">Gedung & Ruangan</h1>
+          <p class="page-subtitle mb-0">Kelola data gedung dan ruangan</p>
+        </div>
+      </div>
+      <div class="text-end">
+        <div id="userInfo" class="small text-muted mb-1"></div>
+        <button type="button" class="btn btn-outline-danger btn-sm btn-rounded" onclick="doLogout()">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <div class="top-bar">
+      <div class="btn-group gap-2">
+        <button class="btn btn-primary btn-rounded" data-bs-toggle="modal" data-bs-target="#addGedungModal">
+          <i class="bi bi-building-add"></i> Tambah Gedung
+        </button>
+      </div>
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cari gedung / ruangan...">
+      </div>
+    </div>
+
+    <!-- Kartu gedung -->
+    <div id="buildingGrid" class="card-grid">
+      <div class="text-center text-muted">Memuat data...</div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Tambah Gedung -->
+<div class="modal fade" id="addGedungModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Gedung</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formGedung">
+          <div class="mb-3">
+            <label class="form-label">Kode Gedung</label>
+            <input type="text" name="kode" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nama Gedung</label>
+            <input type="text" name="nama_gedung" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kapasitas (opsional)</label>
+            <input type="number" name="kapasitas" class="form-control" min="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fungsi</label>
+            <input type="text" name="fungsi" class="form-control" placeholder="Contoh: Kantor Pusat, Gudang, dll.">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="deskripsi" rows="2" class="form-control"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="Aktif">Aktif</option>
+              <option value="Perawatan">Perawatan</option>
+              <option value="Nonaktif">Nonaktif</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm btn-rounded" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary btn-sm btn-rounded" onclick="saveGedung()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah Ruangan -->
+<div class="modal fade" id="addRuanganModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Ruangan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formRuangan">
+          <div class="mb-3">
+            <label class="form-label">Kode Ruangan</label>
+            <input type="text" name="kode" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nama Ruangan</label>
+            <input type="text" name="nama_ruangan" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Gedung</label>
+            <select name="kode_gedung" id="ruangGedungSelect" class="form-select" required>
+              <!-- diisi via JS -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kapasitas (opsional)</label>
+            <input type="number" name="kapasitas" class="form-control" min="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="Aktif">Aktif</option>
+              <option value="Perawatan">Perawatan</option>
+              <option value="Nonaktif">Nonaktif</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm btn-rounded" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-success btn-sm btn-rounded" onclick="saveRuangan()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Layout global -->
+<script src="layout.js"></script>
+
+<script>
+// SAMAKAN DENGAN HALAMAN LAIN
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec';
+
+/* ===== API WRAPPER ===== */
+function api(action, params = {}) {
+  const body = new URLSearchParams({ action });
+
+  // kirim token ke GAS
+  const token = localStorage.getItem('token');
+  if (token) body.append('token', token);
+
+  Object.entries(params).forEach(([k,v]) => {
+    if (v !== undefined && v !== null) body.append(k, v);
+  });
+
+  return fetch(GAS_URL, { method: 'POST', body })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
+function cekLogin(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+
+  api('getCurrentUser')
+    .then(u => {
+      const userInfo = document.getElementById('userInfo');
+      if (userInfo){
+        userInfo.textContent = `${u.nama} (${u.role})`;
+      }
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+function doLogout(){
+  api('logout')
+    .finally(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+/* ===== DATA GEDUNG & RUANGAN ===== */
+let dataGedung = [];
+
+function renderGedung(list){
+  const grid = document.getElementById('buildingGrid');
+  if(!list.length){
+    grid.innerHTML = '<div class="text-center text-muted">Belum ada data gedung.</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  list.forEach(g=>{
+    const rooms = g.ruangan || [];
+
+    // badge status gedung
+    let statusText = (g.status || 'Aktif').toUpperCase();
+    let statusClass = 'building-status-pill';
+    if (statusText === 'PERAWATAN') statusClass += ' building-status-perawatan';
+    else if (statusText === 'NONAKTIF') statusClass += ' building-status-nonaktif';
+
+    // HTML SEMUA RUANGAN (VERTIKAL)
+    let roomHtml = '';
+    if (rooms.length){
+      roomHtml = rooms.map(r=>{
+        const kap = r.kapasitas ? `${r.kapasitas} orang` : 'Kapasitas tidak diketahui';
+        const jml = (r.jmlBarang || 0) + ' barang';
+
+        let rStatus = (r.status || 'Aktif').toUpperCase();
+        let rClass = 'room-status-badge room-status-aktif';
+        if (rStatus === 'PERAWATAN') rClass = 'room-status-badge room-status-perawatan';
+        else if (rStatus === 'NONAKTIF') rClass = 'room-status-badge room-status-nonaktif';
+
+        return `
+          <div class="room-card">
+            <div class="room-main">
+              <div class="room-name">${r.nama}</div>
+              <div class="room-sub">${kap} · ${jml}</div>
+            </div>
+            <span class="${rClass}">${rStatus}</span>
+          </div>
+        `;
+      }).join('');
+    } else {
+      roomHtml = `
+        <div class="room-card">
+          <div class="room-main">
+            <div class="room-empty">Belum ada ruangan terdaftar di gedung ini.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // kartu gedung
+    grid.insertAdjacentHTML('beforeend', `
+      <div class="building-card">
+        <div class="building-header">
+          <div>
+            <p class="building-title">${g.nama}</p>
+            <p class="building-sub">${g.fungsi || '-'}</p>
+          </div>
+          <span class="${statusClass}">${statusText}</span>
+        </div>
+
+        <div class="building-separator"></div>
+
+        <div class="building-stats-row">
+          <div class="building-stat">
+            <div class="building-stat-number">${rooms.length}</div>
+            <div class="building-stat-label">RUANGAN</div>
+          </div>
+          <div class="building-stat">
+            <div class="building-stat-number">${g.totalBarang || 0}</div>
+            <div class="building-stat-label">BARANG</div>
+          </div>
+          <div class="building-stat">
+            <div class="building-stat-number">${g.kapasitas || 0}</div>
+            <div class="building-stat-label">KAPASITAS</div>
+          </div>
+        </div>
+
+        <!-- LIST RUANGAN YANG SCROLL -->
+        <div class="building-body">
+          ${roomHtml}
+        </div>
+
+        <!-- TOMBOL DI BAWAH, TIDAK IKUT SCROLL -->
+        <div class="building-actions">
+          <div class="left-actions">
+            <button class="link-delete" onclick="hapusGedung('${g.kode}')">
+              <i class="bi bi-trash"></i> Hapus
+            </button>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="detail-gedung.html?kode=${encodeURIComponent(g.kode)}"
+               class="btn btn-outline-light-blue btn-pill-sm">
+              <i class="bi bi-eye"></i> Lihat Detail
+            </a>
+            <button class="btn btn-green btn-pill-sm"
+                    onclick="openTambahRuangan('${g.kode}')">
+              <i class="bi bi-plus-circle"></i> Tambah Ruangan
+            </button>
+          </div>
+        </div>
+      </div>
+    `);
+  });
+}
+
+function fillGedungSelect(){
+  const select = document.getElementById('ruangGedungSelect');
+  select.innerHTML = '<option value="">Pilih Gedung</option>' +
+    dataGedung.map(g=>`<option value="${g.kode}">${g.nama}</option>`).join('');
+}
+
+async function loadData(){
+  try{
+    const [gedung, ruangan, barang] = await Promise.all([
+      api('getGedung'),
+      api('getRuangan'),
+      api('getBarang')
+    ]);
+
+    const ruanganList = ruangan || [];
+    const barangList  = barang   || [];
+
+    // hitung ulang jumlah barang per gedung & per ruangan
+    dataGedung = (gedung || []).map(g=>{
+      // semua ruangan di gedung ini
+      const roomsRaw = ruanganList.filter(r => r.kodeGedung === g.kode);
+
+      // tambahkan jmlBarang ke setiap ruangan berdasarkan data barang
+      const rooms = roomsRaw.map(r => {
+        const namaRuang = (r.nama || '').toString().toLowerCase();
+        const jmlBarangRuang = barangList.filter(b =>
+          (b.gedung || '').toString() === g.kode &&
+          (b.ruangan || '').toString().toLowerCase() === namaRuang
+        ).length;
+
+        return {
+          ...r,
+          jmlBarang: jmlBarangRuang
+        };
+      });
+
+      // total barang di gedung (semua ruangan)
+      const totalBarangGedung = barangList.filter(b => (b.gedung || '').toString() === g.kode).length;
+
+      return {
+        ...g,
+        ruangan: rooms,
+        totalBarang: totalBarangGedung
+      };
+    });
+
+    renderGedung(dataGedung);
+    fillGedungSelect();
+    initSearch();
+  }catch(err){
+    console.error(err);
+    alert('Gagal memuat data gedung/ruangan: ' + err.message);
+  }
+}
+
+
+/* ===== AKSI GEDUNG & RUANGAN ===== */
+function saveGedung(){
+  const form = document.getElementById('formGedung');
+  if(!form.checkValidity()){form.reportValidity();return;}
+  const fd = new FormData(form);
+
+  const params = {
+    kode: fd.get('kode'),
+    nama_gedung: fd.get('nama_gedung'),
+    kapasitas: fd.get('kapasitas') || '',
+    fungsi: fd.get('fungsi') || '',
+    deskripsi: fd.get('deskripsi') || '',
+    status: fd.get('status') || 'Aktif'
+  };
+
+  api('addGedung', params)
+    .then(()=>{
+      alert('Gedung berhasil ditambahkan');
+      form.reset();
+      bootstrap.Modal.getInstance(document.getElementById('addGedungModal')).hide();
+      loadData();
+    })
+    .catch(err=>alert('Error: ' + err.message));
+}
+
+function saveRuangan(){
+  const form = document.getElementById('formRuangan');
+  if(!form.checkValidity()){form.reportValidity();return;}
+  const fd = new FormData(form);
+
+  const params = {
+    kode: fd.get('kode'),
+    nama_ruangan: fd.get('nama_ruangan'),
+    kode_gedung: fd.get('kode_gedung'),
+    kapasitas: fd.get('kapasitas') || '',
+    status: fd.get('status') || 'Aktif'
+  };
+
+  api('addRuangan', params)
+    .then(()=>{
+      alert('Ruangan berhasil ditambahkan');
+      form.reset();
+      bootstrap.Modal.getInstance(document.getElementById('addRuanganModal')).hide();
+      loadData();
+    })
+    .catch(err=>alert('Error: ' + err.message));
+}
+
+function hapusGedung(kode){
+  if(!confirm('Hapus gedung '+kode+' beserta ruangan terkait?')) return;
+  api('deleteGedung',{ kode })
+    .then(()=>{
+      alert('Gedung berhasil dihapus');
+      loadData();
+    })
+    .catch(err=>alert('Error: ' + err.message));
+}
+
+function openTambahRuangan(kodeGedung){
+  const select = document.getElementById('ruangGedungSelect');
+  if (select){
+    select.value = kodeGedung;
+  }
+  const modal = new bootstrap.Modal(document.getElementById('addRuanganModal'));
+  modal.show();
+}
+
+/* ===== PENCARIAN ===== */
+function initSearch(){
+  const input = document.getElementById('searchInput');
+  input.oninput = e=>{
+    const q = e.target.value.toLowerCase();
+    const filtered = dataGedung.filter(g=>{
+      const rooms = g.ruangan || [];
+      return (
+        (g.nama || '').toLowerCase().includes(q) ||
+        (g.kode || '').toLowerCase().includes(q) ||
+        (g.fungsi || '').toLowerCase().includes(q) ||
+        (g.deskripsi || '').toLowerCase().includes(q) ||
+        rooms.some(r=>(r.nama || '').toLowerCase().includes(q))
+      );
+    });
+    renderGedung(filtered);
+  };
+}
+
+/* INIT */
+window.onload = function(){
+  cekLogin();
+  loadData();
+};
+</script>
+</body>
+</html>

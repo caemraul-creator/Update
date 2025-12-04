@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manajemen Barang - Inventaris</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Layout global -->
+  <link rel="stylesheet" href="layout.css">
+
+  <!-- CSS khusus halaman barang -->
+  <style>
+    /* Kartu statistik memakai .stats-grid & .stats-card dari layout.css */
+    .stats-card.primary  .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+    .stats-card.success  .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
+    .stats-card.warning  .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
+    .stats-card.danger   .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
+
+    .stats-card:hover{transform:translateY(-4px);transition:.25s;}
+
+    /* Section tabel */
+    .table-section{
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(20px);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin-bottom:1.75rem;
+    }
+    .table-header{
+      background:rgba(248,250,252,.8);
+      padding:1.1rem 1.4rem;
+      border-bottom:1px solid rgba(226,232,240,.5);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .table-title{
+      margin:0;
+      font-size:1.05rem;
+      font-weight:600;
+    }
+    .table-content{
+      padding:1.25rem 1.4rem 1.4rem;
+    }
+    .table{margin:0;font-size:.9rem;}
+    .table thead th{white-space:nowrap;}
+
+    /* Tombol umum di halaman ini */
+    .btn{
+      border-radius:999px;
+      padding:.45rem 1.1rem;
+      font-size:.875rem;
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+    }
+    .btn i{font-size:1rem;}
+    .btn-primary{
+      background:linear-gradient(135deg,#3b82f6,#6366f1);
+      border:none;
+    }
+    .btn-success{
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      border:none;
+    }
+
+    /* Spinner mini */
+    .loading-spinner{
+      display:inline-block;
+      width:1rem;height:1rem;
+      border:2px solid rgba(255,255,255,.3);
+      border-top:2px solid #fff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}};
+
+    /* Preview gambar */
+    .img-preview{
+      width:120px;
+      height:120px;
+      object-fit:cover;
+      border-radius:8px;
+      border:1px solid #ced4da;
+    }
+
+    #itemsTable td{vertical-align:middle;}
+    .badge{white-space:nowrap;}
+  </style>
+</head>
+<body>
+<div class="main-wrapper">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <i class="bi bi-box-seam"></i>
+      <h4>Inventaris</h4>
+    </div>
+    <div class="nav flex-column">
+      <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
+      <a class="nav-link" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- HEADER + USER + LOGOUT -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Toggle sidebar untuk HP/Tablet -->
+        <button type="button"
+                id="btnToggleSidebar"
+                class="btn btn-outline-primary btn-sm d-md-none btn-rounded">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h1 class="page-title mb-0">Manajemen Barang</h1>
+          <p class="page-subtitle mb-0">Kelola data barang inventaris dengan efisien</p>
+        </div>
+      </div>
+      <div class="text-end">
+        <div id="userInfo" class="small text-muted mb-1"></div>
+        <button type="button" class="btn btn-outline-danger btn-sm btn-rounded" onclick="doLogout()">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistik -->
+    <div class="stats-grid mb-3">
+      <div class="stats-card primary">
+        <div class="stats-icon"><i class="bi bi-box"></i></div>
+        <div>
+          <p class="stats-number" id="totalBrg">-</p>
+          <p class="stats-label">Total Barang</p>
+        </div>
+      </div>
+      <div class="stats-card success">
+        <div class="stats-icon"><i class="bi bi-check-circle"></i></div>
+        <div>
+          <p class="stats-number" id="aktifBrg">-</p>
+          <p class="stats-label">Barang Aktif</p>
+        </div>
+      </div>
+      <div class="stats-card warning">
+        <div class="stats-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+          <p class="stats-number" id="rawatBrg">-</p>
+          <p class="stats-label">Perawatan</p>
+        </div>
+      </div>
+      <div class="stats-card danger">
+        <div class="stats-icon"><i class="bi bi-x-circle"></i></div>
+        <div>
+          <p class="stats-number" id="rusakBrg">-</p>
+          <p class="stats-label">Barang Rusak</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel -->
+    <div class="table-section">
+      <div class="table-header">
+        <h5 class="table-title">Daftar Barang</h5>
+        <div class="d-flex gap-2">
+          <!-- CETAK BARCODE: hanya admin & staff (viewer disembunyikan via JS) -->
+          <button class="btn btn-outline-dark btn-sm" id="btnCetakBarcode" onclick="window.location.href='cetak-barcode.html'">
+            <i class="bi bi-upc-scan"></i> Cetak Barcode
+          </button>
+
+          <button class="btn btn-success btn-sm" onclick="exportData()">
+            <i class="bi bi-download"></i> Export
+          </button>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="bi bi-plus-circle"></i> Tambah Barang
+          </button>
+        </div>
+      </div>
+      <div class="table-content">
+        <table id="itemsTable" class="table table-hover w-100 table-mobile-cards align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nama Barang</th>
+              <th>Kategori</th>
+              <th>Merk/Model</th>
+              <th>Jumlah</th>
+              <th>Satuan</th>
+              <th>Gedung</th>
+              <th>Ruangan</th>
+              <th>Tanggal Masuk</th>
+              <th>Status</th>
+              <th>Foto</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="barangBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Tambah -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-semibold">Tambah Barang Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="addItemForm" class="modal-body pt-3">
+        <div class="row g-3">
+
+          <!-- Nama & Kategori -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Nama Barang</label>
+            <input type="text" name="nama" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label mb-1">Kategori</label>
+            <select name="kategori" class="form-select" required>
+              <option value="">Pilih</option>
+              <option>Elektronik</option>
+              <option>Furniture</option>
+              <option>Alat Tulis</option>
+              <option>Kendaraan</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+
+          <!-- Merk -->
+          <div class="col-md-12">
+            <label class="form-label mb-1">Merk/Model</label>
+            <input type="text" name="merk" class="form-control">
+          </div>
+
+          <!-- Jumlah & Satuan -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Jumlah</label>
+            <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Satuan</label>
+            <input type="text" name="satuan" class="form-control" value="Unit" required>
+          </div>
+
+          <!-- Gedung & Ruangan -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Gedung</label>
+            <select name="gedung" class="form-select" required
+                    onchange="fillRuangan(this.value,'add')">
+              <option value="">Pilih Gedung</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Ruangan</label>
+            <select name="ruangan" id="addRuangan" class="form-select" required>
+              <option value="">Pilih Ruangan</option>
+            </select>
+          </div>
+
+          <!-- Tanggal Masuk & Status -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Tanggal Masuk</label>
+            <input type="date" name="tglMasuk" class="form-control" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Status</label>
+            <select name="status" class="form-select" required>
+              <option value="">Pilih</option>
+              <option>Aktif</option>
+              <option>Perawatan</option>
+              <option>Rusak</option>
+              <option>Tersedia</option>
+              <option>Dalam Perbaikan</option>
+            </select>
+          </div>
+
+          <!-- Deskripsi -->
+          <div class="col-md-12">
+            <label class="form-label mb-1">Deskripsi</label>
+            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+          </div>
+
+          <!-- Foto -->
+          <div class="col-md-12">
+            <label class="form-label mb-1">Foto Barang</label>
+            <input type="file"
+                   class="form-control"
+                   accept="image/*"
+                   capture="environment"
+                   onchange="previewFoto(this,'addPreview','add')">
+            <div class="mt-2">
+              <img id="addPreview" class="img-preview d-none" alt="Preview">
+            </div>
+            <small class="text-muted d-block mt-1">
+              Foto akan otomatis dikompresi &lt; 2 MB.
+            </small>
+          </div>
+
+        </div>
+
+        <div class="modal-footer border-0 mt-4 pt-2">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+          <button class="btn btn-primary" id="btnSaveItem" type="button" onclick="saveItem()">
+            Simpan Barang
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="editItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Barang</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editItemForm">
+          <input type="hidden" name="id">
+
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label">Nama Barang</label>
+              <input type="text" name="nama" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Kategori</label>
+              <select name="kategori" class="form-select" required>
+                <option value="">Pilih</option>
+                <option>Elektronik</option>
+                <option>Furniture</option>
+                <option>Alat Tulis</option>
+                <option>Kendaraan</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Merk/Model</label>
+              <input type="text" name="merk" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Gedung</label>
+              <select name="gedung" class="form-select" required onchange="fillRuangan(this.value,'edit')">
+                <option value="">Pilih Gedung</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Jumlah & Satuan (EDIT) -->
+          <div class="row mt-3">
+            <div class="col-md-3">
+              <label class="form-label mb-1">Jumlah</label>
+              <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1">Satuan</label>
+              <input type="text" name="satuan" class="form-control" value="Unit" required>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Ruangan</label>
+              <select name="ruangan" id="editRuangan" class="form-select" required>
+                <option value="">Pilih Ruangan</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tanggal Masuk</label>
+              <input type="date" name="tglMasuk" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select" required>
+                <option value="">Pilih</option>
+                <option>Aktif</option>
+                <option>Perawatan</option>
+                <option>Rusak</option>
+                <option>Tersedia</option>
+                <option>Dalam Perbaikan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Foto Barang</label>
+            <input type="file"
+                   class="form-control"
+                   accept="image/*"
+                   capture="environment"
+                   onchange="previewFoto(this,'editPreview','edit')">
+            <div class="mt-2">
+              <img id="editPreview" class="img-preview d-none" alt="Preview">
+            </div>
+            <small class="text-muted d-block mt-1">
+              Foto baru akan mengganti foto lama (jika diisi).
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-warning" id="btnUpdateItem" onclick="updateItem()">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail / Tinjau Barang -->
+<div class="modal fade" id="viewItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detail Barang</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="row g-3 align-items-start">
+          <!-- Keterangan di kiri -->
+          <div class="col-md-7">
+            <table class="table table-sm table-bordered mb-0">
+              <tbody id="viewDetailBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Gambar di kanan -->
+          <div class="col-md-5 text-center">
+            <div class="border rounded p-2 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height:260px;">
+              <img id="viewFoto"
+                   src=""
+                   alt="Foto barang"
+                   class="img-fluid rounded mb-2 d-none"
+                   style="max-height:240px; object-fit:contain;">
+              <div id="viewFotoEmpty" class="text-muted">
+                <i class="bi bi-image mb-1" style="font-size:2rem;"></i>
+                <div>Tidak ada foto</div>
+              </div>
+            </div>
+            <small class="text-muted d-block mt-2">
+              Klik gambar untuk membuka ukuran penuh
+            </small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Layout global -->
+<script src="layout.js"></script>
+
+<!-- Script khusus barang -->
+<script>
+/* ===== KONFIGURASI ===== */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec';
+const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+
+let currentRole = 'viewer'; // default viewer
+let allGedung = [];
+let addFotoBase64 = '';
+let editFotoBase64 = '';
+
+/* ===== UTIL ===== */
+const formatDateDisplay = iso => {
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  return (
+    String(d.getDate()).padStart(2,'0') + '/' +
+    String(d.getMonth()+1).padStart(2,'0') + '/' +
+    d.getFullYear()
+  );
+};
+const badge = st => {
+  const color = st==='Aktif' ? 'success'
+              : st==='Perawatan' ? 'warning'
+              : st==='Rusak' ? 'danger'
+              : 'secondary';
+  return `<span class="badge bg-${color}">${st}</span>`;
+};
+
+/* ===== API WRAPPER ===== */
+function api(action, params = {}) {
+  const body = new URLSearchParams({ action });
+  const token = localStorage.getItem('token');
+  if (token) body.append('token', token);
+
+  Object.entries(params).forEach(([k,v]) => {
+    if (v !== undefined && v !== null) body.append(k, v);
+  });
+
+  return fetch(GAS_URL, { method: 'POST', body })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
+function cekLogin(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+
+  api('getCurrentUser')
+    .then(u => {
+      currentRole = u.role || 'viewer';
+
+      const userInfo = document.getElementById('userInfo');
+      if (userInfo){
+        userInfo.textContent = `${u.nama} (${currentRole})`;
+      }
+
+      applyRoleUI(currentRole);
+
+      // setelah tahu role, baru load data
+      loadBarang();
+      fillLokasi();
+
+      const today = new Date().toISOString().split('T')[0];
+      const tglInput = document.querySelector('#addItemForm input[name="tglMasuk"]');
+      if(tglInput) tglInput.value = today;
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+function doLogout(){
+  api('logout')
+    .finally(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+/* ===== ATUR UI BERDASARKAN ROLE ===== */
+function applyRoleUI(role){
+  if (role === 'viewer') {
+    const btnAdd = document.querySelector('button[data-bs-target="#addItemModal"]');
+    if (btnAdd) btnAdd.style.display = 'none';
+
+    const btnExport = document.querySelector('button[onclick="exportData()"]');
+    if (btnExport) btnExport.style.display = 'none';
+
+    const btnCetak = document.getElementById('btnCetakBarcode');
+    if (btnCetak) btnCetak.style.display = 'none';
+  }
+}
+
+/* ===== KOMPRESI FOTO + PREVIEW ===== */
+function previewFoto(input, previewId, mode){
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  const img = new Image();
+
+  reader.onload = e => {
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // batas dimensi supaya tidak terlalu besar
+      const maxW = 1200;
+      const maxH = 1200;
+      let w = img.width;
+      let h = img.height;
+
+      const ratio = Math.min(maxW / w, maxH / h, 1);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+
+      let quality = 0.9;
+      let base64 = canvas.toDataURL('image/jpeg', quality);
+
+      // cek ukuran dan turunkan kualitas jika > MAX_SIZE
+      function base64Size(b64){
+        // perkiraan ukuran byte dari base64
+        return Math.round((b64.length * 3) / 4);
+      }
+
+      while (base64Size(base64) > MAX_SIZE && quality > 0.3) {
+        quality -= 0.1;
+        base64 = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      if (base64Size(base64) > MAX_SIZE){
+        alert('Gambar terlalu besar meskipun sudah dikompresi. Coba foto dengan resolusi lebih rendah.');
+        input.value = '';
+        return;
+      }
+
+      const imgPrev = document.getElementById(previewId);
+      if (imgPrev){
+        imgPrev.src = base64;
+        imgPrev.classList.remove('d-none');
+      }
+
+      if (mode === 'edit') {
+        editFotoBase64 = base64;
+      } else {
+        addFotoBase64 = base64;
+      }
+    };
+
+    img.src = e.target.result;
+  };
+
+  reader.readAsDataURL(file);
+}
+
+/* ===== DATA MASTER GEDUNG / RUANGAN ===== */
+function fillLokasi(){
+  api('getGedung')
+    .then(data => {
+      allGedung = data || [];
+      const opt = allGedung
+        .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
+        .join('');
+      document.querySelectorAll('select[name="gedung"]').forEach(s=>{
+        s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+      });
+    })
+    .catch(err => console.error(err));
+}
+
+function fillRuangan(kodeGedung, formType){
+  const ruanganSelect = formType === 'add'
+    ? document.getElementById('addRuangan')
+    : document.getElementById('editRuangan');
+
+  ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
+  if(!kodeGedung){
+    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
+    return;
+  }
+
+  api('getRuanganByGedung', { gedung: kodeGedung })
+    .then(data => {
+      const opt = (data || [])
+        .map(r=>`<option value="${r.nama}">${r.nama}</option>`)
+        .join('');
+      ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+    })
+    .catch(err => {
+      console.error(err);
+      ruanganSelect.innerHTML = '<option value="">Gagal memuat</option>';
+    });
+}
+
+/* ===== LOAD BARANG ===== */
+function loadBarang(){
+  api('getBarang')
+    .then(data => {
+      const items = data || [];
+
+      document.getElementById('totalBrg').textContent  = items.length;
+      document.getElementById('aktifBrg').textContent  = items.filter(x=>x.status==='Aktif').length;
+      document.getElementById('rawatBrg').textContent  = items.filter(x=>x.status==='Perawatan').length;
+      document.getElementById('rusakBrg').textContent  = items.filter(x=>x.status==='Rusak').length;
+
+      const tbody = document.getElementById('barangBody');
+      tbody.innerHTML = '';
+      items.forEach(b=>{
+        const fotoBtn = `
+          <button class="btn btn-light btn-sm" title="Lihat Foto" onclick="viewItem('${b.id}')">
+            <i class="bi bi-image"></i>
+          </button>`;
+
+        let actionsHtml = '';
+        if (currentRole === 'viewer') {
+          actionsHtml = `
+            <button type="button" class="btn btn-success btn-sm" onclick="viewItem('${b.id}')">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openLabel('${b.id}')">
+              <i class="bi bi-upc-scan"></i>
+            </button>
+          `;
+        } else {
+          actionsHtml = `
+            <button type="button" class="btn btn-warning btn-sm" onclick="editItem('${b.id}')">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-success btn-sm" onclick="viewItem('${b.id}')">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openLabel('${b.id}')">
+              <i class="bi bi-upc-scan"></i>
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="deleteItem('${b.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          `;
+        }
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td data-label="ID">${b.id}</td>
+            <td data-label="Nama Barang">${b.nama}</td>
+            <td data-label="Kategori">${b.kategori}</td>
+            <td data-label="Merk/Model">${b.merk || '-'}</td>
+            <td data-label="Jumlah">${b.jumlah || 1}</td>
+            <td data-label="Satuan">${b.satuan || 'Unit'}</td>
+            <td data-label="Gedung">${b.gedungNama || b.gedung || '-'}</td>
+            <td data-label="Ruangan">${b.ruangan || '-'}</td>
+            <td data-label="Tanggal Masuk">${formatDateDisplay(b.tglMasuk)}</td>
+            <td data-label="Status">${badge(b.status)}</td>
+            <td data-label="Foto" class="text-center">${fotoBtn}</td>
+            <td data-label="Aksi">${actionsHtml}</td>
+          </tr>
+        `);
+      });
+
+      if ($.fn.DataTable && $.fn.DataTable.isDataTable('#itemsTable')) {
+        $('#itemsTable').DataTable().destroy();
+      }
+      $('#itemsTable').DataTable({
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        autoWidth: false,
+        columnDefs: [
+          { targets: [10, 11], orderable: false, searchable: false }
+        ],
+        language:{
+          search:"Cari:",
+          lengthMenu:"Tampilkan _MENU_ data",
+          info:"Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+          paginate:{
+            first:"Pertama",
+            last:"Terakhir",
+            next:"Selanjutnya",
+            previous:"Sebelumnya"
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal memuat data barang: ' + err.message);
+    });
+}
+
+/* ===== CRUD ===== */
+function saveItem(){
+  const form = document.getElementById('addItemForm');
+  if(!form.checkValidity()){form.reportValidity();return;}
+
+  const btn = document.getElementById('btnSaveItem');
+  btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
+  btn.disabled = true;
+
+  const fd = new FormData(form);
+  const params = {};
+  fd.forEach((v,k)=>{ if(v) params[k] = v; });
+  if(addFotoBase64) params.foto = addFotoBase64;
+
+  api('addBarang', params)
+    .then(() => {
+      alert('Barang berhasil ditambahkan');
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err.message))
+    .finally(() => {
+      btn.innerHTML='Simpan Barang';
+      btn.disabled=false;
+    });
+}
+
+function editItem(id){
+  api('getBarangById', { id })
+    .then(b => {
+      const form = document.getElementById('editItemForm');
+
+      form.id.value       = b.id;
+      form.nama.value     = b.nama;
+      form.kategori.value = b.kategori;
+      form.merk.value     = b.merk || '';
+      form.jumlah.value   = b.jumlah || 1;
+      form.satuan.value   = b.satuan || 'Unit';
+      form.gedung.value   = b.gedung || '';
+
+      fillRuangan(b.gedung,'edit');
+      setTimeout(()=>{
+        form.ruangan.value = b.ruangan || '';
+      },500);
+
+      form.tglMasuk.value = b.tglMasuk || '';
+      form.status.value   = b.status;
+      form.deskripsi.value= b.deskripsi || '';
+
+      editFotoBase64 = '';
+      document.getElementById('editPreview').classList.add('d-none');
+
+      new bootstrap.Modal(document.getElementById('editItemModal')).show();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal mengambil data barang: ' + err.message);
+    });
+}
+
+function updateItem(){
+  const form = document.getElementById('editItemForm');
+  if(!form.checkValidity()){form.reportValidity();return;}
+
+  const btn = document.getElementById('btnUpdateItem');
+  btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
+  btn.disabled = true;
+
+  const fd = new FormData(form);
+  const params = {};
+  fd.forEach((v,k)=>{ if(v) params[k] = v; });
+  if(editFotoBase64) params.foto = editFotoBase64;
+
+  api('updateBarang', params)
+    .then(() => {
+      alert('Barang berhasil diupdate');
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err.message))
+    .finally(() => {
+      btn.innerHTML='Simpan Perubahan';
+      btn.disabled=false;
+    });
+}
+
+function deleteItem(id){
+  if(!confirm('Hapus barang '+id+'?')) return;
+
+  api('deleteBarang', { id })
+    .then(() => {
+      alert('Barang berhasil dihapus');
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+
+/* ===== DETAIL / TINJAU ===== */
+function viewItem(id){
+  api('getBarangById', { id })
+    .then(b => {
+      const img   = document.getElementById('viewFoto');
+      const empty = document.getElementById('viewFotoEmpty');
+
+      if (b.foto && String(b.foto).trim() !== '') {
+        const urlFoto = String(b.foto).trim();
+        img.src = urlFoto;
+        img.classList.remove('d-none');
+        empty.classList.add('d-none');
+        img.onclick = function () {
+          window.open(urlFoto, '_blank');
+        };
+      } else {
+        img.src = '';
+        img.classList.add('d-none');
+        empty.classList.remove('d-none');
+        img.onclick = null;
+      }
+
+      var jumlahText = (b.jumlah !== undefined && b.jumlah !== null && b.jumlah !== '')
+        ? b.jumlah
+        : 1;
+      var satuanText = b.satuan ? b.satuan : '';
+
+      const body = document.getElementById('viewDetailBody');
+      body.innerHTML = `
+        <tr><th style="width:35%">ID</th><td>${b.id}</td></tr>
+        <tr><th>Nama Barang</th><td>${b.nama}</td></tr>
+        <tr><th>Kategori</th><td>${b.kategori}</td></tr>
+        <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
+        <tr><th>Jumlah</th><td>${jumlahText} ${satuanText}</td></tr>
+        <tr><th>Gedung</th><td>${b.gedungNama || b.gedung}</td></tr>
+        <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
+        <tr><th>Tanggal Masuk</th><td>${formatDateDisplay(b.tglMasuk)}</td></tr>
+        <tr><th>Status</th><td>${b.status}</td></tr>
+        <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
+      `;
+
+      new bootstrap.Modal(document.getElementById('viewItemModal')).show();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal mengambil detail: ' + err.message);
+    });
+}
+
+/* ===== EXPORT ===== */
+function exportData(){
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GAS_URL;
+  form.target = '_blank';
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'action';
+  input.value = 'exportBarang';
+
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+
+/* ===== BUKA LABEL QR PER BARANG ===== */
+function openLabel(id){
+  window.open('label.html?id=' + encodeURIComponent(id), '_blank');
+}
+
+/* INIT */
+window.onload = cekLogin;
+</script>
+</body>
+</html>

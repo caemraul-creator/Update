@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Inventaris</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Layout global -->
+  <link rel="stylesheet" href="layout.css">
+
+  <style>
+    /* ====== KHUSUS DASHBOARD ====== */
+
+    /* header sedikit dirapikan */
+    .page-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+    }
+
+    /* warna icon di kartu statistik */
+    .stats-card.primary  .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+    .stats-card.success  .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
+    .stats-card.warning  .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
+    .stats-card.danger   .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
+
+    .stats-card:hover{transform:translateY(-3px);transition:.25s;}
+    .stats-number{font-size:1.6rem;}
+    .stats-label{font-size:.8rem;color:#6b7280;}
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:1.25rem;
+      margin-top:1.5rem;
+      margin-bottom:1.75rem;
+    }
+
+    .card-glass{
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius);
+      padding:1.25rem 1.25rem 1rem;
+      box-shadow:var(--shadow);
+    }
+    .card-title{
+      font-size:.98rem;
+      font-weight:600;
+      margin-bottom:.6rem;
+    }
+
+    .table-section{
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(12px);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin-bottom:1.75rem;
+    }
+    .table-header{
+      background:rgba(248,250,252,.9);
+      padding:1.1rem 1.4rem;
+      border-bottom:1px solid rgba(226,232,240,.6);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .table-title{
+      margin:0;
+      font-size:1.05rem;
+      font-weight:600;
+    }
+    .table-content{
+      padding:1.25rem 1.4rem 1.4rem;
+    }
+    .table{
+      margin:0;
+      font-size:.9rem;
+    }
+    .table thead th{white-space:nowrap;}
+    .badge{white-space:nowrap;}
+
+    .btn{
+      border-radius:999px;
+      padding:.4rem 1rem;
+      font-size:.8rem;
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+    }
+    .btn i{font-size:1rem;}
+
+    /* ====== TABEL JADI KARTU DI HP (lebih nyaman dibaca) ====== */
+    @media (max-width:575.98px){
+      .page-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .grid-2{
+        grid-template-columns:1fr;
+      }
+
+      .stats-number{
+        font-size:1.4rem;
+      }
+
+      .table-mobile-cards thead{
+        display:none;
+      }
+      .table-mobile-cards tbody tr{
+        display:block;
+        margin-bottom:.75rem;
+        border-radius:.85rem;
+        background:#ffffff;
+        box-shadow:0 8px 20px -12px rgba(15,23,42,.45);
+        overflow:hidden;
+      }
+      .table-mobile-cards tbody td{
+        display:flex;
+        justify-content:space-between;
+        gap:.75rem;
+        padding:.5rem .9rem;
+        font-size:.86rem;
+        border-bottom:1px solid #f1f5f9;
+      }
+      .table-mobile-cards tbody td:last-child{
+        border-bottom:none;
+      }
+      .table-mobile-cards tbody td::before{
+        content:attr(data-label);
+        font-weight:500;
+        color:#6b7280;
+        text-align:left;
+        flex:0 0 45%;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="main-wrapper">
+  <!-- SIDEBAR (pakai layout.css) -->
+  <nav class="sidebar">
+    <div class="brand">
+      <i class="bi bi-box-seam"></i>
+      <h4 class="m-0">Inventaris</h4>
+    </div>
+    <div class="nav flex-column">
+      <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
+      <a class="nav-link" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- HEADER + TOGGLE SIDEBAR + USER -->
+    <div class="page-header">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Tombol buka sidebar di HP/Tablet -->
+        <button type="button"
+                id="btnToggleSidebar"
+                class="btn btn-outline-light btn-sm d-md-none btn-rounded">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h2 class="page-title mb-1">Dashboard</h2>
+          <p class="page-subtitle mb-0">Ringkasan cepat kondisi menyeluruh</p>
+        </div>
+      </div>
+      <div class="text-end small">
+        <div id="userInfo" class="text-muted mb-1"></div>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="doLogout()">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistik -->
+    <div class="stats-grid mb-4">
+      <div class="stats-card primary">
+        <div class="stats-icon"><i class="bi bi-box"></i></div>
+        <div>
+          <p class="stats-number" id="statTotalBarang">-</p>
+          <p class="stats-label">Total Barang</p>
+        </div>
+      </div>
+      <div class="stats-card success">
+        <div class="stats-icon"><i class="bi bi-building"></i></div>
+        <div>
+          <p class="stats-number" id="statGedung">-</p>
+          <p class="stats-label">Total Gedung</p>
+        </div>
+      </div>
+      <div class="stats-card warning">
+        <div class="stats-icon"><i class="bi bi-door-open"></i></div>
+        <div>
+          <p class="stats-number" id="statRuangan">-</p>
+          <p class="stats-label">Total Ruangan</p>
+        </div>
+      </div>
+      <div class="stats-card danger">
+        <div class="stats-icon"><i class="bi bi-exclamation-octagon"></i></div>
+        <div>
+          <p class="stats-number" id="statRusak">-</p>
+          <p class="stats-label">Barang Rusak</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="grid-2">
+      <div class="card-glass">
+        <div class="card-title d-flex justify-content-between align-items-center">
+          <span>Barang per Gedung</span>
+          <small class="text-muted">Semua data</small>
+        </div>
+        <div style="height:220px">
+          <canvas id="chartGedung"></canvas>
+        </div>
+      </div>
+      <div class="card-glass">
+        <div class="card-title d-flex justify-content-between align-items-center">
+          <span>Distribusi Status Barang</span>
+          <small class="text-muted">Semua barang</small>
+        </div>
+        <div style="height:220px">
+          <canvas id="chartStatus"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel barang terbaru -->
+    <div class="table-section">
+      <div class="table-header">
+        <h5 class="table-title">Barang Terbaru</h5>
+        <a class="btn btn-outline-primary btn-sm" href="barang.html">
+          <i class="bi bi-arrow-right"></i> Lihat semua
+        </a>
+      </div>
+      <div class="table-content">
+        <div class="table-responsive">
+          <!-- TAMBAH class table-mobile-cards -->
+          <table class="table table-hover mb-0 table-mobile-cards">
+            <thead>
+              <tr>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Gedung</th>
+                <th>Ruangan</th>
+                <th>Tanggal Masuk</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="latestBody">
+              <tr><td colspan="6" class="text-center text-muted">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Script -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="layout.js"></script>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec';
+
+/* ===== API WRAPPER ===== */
+function api(action, params = {}) {
+  const body = new URLSearchParams({ action });
+
+  const token = localStorage.getItem('token');
+  if (token) body.append('token', token);
+
+  Object.entries(params).forEach(([k,v]) => {
+    if (v !== undefined && v !== null) body.append(k, v);
+  });
+
+  return fetch(GAS_URL, { method: 'POST', body })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
+function cekLogin(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+
+  api('getCurrentUser')
+    .then(u => {
+      const userInfo = document.getElementById('userInfo');
+      if (userInfo){
+        userInfo.textContent = `${u.nama} (${u.role})`;
+      }
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+function doLogout(){
+  api('logout')
+    .finally(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+/* ===== UTIL ===== */
+function formatDateDisplay(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+function badgeStatus(s){
+  let cls = 'bg-secondary';
+  if(s==='Aktif') cls = 'bg-success';
+  else if(s==='Perawatan') cls = 'bg-warning text-dark';
+  else if(s==='Rusak') cls = 'bg-danger';
+  else if(s==='Tersedia') cls = 'bg-primary';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+let chartGedungInst, chartStatusInst;
+
+/* ===== LOAD DASHBOARD ===== */
+async function loadDashboard(){
+  try {
+    const [dashboard, summary, barang] = await Promise.all([
+      api('getDashboard'),
+      api('getSummary'),
+      api('getBarang')
+    ]);
+
+    // Summary
+    document.getElementById('statTotalBarang').textContent = dashboard.total || 0;
+    document.getElementById('statRusak').textContent       = dashboard.rusak || 0;
+    document.getElementById('statGedung').textContent      = summary.totGdg || 0;
+    document.getElementById('statRuangan').textContent     = summary.totRuang || 0;
+
+    // Barang terbaru
+    const latestBody = document.getElementById('latestBody');
+    latestBody.innerHTML = '';
+    (dashboard.recent || []).forEach(b => {
+      latestBody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td data-label="Nama Barang">${b.nama}</td>
+          <td data-label="Kategori">${b.kategori}</td>
+          <td data-label="Gedung">${b.gedung}</td>
+          <td data-label="Ruangan">${b.ruangan || '-'}</td>
+          <td data-label="Tanggal Masuk">${formatDateDisplay(b.tgl)}</td>
+          <td data-label="Status">${badgeStatus(b.status)}</td>
+        </tr>
+      `);
+    });
+    if((dashboard.recent || []).length === 0){
+      latestBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada data</td></tr>';
+    }
+
+    // Chart per Gedung
+    const labelsGedung = dashboard.chartLabel || [];
+    const dataGedung   = dashboard.chartData || [];
+    const ctxG = document.getElementById('chartGedung');
+    if(chartGedungInst) chartGedungInst.destroy();
+    chartGedungInst = new Chart(ctxG, {
+      type:'bar',
+      data:{
+        labels:labelsGedung,
+        datasets:[{
+          label:'Jumlah Barang',
+          data:dataGedung
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:true,precision:0}}
+      }
+    });
+
+    // Chart Status (diambil dari getBarang)
+    const counts = {Aktif:0, Perawatan:0, Rusak:0, Tersedia:0, Lainnya:0};
+    (barang || []).forEach(b=>{
+      if(counts[b.status] !== undefined) counts[b.status]++; else counts.Lainnya++;
+    });
+    const labelsStatus = Object.keys(counts).filter(k=>counts[k]>0);
+    const dataStatus   = labelsStatus.map(k=>counts[k]);
+
+    const ctxS = document.getElementById('chartStatus');
+    if(chartStatusInst) chartStatusInst.destroy();
+    chartStatusInst = new Chart(ctxS, {
+      type:'doughnut',
+      data:{
+        labels:labelsStatus,
+        datasets:[{ data:dataStatus }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom'}}
+      }
+    });
+
+  } catch(err) {
+    console.error(err);
+    alert('Gagal memuat dashboard: ' + err.message);
+  }
+}
+
+/* ===== INIT ===== */
+window.onload = function(){
+  cekLogin();
+  loadDashboard();
+};
+</script>
+</body>
+</html>

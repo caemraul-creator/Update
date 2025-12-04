@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Label Barang</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Library QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:#f3f4f6;
+      padding:1rem;
+    }
+
+    .label-wrapper{
+      width: 60mm;              /* kira-kira 5–6 cm */
+      min-height: 40mm;
+      background:#ffffff;
+      border:1px solid #e5e7eb;
+      border-radius:6px;
+      padding:6mm 6mm 4mm;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* SATU BORDER: QR + ID DI DALAMNYA */
+    .qr-box{
+      padding:4px 6px 6px;
+      border:1px solid #9ca3af;
+      border-radius:6px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+    }
+
+    #qrcode{
+      width:90px;
+      height:90px;
+    }
+
+    .item-id{
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:0.08em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      text-align:center;
+    }
+
+    .print-actions{
+      margin: 0.75rem auto 0;
+      max-width: 60mm;
+      display:flex;
+      justify-content:space-between;
+      gap:0.5rem;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .btn{
+      flex:1;
+      border-radius:999px;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+      padding:0.35rem 0.5rem;
+      font-size:0.75rem;
+      cursor:pointer;
+    }
+
+    .btn-primary{
+      background:#2563eb;
+      border-color:#2563eb;
+      color:#fff;
+    }
+
+    @media print{
+      body{
+        background:#ffffff;
+        padding:0;
+      }
+      .print-actions{
+        display:none !important;
+      }
+      .label-wrapper{
+        margin:0;
+        border:none;
+        box-shadow:none;
+      }
+      /* Saat print, border kotak jadi hitam tegas */
+      .qr-box{
+        border-color:#000;
+        border-width:1px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="label-wrapper">
+    <div class="qr-box">
+      <div id="qrcode"></div>
+      <div class="item-id" id="itemId">ID</div>
+    </div>
+  </div>
+
+  <div class="print-actions">
+    <button class="btn" onclick="window.close()">Tutup</button>
+    <button class="btn btn-primary" onclick="window.print()">Cetak</button>
+  </div>
+
+<script>
+function loadLabel(){
+  // ambil ?id= dari URL
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  if(!id){
+    alert('ID barang tidak ditemukan di URL');
+    return;
+  }
+
+  // tampilkan ID di dalam kotak
+  document.getElementById('itemId').textContent = id;
+
+  // domain Netlify kamu (ganti kalau nanti domain berubah)
+  var BASE_URL = 'https://invenruangan.netlify.app/';
+
+  // URL halaman detail yang dibuka saat QR di-scan
+  // kalau mau versi public, ganti ke: detail-barang-public.html
+  var detailUrl = BASE_URL + 'detail-barang.html?id=' + encodeURIComponent(id);
+
+  var qrContainer = document.getElementById('qrcode');
+  qrContainer.innerHTML = '';
+
+  new QRCode(qrContainer, {
+    text: detailUrl,
+    width: 90,
+    height: 90
+  });
+}
+
+window.onload = loadLabel;
+</script>
+</body>
+</html>

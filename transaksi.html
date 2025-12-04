@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Transaksi & Mutasi Barang</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Layout global -->
+  <link rel="stylesheet" href="layout.css">
+
+  <!-- CSS khusus transaksi -->
+  <style>
+    .card-glass{
+      background:rgba(255,255,255,.96);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      border:none;
+    }
+    .badge{
+      white-space:nowrap;
+    }
+    .form-text{
+      font-size:.8rem;
+    }
+  </style>
+</head>
+<body>
+<div class="main-wrapper">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <i class="bi bi-box-seam"></i>
+      <h4 class="m-0">Inventaris</h4>
+    </div>
+    <div class="nav flex-column">
+      <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
+      <a class="nav-link" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link active" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="page-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Toggle sidebar untuk HP/Tablet -->
+        <button type="button"
+                id="btnToggleSidebar"
+                class="btn btn-outline-primary btn-sm d-md-none btn-rounded">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h2 class="page-title mb-1">Transaksi & Mutasi Barang</h2>
+          <p class="page-subtitle mb-0">Catat barang masuk, keluar, dan pindah ruangan</p>
+        </div>
+      </div>
+      <div class="text-end">
+        <div id="userInfo" class="small text-muted mb-1"></div>
+        <button type="button" class="btn btn-outline-danger btn-sm btn-rounded" onclick="doLogout()">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- FORM TRANSAKSI -->
+    <div class="card card-glass mb-3" id="cardTransForm">
+      <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="card-title mb-1">Input Transaksi</h5>
+          <p class="text-muted small mb-0">Pilih barang, jenis transaksi, lalu simpan</p>
+        </div>
+        <span id="viewerBadge" class="badge bg-secondary d-none">
+          Mode lihat saja
+        </span>
+      </div>
+      <div class="card-body">
+        <form id="transForm" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label mb-1">Pilih Barang</label>
+            <select id="barangSelect" class="form-select" required>
+              <option value="">Pilih Barang</option>
+            </select>
+            <div class="form-text" id="barangInfo"></div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label mb-1">Jenis</label>
+            <select id="jenis" class="form-select" required>
+              <option value="">Pilih</option>
+              <option value="MASUK">Masuk</option>
+              <option value="KELUAR">Keluar</option>
+              <option value="PINDAH">Pindah Ruangan</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label mb-1">Jumlah</label>
+            <input type="number" id="jumlah" class="form-control" min="1" value="1" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label mb-1">Satuan</label>
+            <input type="text" id="satuan" class="form-control" value="Unit" required>
+          </div>
+
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-primary w-100 btn-rounded" id="btnSimpan" onclick="simpanTransaksi()">
+              <i class="bi bi-save"></i> Simpan
+            </button>
+          </div>
+
+          <!-- Lokasi Asal -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Gedung Asal</label>
+            <input type="text" id="gdgAsal" class="form-control" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Ruangan Asal</label>
+            <input type="text" id="ruangAsal" class="form-control" readonly>
+          </div>
+
+          <!-- Lokasi Tujuan (khusus PINDAH) -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Gedung Tujuan</label>
+            <select id="gdgTujuan" class="form-select">
+              <option value="">-</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Ruangan Tujuan</label>
+            <select id="ruangTujuan" class="form-select">
+              <option value="">-</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label mb-1">Keterangan</label>
+            <textarea id="keterangan" rows="2" class="form-control"></textarea>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TABEL RIWAYAT -->
+    <div class="card card-glass">
+      <div class="card-header bg-white border-0">
+        <h5 class="card-title mb-0">Riwayat Transaksi</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="transTable" class="table table-hover w-100 table-mobile-cards align-middle">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Jenis</th>
+                <th>ID Barang</th>
+                <th>Nama Barang</th>
+                <th>Jumlah</th>
+                <th>Asal</th>
+                <th>Tujuan</th>
+                <th>User</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="transBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Script -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Layout global -->
+<script src="layout.js"></script>
+
+<script>
+// SAMAKAN DENGAN HALAMAN LAIN
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec';
+
+// simpan role saat ini (default viewer)
+let currentRole = 'viewer';
+
+/* ===== API WRAPPER ===== */
+function api(action, params = {}) {
+  const body = new URLSearchParams({ action });
+
+  // kirim token ke GAS
+  const token = localStorage.getItem('token');
+  if (token) body.append('token', token);
+
+  Object.entries(params).forEach(([k,v]) => {
+    if (v !== undefined && v !== null) body.append(k, v);
+  });
+
+  return fetch(GAS_URL, { method: 'POST', body })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
+function cekLogin(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+  api('getCurrentUser')
+    .then(u => {
+      currentRole = u.role || 'viewer';
+
+      document.getElementById('userInfo').textContent =
+        u.nama + ' (' + currentRole + ')';
+
+      applyRoleUI(currentRole);
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+function doLogout(){
+  api('logout')
+    .finally(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+/* ===== ATUR UI BERDASARKAN ROLE ===== */
+function applyRoleUI(role){
+  if (role === 'viewer') {
+    const formEls = document.querySelectorAll('#transForm input, #transForm select, #transForm textarea');
+    formEls.forEach(el => el.disabled = true);
+
+    const btn = document.getElementById('btnSimpan');
+    if (btn){
+      btn.disabled = true;
+      btn.innerHTML = 'Hanya bisa melihat';
+    }
+
+    const badge = document.getElementById('viewerBadge');
+    if (badge) badge.classList.remove('d-none');
+
+    // kartu form sedikit di-fade biar kelihatan read-only
+    const card = document.getElementById('cardTransForm');
+    if (card) card.style.opacity = '0.7';
+  }
+}
+
+/* === INIT === */
+let barangList = [];
+let gedungList = [];
+
+window.onload = () => {
+  cekLogin();
+  loadBarang();
+  loadGedung();
+  loadTransaksi();
+
+  document.getElementById('barangSelect').addEventListener('change', onBarangChange);
+  document.getElementById('jenis').addEventListener('change', updateLokasiFields);
+  document.getElementById('gdgTujuan').addEventListener('change', onGedungTujuanChange);
+
+  // awal: matikan tujuan
+  updateLokasiFields();
+};
+
+function loadBarang(){
+  api('getBarang')
+    .then(data => {
+      barangList = data || [];
+      const sel = document.getElementById('barangSelect');
+      sel.innerHTML = '<option value="">Pilih Barang</option>' +
+        barangList.map(b =>
+          `<option value="${b.id}">${b.id} - ${b.nama}</option>`
+        ).join('');
+    })
+    .catch(err => alert('Gagal memuat barang: ' + err.message));
+}
+
+function loadGedung(){
+  api('getGedung')
+    .then(data => {
+      gedungList = data || [];
+      const sel = document.getElementById('gdgTujuan');
+      sel.innerHTML = '<option value="">-</option>' +
+        gedungList.map(g => `<option value="${g.kode}">${g.nama}</option>`).join('');
+    })
+    .catch(err => console.error(err));
+}
+
+function onGedungTujuanChange(){
+  const kode = document.getElementById('gdgTujuan').value;
+  const selR = document.getElementById('ruangTujuan');
+  selR.innerHTML = '<option value="">Memuat...</option>';
+  if (!kode){
+    selR.innerHTML = '<option value="">-</option>';
+    return;
+  }
+  api('getRuanganByGedung',{ gedung:kode })
+    .then(data => {
+      selR.innerHTML = '<option value="">-</option>' +
+        (data||[]).map(r => `<option value="${r.nama}">${r.nama}</option>`).join('');
+    })
+    .catch(err => {
+      console.error(err);
+      selR.innerHTML = '<option value="">Gagal memuat</option>';
+    });
+}
+
+function onBarangChange(){
+  const id = document.getElementById('barangSelect').value;
+  const info = document.getElementById('barangInfo');
+  const gdgAsal = document.getElementById('gdgAsal');
+  const ruangAsal = document.getElementById('ruangAsal');
+  const satuanInput = document.getElementById('satuan');
+  const jumlahInput = document.getElementById('jumlah');
+
+  const b = barangList.find(x => x.id === id);
+  if (!b){
+    info.textContent = '';
+    gdgAsal.value = '';
+    ruangAsal.value = '';
+    return;
+  }
+  info.textContent = `${b.kategori} • ${b.merk || '-'} • Stok: ${b.jumlah} ${b.satuan||''}`;
+  gdgAsal.value = b.gedungNama || b.gedung || '';
+  ruangAsal.value = b.ruangan || '';
+  satuanInput.value = b.satuan || 'Unit';
+  jumlahInput.value = 1;
+  updateLokasiFields();
+}
+
+function updateLokasiFields(){
+  const jenis = document.getElementById('jenis').value;
+  const tujuanDisabled = (jenis !== 'PINDAH');
+
+  const gdgT = document.getElementById('gdgTujuan');
+  const ruangT = document.getElementById('ruangTujuan');
+
+  gdgT.disabled   = tujuanDisabled;
+  ruangT.disabled = tujuanDisabled;
+
+  if (tujuanDisabled){
+    gdgT.value = '';
+    ruangT.innerHTML = '<option value="">-</option>';
+  }
+}
+
+function simpanTransaksi(){
+  const form = document.getElementById('transForm');
+  if (!form.checkValidity()){ form.reportValidity(); return; }
+
+  const barangId = document.getElementById('barangSelect').value;
+  const jenis    = document.getElementById('jenis').value;
+  const jumlah   = document.getElementById('jumlah').value;
+  const satuan   = document.getElementById('satuan').value;
+  const gdgAsal  = document.getElementById('gdgAsal').value;
+  const ruangAsal= document.getElementById('ruangAsal').value;
+  const gdgTj    = document.getElementById('gdgTujuan').value;
+  const ruangTj  = document.getElementById('ruangTujuan').value;
+  const ket      = document.getElementById('keterangan').value;
+
+  if (jenis === 'PINDAH' && (!gdgTj || !ruangTj)){
+    alert('Untuk pindah ruangan, gedung & ruangan tujuan wajib diisi');
+    return;
+  }
+
+  const btn = document.getElementById('btnSimpan');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+
+  api('addTransaksi', {
+    barangId,
+    jenis,
+    jumlah,
+    satuan,
+    gedungAsal: gdgAsal,
+    ruanganAsal: ruangAsal,
+    gedungTujuan: gdgTj,
+    ruanganTujuan: ruangTj,
+    keterangan: ket
+  })
+  .then(res => {
+    alert('Transaksi tersimpan. Stok akhir: ' + res.stokAkhir);
+    form.reset();
+    document.getElementById('barangInfo').textContent = '';
+    document.getElementById('gdgAsal').value = '';
+    document.getElementById('ruangAsal').value = '';
+    document.getElementById('gdgTujuan').value = '';
+    document.getElementById('ruangTujuan').innerHTML = '<option value="">-</option>';
+    updateLokasiFields();
+    loadBarang();
+    loadTransaksi();
+  })
+  .catch(err => alert('Error: ' + err.message))
+  .finally(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-save"></i> Simpan';
+  });
+}
+
+function loadTransaksi(){
+  api('getTransaksi')
+    .then(data => {
+      const tbody = document.getElementById('transBody');
+      tbody.innerHTML = '';
+
+      (data || []).forEach(t => {
+        const asal = (t.gdgAsal || t.ruangAsal) ? `${t.gdgAsal || ''} / ${t.ruangAsal || ''}` : '-';
+        const tujuan = (t.gdgTujuan || t.ruangTujuan) ? `${t.gdgTujuan || ''} / ${t.ruangTujuan || ''}` : '-';
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td data-label="Tanggal">${t.tanggal}</td>
+            <td data-label="Jenis">
+              <span class="badge bg-${
+                t.jenis==='MASUK' ? 'success' : t.jenis==='KELUAR' ? 'danger' : 'warning'
+              }">${t.jenis}</span>
+            </td>
+            <td data-label="ID Barang">${t.barangId}</td>
+            <td data-label="Nama Barang">${t.namaBarang}</td>
+            <td data-label="Jumlah">${t.jumlah} ${t.satuan||''}</td>
+            <td data-label="Asal">${asal}</td>
+            <td data-label="Tujuan">${tujuan}</td>
+            <td data-label="User">${t.username}</td>
+            <td data-label="Keterangan">${t.keterangan || '-'}</td>
+          </tr>
+        `);
+      });
+
+      // Inisialisasi / re-init DataTables setelah tbody terisi
+      if ($.fn.DataTable.isDataTable('#transTable')){
+        $('#transTable').DataTable().destroy();
+      }
+      $('#transTable').DataTable({
+        order: [[0,'desc']],
+        pageLength: 10,
+        lengthChange: false,
+        language:{
+          search:"Cari:",
+          lengthMenu:"Tampilkan _MENU_ data",
+          info:"Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+          paginate:{
+            first:"Pertama", last:"Terakhir",
+            next:"Selanjutnya", previous:"Sebelumnya"
+          }
+        }
+      });
+    })
+    .catch(err => alert('Gagal memuat transaksi: ' + err.message));
+}
+</script>
+</body>
+</html>

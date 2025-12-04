@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Inventaris</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      margin:0;
+    }
+    .card-login{
+      max-width:380px;
+      width:100%;
+      border-radius:16px;
+      box-shadow:0 20px 40px rgba(15,23,42,.35);
+    }
+  </style>
+</head>
+<body>
+<div class="card card-login">
+  <div class="card-body p-4">
+    <h4 class="mb-3 text-center">Login Inventaris</h4>
+    <p class="text-muted small text-center mb-4">Masuk untuk mengelola data barang</p>
+    <form id="loginForm">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button type="button" id="btnLogin" class="btn btn-primary w-100" onclick="doLogin()">
+        Login
+      </button>
+      <div id="errorMsg" class="text-danger small mt-2"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+// SAMAKAN DENGAN HALAMAN LAIN
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybPJC9cma13VPdf0ttElGc_CMe5-C-26pTsAkaMfctHcVuKrK1mdVYQcb7sbWcNtgf/exec';
+
+function apiRaw(action, params = {}){
+  const body = new URLSearchParams({ action });
+  Object.entries(params).forEach(([k,v])=>{
+    if(v !== undefined && v !== null) body.append(k,v);
+  });
+  return fetch(GAS_URL,{method:'POST',body})
+    .then(r=>r.json())
+    .then(res=>{
+      if(!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+      return res.data;
+    });
+}
+
+function doLogin(){
+  const form = document.getElementById('loginForm');
+  const btn  = document.getElementById('btnLogin');
+  const errEl= document.getElementById('errorMsg');
+  errEl.textContent = '';
+
+  if(!form.checkValidity()){
+    form.reportValidity();
+    return;
+  }
+
+  const fd = new FormData(form);
+  const username = fd.get('username');
+  const password = fd.get('password');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Masuk...';
+
+  apiRaw('login',{ username, password })
+    .then(u => {
+      // simpan token & info user
+      localStorage.setItem('token', u.token);
+      localStorage.setItem('username', u.username);
+      localStorage.setItem('nama', u.nama || '');
+      localStorage.setItem('role', u.role || 'viewer');
+      window.location.href = 'dashboard.html';
+    })
+    .catch(err => {
+      errEl.textContent = 'Login gagal: ' + err.message;
+    })
+    .finally(()=>{
+      btn.disabled = false;
+      btn.innerHTML = 'Login';
+    });
+}
+
+// optional: enter di field langsung panggil doLogin
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  doLogin();
+});
+</script>
+</body>
+</html>
