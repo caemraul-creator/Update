@@ -29,7 +29,6 @@
     backdrop-filter:blur(20px);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
-    /* JANGAN hidden, biar kalau tabel lebih lebar bisa scroll */
     overflow-x:auto;
     overflow-y:visible;
     margin-bottom:1.75rem;
@@ -137,15 +136,15 @@
     font-size:.8rem !important;
   }
 
-  /* SEMBUNYIKAN hanya control length DataTables saat layar sempit
-     supaya tampilan tetap bersih, tapi search tetap MUNCUL */
+  /* SEMBUNYIKAN hanya control length DataTables saat layar sempit,
+     search tetap tampil */
   @media (max-width: 992px){
     div.dataTables_length{
       display:none !important;
     }
   }
 
-  /* ===== Tambahan agar 12 kolom tetap full, teks panjang tidak wrap ===== */
+  /* Tambahan agar 12 kolom tetap full, teks panjang tidak wrap */
   @media (max-width: 992px) {
     .table-responsive {
       display: block;
@@ -168,7 +167,6 @@
     width: 1%;
     white-space: nowrap;
   }
-</style>  <!-- letak ini tetap ada, jangan dihapus -->
   </style>
 </head>
 <body>
@@ -659,24 +657,83 @@ function applyRoleUI(role){
   }
 }
 
-/* ===== FOTO ===== */
+/* ===== FOTO (AUTO KOMPRES <= 2MB) ===== */
 function previewFoto(input, previewId) {
   const file = input.files[0];
-  if(!file) return;
-  if(file.size > MAX_SIZE){
-    alert('Ukuran foto maksimal 2 MB');
-    input.value='';
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('File harus berupa gambar (JPG/PNG).');
+    input.value = '';
     return;
   }
+
   const reader = new FileReader();
   reader.onload = e => {
-    const base64 = e.target.result;
-    const img = document.getElementById(previewId);
-    img.src = base64;
-    img.classList.remove('d-none');
-    if(previewId==='addPreview') addFotoBase64 = base64;
-    if(previewId==='editPreview') editFotoBase64 = base64;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Batas resolusi supaya file tidak terlalu besar
+      const maxWidth  = 1600;
+      const maxHeight = 1600;
+      let width  = img.width;
+      let height = img.height;
+
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width  = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      canvas.width  = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Kompres JPEG bertahap sampai <= MAX_SIZE
+      let quality = 0.9;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+      const getSize = d => Math.round((d.length * 3) / 4); // estimasi bytes dari base64
+
+      while (getSize(dataUrl) > MAX_SIZE && quality > 0.3) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      if (getSize(dataUrl) > MAX_SIZE) {
+        alert('Foto masih lebih dari 2 MB meskipun sudah dikompres. Coba ambil foto dengan resolusi lebih kecil.');
+        input.value = '';
+        return;
+      }
+
+      // Tampilkan preview
+      const imgEl = document.getElementById(previewId);
+      imgEl.src = dataUrl;
+      imgEl.classList.remove('d-none');
+
+      // Simpan ke variabel global
+      if (previewId === 'addPreview') {
+        addFotoBase64 = dataUrl;
+      } else if (previewId === 'editPreview') {
+        editFotoBase64 = dataUrl;
+      }
+    };
+
+    img.onerror = () => {
+      alert('Gagal membaca gambar. Coba file lain.');
+      input.value = '';
+    };
+
+    img.src = e.target.result;
   };
+
+  reader.onerror = () => {
+    alert('Gagal membaca file gambar.');
+    input.value = '';
+  };
+
   reader.readAsDataURL(file);
 }
 
