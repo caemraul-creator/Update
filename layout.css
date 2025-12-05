@@ -53,6 +53,7 @@ body{
   inset-block:0;
   left:0;
   overflow-y:auto;
+  overflow-x:auto;
   z-index:1000;
 
   /* default di HP: tersembunyi */
@@ -177,7 +178,7 @@ body{
 }
 
 /* ========= RESPONSIVE ========= */
-@media (min-width: 768px){
+@media (min-width: 992px){
   .sidebar{
     transform:none;          /* selalu terlihat di desktop */
   }
@@ -188,7 +189,7 @@ body{
 }
 
 /* header di layar kecil */
-@media (max-width: 767.98px){
+@media (max-width: 991.98px){
   .page-header{
     padding:1rem 1rem;
   }
