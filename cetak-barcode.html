@@ -92,7 +92,7 @@
     /* ===== MODE CETAK: A4 LANDSCAPE, 9 x 5 ===== */
     @page{
       size:A4 landscape;
-      margin:6mm;
+      margin:10mm;
     }
 
     @media print{
@@ -108,7 +108,7 @@
       /* 9 kolom; gap kecil biar muat */
       .label-grid{
         grid-template-columns:repeat(9, 1fr);
-        gap:2mm;
+        gap:1.6mm;
       }
 
       /* Hitungan:
@@ -118,7 +118,7 @@
       */
       .label-box{
         width:100%;
-        height:38mm;  /* 5 baris pas A4 */
+        height:36mm;  /* 5 baris pas A4 */
         padding:0;
         border:none;
         display:flex;
@@ -134,8 +134,8 @@
       }
 
       .qr-box canvas{
-        width:26mm !important;
-        height:26mm !important;
+        width:24mm !important;
+        height:24mm !important;
       }
 
       .label-id{
@@ -309,3 +309,4 @@ window.onload = loadData;
 </script>
 </body>
 </html>
+
