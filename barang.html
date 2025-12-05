@@ -657,7 +657,7 @@ function applyRoleUI(role){
   }
 }
 
-/* ===== FOTO (AUTO KOMPRES <= 2MB) ===== */
+/* ===== FOTO (AUTO KOMPRES, tapi tetap pakai cara lama untuk file <= 2MB) ===== */
 function previewFoto(input, previewId) {
   const file = input.files[0];
   if (!file) return;
@@ -668,6 +668,33 @@ function previewFoto(input, previewId) {
     return;
   }
 
+  // JIKA FILE ASLI SUDAH <= 2MB → PAKAI CARA LAMA (tanpa kompres)
+  if (file.size <= MAX_SIZE) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result; // data:image/xxx;base64,...
+
+      // Tampilkan preview
+      const imgEl = document.getElementById(previewId);
+      imgEl.src = dataUrl;
+      imgEl.classList.remove('d-none');
+
+      // Simpan ke variabel global
+      if (previewId === 'addPreview') {
+        addFotoBase64 = dataUrl;
+      } else if (previewId === 'editPreview') {
+        editFotoBase64 = dataUrl;
+      }
+    };
+    reader.onerror = () => {
+      alert('Gagal membaca file gambar.');
+      input.value = '';
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  // JIKA FILE > 2MB → KITA KOMPRES DULU
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
@@ -675,7 +702,7 @@ function previewFoto(input, previewId) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      // Batas resolusi supaya file tidak terlalu besar
+      // Batasi resolusi supaya file tidak terlalu besar
       const maxWidth  = 1600;
       const maxHeight = 1600;
       let width  = img.width;
