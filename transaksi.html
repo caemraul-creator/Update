@@ -37,6 +37,17 @@
       color:#198754;
       font-size:.78rem;
     }
+    .dd-hint{
+      font-size:.75rem;
+      margin-top:2px;
+    }
+    .dd-hint.text-danger{
+      font-weight:500;
+    }
+    .dd-hint.text-success{
+      font-weight:500;
+    }
+
     /* ============================================================
        TABEL JADI KARTU DI HP
        ============================================================ */
@@ -173,16 +184,22 @@
 
           <!-- Lokasi Tujuan (khusus PINDAH) — disembunyikan sampai jenis = PINDAH -->
           <div class="col-md-3" id="wrapGdgTujuan" style="display:none">
-            <label class="form-label mb-1">Gedung Tujuan <span class="text-danger">*</span></label>
+            <label class="form-label mb-1">
+              Gedung Tujuan <span class="text-danger">*</span>
+            </label>
             <select id="gdgTujuan" class="form-select">
-              <option value="">— Pilih Gedung —</option>
+              <option value="">Memuat gedung...</option>
             </select>
+            <div id="gdgTujuanHint" class="dd-hint d-none"></div>
           </div>
           <div class="col-md-3" id="wrapRuangTujuan" style="display:none">
-            <label class="form-label mb-1">Ruangan Tujuan <span class="text-danger">*</span></label>
-            <select id="ruangTujuan" class="form-select">
-              <option value="">— Pilih Ruangan —</option>
+            <label class="form-label mb-1">
+              Ruangan Tujuan <span class="text-danger">*</span>
+            </label>
+            <select id="ruangTujuan" class="form-select" disabled>
+              <option value="">— Pilih gedung dulu —</option>
             </select>
+            <div id="ruangTujuanHint" class="dd-hint d-none"></div>
           </div>
 
           <div class="col-12">
@@ -238,7 +255,10 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwc2v2D2xEqhbte_2yba3JF
 // simpan role saat ini (default viewer)
 let currentRole = 'viewer';
 
-/* ===== API WRAPPER ===== */
+/* ===== API WRAPPER =====
+ *  FIX: redirect: 'follow' WAJIB ada untuk GAS Web App.
+ *       Tanpa ini, fetch gagal diam-diam di beberapa browser.
+ *  ============================================ */
 function api(action, params = {}) {
   const body = new URLSearchParams({ action });
 
@@ -250,8 +270,15 @@ function api(action, params = {}) {
     if (v !== undefined && v !== null) body.append(k, v);
   });
 
-  return fetch(GAS_URL, { method: 'POST', body })
-    .then(r => r.json())
+  return fetch(GAS_URL, {
+    method: 'POST',
+    body,
+    redirect: 'follow'          // ← KRITIS untuk Google Apps Script
+  })
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(res => {
       if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
       return res.data;
@@ -305,74 +332,182 @@ function applyRoleUI(role){
   }
 }
 
-/* === INIT === */
-let barangList  = [];
-let gedungList  = [];
-let selectedBarang = null;   // <-- barang yang sedang dipilih (objek lengkap)
-let gdgAsalKode = '';        // <-- KODE gedung asal (bukan nama)
+/* === STATE === */
+let barangList     = [];
+let gedungList     = [];
+let ruanganListAll = [];        // semua ruangan (dipakai untuk cari ruangan tujuan)
+let selectedBarang = null;
+let gdgAsalKode    = '';
 
+/* === INIT === */
 window.onload = () => {
   cekLogin();
-  loadBarang();
-  loadGedung();
-  loadTransaksi();
+
+  // Muat semua data master secara paralel
+  loadMasterData();
 
   document.getElementById('barangSelect').addEventListener('change', onBarangChange);
   document.getElementById('jenis').addEventListener('change', updateLokasiFields);
   document.getElementById('gdgTujuan').addEventListener('change', onGedungTujuanChange);
   document.getElementById('jumlah').addEventListener('input', onJumlahInput);
 
-  // awal: matikan tujuan
   updateLokasiFields();
 };
 
-function loadBarang(){
-  api('getBarang')
-    .then(data => {
-      barangList = data || [];
-      const sel = document.getElementById('barangSelect');
-      sel.innerHTML = '<option value="">Pilih Barang</option>' +
-        barangList.map(b =>
-          `<option value="${b.id}">${b.id} - ${b.nama}</option>`
-        ).join('');
-    })
-    .catch(err => alert('Gagal memuat barang: ' + err.message));
+/* ============================================================
+ *  loadMasterData
+ *  FIX: Muat gedung, ruangan, barang, DAN transaksi sekaligus.
+ *       Gedung & ruangan WAJIB berhasil sebelum dropdown tujuan
+ *       bisa dipakai.
+ * ============================================================ */
+async function loadMasterData(){
+  try {
+    // Muat gedung, ruangan, dan barang secara paralel
+    const [gdgData, ruangData, brgData] = await Promise.all([
+      api('getGedung'),
+      api('getRuangan'),
+      api('getBarang')
+    ]);
+
+    gedungList     = gdgData  || [];
+    ruanganListAll = ruangData || [];
+    barangList     = brgData  || [];
+
+    // 1) Isi dropdown barang
+    const selBarang = document.getElementById('barangSelect');
+    selBarang.innerHTML = '<option value="">Pilih Barang</option>' +
+      barangList.map(b =>
+        `<option value="${b.id}">${b.id} - ${b.nama}</option>`
+      ).join('');
+
+    // 2) Isi dropdown gedung tujuan + siapkan peta kode→nama
+    fillGedungTujuanDropdown();
+
+    // 3) Muat riwayat transaksi
+    loadTransaksi();
+
+  } catch(err) {
+    console.error('loadMasterData error:', err);
+    alert('Gagal memuat data master: ' + err.message +
+          '\n\nPastikan koneksi internet stabil dan coba muat ulang halaman.');
+  }
 }
 
-function loadGedung(){
-  api('getGedung')
-    .then(data => {
-      gedungList = data || [];
-      const sel = document.getElementById('gdgTujuan');
-      sel.innerHTML = '<option value="">-</option>' +
-        gedungList.map(g => `<option value="${g.kode}">${g.nama}</option>`).join('');
-    })
-    .catch(err => console.error(err));
-}
+/* ============================================================
+ *  fillGedungTujuanDropdown
+ *  Mengisi dropdown Gedung Tujuan dengan data dari gedungList.
+ *  Menampilkan pesan jelas kalau data kosong atau gagal.
+ * ============================================================ */
+function fillGedungTujuanDropdown(){
+  const sel = document.getElementById('gdgTujuan');
+  const hint = document.getElementById('gdgTujuanHint');
 
-function onGedungTujuanChange(){
-  const kode = document.getElementById('gdgTujuan').value;
-  const selR = document.getElementById('ruangTujuan');
-  selR.innerHTML = '<option value="">Memuat...</option>';
-  if (!kode){
-    selR.innerHTML = '<option value="">-</option>';
+  if (!gedungList.length){
+    sel.innerHTML = '<option value="">Belum ada gedung</option>';
+    setHint(hint,
+      'Tidak ada data gedung. Tambahkan gedung di halaman "Gedung & Ruangan" terlebih dahulu.',
+      'danger'
+    );
     return;
   }
-  api('getRuanganByGedung',{ gedung:kode })
-    .then(data => {
-      selR.innerHTML = '<option value="">-</option>' +
-        (data||[]).map(r => `<option value="${r.nama}">${r.nama}</option>`).join('');
-    })
-    .catch(err => {
-      console.error(err);
-      selR.innerHTML = '<option value="">Gagal memuat</option>';
-    });
+
+  sel.innerHTML = '<option value="">— Pilih Gedung —</option>' +
+    gedungList.map(g =>
+      `<option value="${g.kode}">${g.nama}</option>`
+    ).join('');
+
+  setHint(hint,
+    gedungList.length + ' gedung tersedia',
+    'muted'
+  );
+}
+
+/* ============================================================
+ *  onGedungTujuanChange
+ *  Ketika user pilih gedung tujuan, muat ruangan di gedung itu.
+ *  FIX: Pakai ruanganListAll (sudah dimuat saat init) untuk
+ *       filter lokal, TIDAK perlu panggil API lagi.
+ *       Fallback ke API kalau filter lokal kosong.
+ * ============================================================ */
+function onGedungTujuanChange(){
+  const kode  = document.getElementById('gdgTujuan').value;
+  const selR  = document.getElementById('ruangTujuan');
+  const hintR = document.getElementById('ruangTujuanHint');
+
+  if (!kode){
+    selR.innerHTML  = '<option value="">— Pilih gedung dulu —</option>';
+    selR.disabled   = true;
+    setHint(hintR, '', 'muted');
+    return;
+  }
+
+  selR.innerHTML  = '<option value="">Memuat ruangan...</option>';
+  selR.disabled   = true;
+
+  // Cari dulu di data lokal (ruanganListAll) supaya cepat
+  let ruanganDiGedung = ruanganListAll
+    .filter(r => String(r.kodeGedung) === String(kode))
+    .map(r => r.nama)
+    .filter(n => n && n.trim() !== '');
+
+  // Kalau lokal kosong, coba panggil API (fallback)
+  if (ruanganDiGedung.length === 0){
+    api('getRuanganByGedung', { gedung: kode })
+      .then(data => {
+        const names = (data || []).map(r => r.nama).filter(n => n && n.trim() !== '');
+        renderRuanganTujuan(selR, hintR, names);
+      })
+      .catch(err => {
+        console.error('getRuanganByGedung error:', err);
+        selR.innerHTML = '<option value="">Gagal memuat ruangan</option>';
+        setHint(hintR, 'Gagal memuat: ' + err.message, 'danger');
+      });
+    return;
+  }
+
+  // Data lokal ada → langsung render
+  renderRuanganTujuan(selR, hintR, ruanganDiGedung);
+}
+
+/* ============================================================
+ *  renderRuanganTujuan
+ *  Render daftar ruangan ke dropdown + tampilkan hint info
+ * ============================================================ */
+function renderRuanganTujuan(selR, hintR, ruanganNames){
+  if (!ruanganNames.length){
+    selR.innerHTML = '<option value="">Tidak ada ruangan</option>';
+    setHint(hintR,
+      'Gedung ini belum punya ruangan. Tambahkan di halaman "Gedung & Ruangan".',
+      'danger'
+    );
+    return;
+  }
+
+  selR.innerHTML = '<option value="">— Pilih Ruangan —</option>' +
+    ruanganNames.map(n =>
+      `<option value="${n}">${n}</option>`
+    ).join('');
+
+  selR.disabled = false;
+  setHint(hintR,
+    ruanganNames.length + ' ruangan tersedia',
+    'muted'
+  );
+}
+
+/* ============================================================
+ *  Helper: setHint — tampilkan pesan kecil di bawah dropdown
+ * ============================================================ */
+function setHint(el, msg, type){
+  if (!el) return;
+  el.textContent = msg;
+  el.className   = 'dd-hint text-' + type;
+  if (!msg) el.classList.add('d-none');
+  else      el.classList.remove('d-none');
 }
 
 /* ============================================================
  *  onBarangChange
- *  FIX: simpan KODE gedung asal di gdgAsalKode,
- *       tampilkan NAMA gedung di field readonly untuk dibaca user.
  * ============================================================ */
 function onBarangChange(){
   const id = document.getElementById('barangSelect').value;
@@ -394,11 +529,11 @@ function onBarangChange(){
   }
 
   selectedBarang = b;
-  gdgAsalKode    = b.gedung || '';            // KODE gedung asal
+  gdgAsalKode    = b.gedung || '';
 
-  info.textContent = `${b.kategori} • ${b.merk || '-'} • Stok: ${b.jumlah} ${b.satuan||''}`;
+  info.textContent = b.kategori + ' \u2022 ' + (b.merk || '-') +
+    ' \u2022 Stok: ' + b.jumlah + ' ' + (b.satuan || '');
 
-  // Tampilkan NAMA gedung untuk dibaca user
   gdgAsalEl.value = b.gedungNama || b.gedung || '';
   ruangAsal.value = b.ruangan || '';
   satuanEl.value  = b.satuan || 'Unit';
@@ -406,14 +541,12 @@ function onBarangChange(){
   jumlahEl.max    = b.jumlah || '';
 
   hideJumlahWarning();
-  onJumlahInput();          // cek warning jumlah segera
+  onJumlahInput();
   updateLokasiFields();
 }
 
 /* ============================================================
  *  updateLokasiFields
- *  FIX: toggle required pada dropdown tujuan saat PINDAH,
- *       agar form.checkValidity() bisa menangkapnya.
  * ============================================================ */
 function updateLokasiFields(){
   const jenis    = document.getElementById('jenis').value;
@@ -424,27 +557,30 @@ function updateLokasiFields(){
   const gdgT     = document.getElementById('gdgTujuan');
   const ruangT   = document.getElementById('ruangTujuan');
 
-  // Tampilkan / sembunyikan seluruh kolom tujuan
   wGdg.style.display   = isPindah ? '' : 'none';
   wRuang.style.display = isPindah ? '' : 'none';
 
-  // Toggle required — penting supaya form.checkValidity() mengecek
   if (isPindah){
     gdgT.setAttribute('required', 'required');
     ruangT.setAttribute('required', 'required');
+
+    // Kalau gedung tujuan sudah punya data tapi user ganti jenis ke PINDAH
+    // jangan reset pilihan gedung yang sudah ada
+    if (gdgT.options.length <= 1){
+      fillGedungTujuanDropdown();
+    }
   } else {
     gdgT.removeAttribute('required');
     ruangT.removeAttribute('required');
-    // Reset nilai saat bukan PINDAH
     gdgT.value = '';
-    ruangT.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+    ruangT.innerHTML = '<option value="">— Pilih Ruangan —</option>';
+    ruangT.disabled  = true;
+    setHint(document.getElementById('ruangTujuanHint'), '', 'muted');
   }
 }
 
 /* ============================================================
- *  onJumlahInput  —  Validasi real-time stok
- *  FIX: Tampilkan warning kalau jumlah melebihi stok untuk
- *       KELUAR dan PINDAH sebelum user klik Simpan.
+ *  Validasi real-time stok
  * ============================================================ */
 function onJumlahInput(){
   const jenis  = document.getElementById('jenis').value;
@@ -487,9 +623,6 @@ function hideJumlahWarning(){
 
 /* ============================================================
  *  simpanTransaksi
- *  FIX 1: Kirim gdgAsalKode (KODE) bukan nama gedung
- *  FIX 2: Validasi stok frontend sebelum kirim ke backend
- *  FIX 3: Reset semua state setelah transaksi berhasil
  * ============================================================ */
 function simpanTransaksi(){
   const form = document.getElementById('transForm');
@@ -540,7 +673,6 @@ function simpanTransaksi(){
     jenis,
     jumlah,
     satuan,
-    /* FIX: Kirim KODE gedung asal, bukan nama gedung */
     gedungAsal:    gdgAsalKode,
     ruanganAsal:   ruangAsal,
     gedungTujuan:  gdgTj,
@@ -550,7 +682,14 @@ function simpanTransaksi(){
   .then(res => {
     alert('Transaksi tersimpan. Stok akhir: ' + res.stokAkhir);
     resetForm();
-    loadBarang();
+    // Refresh data barang & transaksi saja (gedung/ruangan tidak berubah)
+    api('getBarang').then(d => {
+      barangList = d || [];
+      const sel = document.getElementById('barangSelect');
+      sel.innerHTML = '<option value="">Pilih Barang</option>' +
+        barangList.map(b => `<option value="${b.id}">${b.id} - ${b.nama}</option>`).join('');
+    }).catch(console.error);
+
     loadTransaksi();
   })
   .catch(err => alert('Error: ' + err.message))
@@ -561,7 +700,7 @@ function simpanTransaksi(){
 }
 
 /* ============================================================
- *  resetForm  —  Reset semua field & state ke kondisi awal
+ *  resetForm
  * ============================================================ */
 function resetForm(){
   const form = document.getElementById('transForm');
@@ -570,11 +709,15 @@ function resetForm(){
   document.getElementById('barangInfo').textContent = '';
   document.getElementById('gdgAsal').value  = '';
   document.getElementById('ruangAsal').value = '';
-  document.getElementById('gdgTujuan').value = '';
-  document.getElementById('ruangTujuan').innerHTML = '<option value="">-</option>';
   document.getElementById('satuan').value = 'Unit';
   document.getElementById('jumlah').value = 1;
   document.getElementById('jumlah').max   = '';
+
+  // Reset dropdown tujuan tapi jangan render ulang gedung
+  document.getElementById('gdgTujuan').value = '';
+  document.getElementById('ruangTujuan').innerHTML = '<option value="">— Pilih Ruangan —</option>';
+  document.getElementById('ruangTujuan').disabled = true;
+  setHint(document.getElementById('ruangTujuanHint'), '', 'muted');
 
   selectedBarang = null;
   gdgAsalKode    = '';
@@ -583,9 +726,8 @@ function resetForm(){
 }
 
 /* ============================================================
- *  loadTransaksi  —  Riwayat transaksi
- *  FIX: Tampilkan nama gedung (bukan kode) di kolom Asal & Tujuan
- *        dengan lookup ke gedungList.
+ *  loadTransaksi — Riwayat transaksi
+ *  Tampilkan nama gedung (bukan kode) di kolom Asal & Tujuan
  * ============================================================ */
 function loadTransaksi(){
   api('getTransaksi')
@@ -593,44 +735,39 @@ function loadTransaksi(){
       const tbody = document.getElementById('transBody');
       tbody.innerHTML = '';
 
-      // Buat peta KODE → NAMA gedung untuk lookup
+      // Peta KODE → NAMA gedung
       const gdgMap = new Map();
       (gedungList || []).forEach(g => {
-        gdgMap.set(g.kode, g.nama);
+        gdgMap.set(String(g.kode), g.nama);
       });
 
       (data || []).forEach(t => {
-        // Lookup nama gedung dari kode
-        const asalGdgNama   = (t.gdgAsal && gdgMap.has(t.gdgAsal))
-                              ? gdgMap.get(t.gdgAsal) : (t.gdgAsal || '');
-        const tujuanGdgNama = (t.gdgTujuan && gdgMap.has(t.gdgTujuan))
-                              ? gdgMap.get(t.gdgTujuan) : (t.gdgTujuan || '');
+        const asalGdgNama   = gdgMap.get(String(t.gdgAsal || '')) || t.gdgAsal || '';
+        const tujuanGdgNama = gdgMap.get(String(t.gdgTujuan || '')) || t.gdgTujuan || '';
 
         const asal   = (asalGdgNama || t.ruangAsal)
-                       ? `${asalGdgNama} / ${t.ruangAsal || ''}` : '-';
+                       ? asalGdgNama + ' / ' + (t.ruangAsal || '') : '-';
         const tujuan = (tujuanGdgNama || t.ruangTujuan)
-                       ? `${tujuanGdgNama} / ${t.ruangTujuan || ''}` : '-';
+                       ? tujuanGdgNama + ' / ' + (t.ruangTujuan || '') : '-';
 
-        tbody.insertAdjacentHTML('beforeend', `
-          <tr>
-            <td data-label="Tanggal">${t.tanggal}</td>
-            <td data-label="Jenis">
-              <span class="badge bg-${
-                t.jenis==='MASUK' ? 'success' : t.jenis==='KELUAR' ? 'danger' : 'warning'
-              }">${t.jenis}</span>
-            </td>
-            <td data-label="ID Barang">${t.barangId}</td>
-            <td data-label="Nama Barang">${t.namaBarang}</td>
-            <td data-label="Jumlah">${t.jumlah} ${t.satuan||''}</td>
-            <td data-label="Asal">${asal}</td>
-            <td data-label="Tujuan">${tujuan}</td>
-            <td data-label="User">${t.username}</td>
-            <td data-label="Keterangan">${t.keterangan || '-'}</td>
-          </tr>
-        `);
+        tbody.insertAdjacentHTML('beforeend',
+          '<tr>' +
+          '<td data-label="Tanggal">' + t.tanggal + '</td>' +
+          '<td data-label="Jenis"><span class="badge bg-' +
+            (t.jenis==='MASUK' ? 'success' : t.jenis==='KELUAR' ? 'danger' : 'warning') +
+            '">' + t.jenis + '</span></td>' +
+          '<td data-label="ID Barang">' + t.barangId + '</td>' +
+          '<td data-label="Nama Barang">' + t.namaBarang + '</td>' +
+          '<td data-label="Jumlah">' + t.jumlah + ' ' + (t.satuan||'') + '</td>' +
+          '<td data-label="Asal">' + asal + '</td>' +
+          '<td data-label="Tujuan">' + tujuan + '</td>' +
+          '<td data-label="User">' + t.username + '</td>' +
+          '<td data-label="Keterangan">' + (t.keterangan || '-') + '</td>' +
+          '</tr>'
+        );
       });
 
-      // Inisialisasi / re-init DataTables setelah tbody terisi
+      // DataTables
       if ($.fn.DataTable.isDataTable('#transTable')){
         $('#transTable').DataTable().destroy();
       }
