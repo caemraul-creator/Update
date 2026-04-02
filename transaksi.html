@@ -126,17 +126,17 @@
             <input type="text" id="ruangAsal" class="form-control" readonly>
           </div>
 
-          <!-- Lokasi Tujuan (khusus PINDAH) -->
-          <div class="col-md-3">
-            <label class="form-label mb-1">Gedung Tujuan</label>
+          <!-- Lokasi Tujuan (khusus PINDAH) — disembunyikan sampai jenis = PINDAH -->
+          <div class="col-md-3" id="wrapGdgTujuan" style="display:none">
+            <label class="form-label mb-1">Gedung Tujuan <span class="text-danger">*</span></label>
             <select id="gdgTujuan" class="form-select">
-              <option value="">-</option>
+              <option value="">— Pilih Gedung —</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label mb-1">Ruangan Tujuan</label>
+          <div class="col-md-3" id="wrapRuangTujuan" style="display:none">
+            <label class="form-label mb-1">Ruangan Tujuan <span class="text-danger">*</span></label>
             <select id="ruangTujuan" class="form-select">
-              <option value="">-</option>
+              <option value="">— Pilih Ruangan —</option>
             </select>
           </div>
 
@@ -246,9 +246,10 @@ function doLogout(){
 /* ===== ATUR UI BERDASARKAN ROLE ===== */
 function applyRoleUI(role){
   if (role === 'viewer') {
-    const formEls = document.querySelectorAll('#transForm input, #transForm select, #transForm textarea');
-    formEls.forEach(el => el.disabled = true);
-
+    // Jangan disable semua field — hanya disable tombol Simpan.
+    // Jika semua field di-disable termasuk dropdown Jenis,
+    // pengguna tidak bisa memilih PINDAH dan kolom tujuan
+    // tidak pernah muncul (updateLokasiFields tidak terpicu).
     const btn = document.getElementById('btnSimpan');
     if (btn){
       btn.disabled = true;
@@ -258,7 +259,6 @@ function applyRoleUI(role){
     const badge = document.getElementById('viewerBadge');
     if (badge) badge.classList.remove('d-none');
 
-    // kartu form sedikit di-fade biar kelihatan read-only
     const card = document.getElementById('cardTransForm');
     if (card) card.style.opacity = '0.7';
   }
@@ -350,17 +350,25 @@ function onBarangChange(){
 
 function updateLokasiFields(){
   const jenis = document.getElementById('jenis').value;
-  const tujuanDisabled = (jenis !== 'PINDAH');
+  const isPindah = (jenis === 'PINDAH');
 
-  const gdgT = document.getElementById('gdgTujuan');
+  const wGdg   = document.getElementById('wrapGdgTujuan');
+  const wRuang = document.getElementById('wrapRuangTujuan');
+  const gdgT   = document.getElementById('gdgTujuan');
   const ruangT = document.getElementById('ruangTujuan');
 
-  gdgT.disabled   = tujuanDisabled;
-  ruangT.disabled = tujuanDisabled;
+  // Tampilkan / sembunyikan seluruh kolom tujuan
+  wGdg.style.display   = isPindah ? '' : 'none';
+  wRuang.style.display = isPindah ? '' : 'none';
 
-  if (tujuanDisabled){
+  // Pastikan select TIDAK disabled agar bisa diklik
+  gdgT.disabled   = false;
+  ruangT.disabled = false;
+
+  // Reset nilai saat bukan PINDAH
+  if (!isPindah){
     gdgT.value = '';
-    ruangT.innerHTML = '<option value="">-</option>';
+    ruangT.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
   }
 }
 
