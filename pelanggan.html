@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Pelanggan</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f1117;
+            --ink2: #3d4350;
+            --ink3: #8891a5;
+            --border: #e4e7ef;
+            --bg: #f0f2f8;
+            --surface: #ffffff;
+            --accent: #3b5bdb;
+            --accent2: #4c6ef5;
+            --green: #0ca678;
+            --red: #f03e3e;
+            --amber: #f59f00;
+            --purple: #7950f2;
+            --surface2: #f8f9fc;
+
+            --bronze: #cd7f32;
+            --silver: #8a9bb0;
+            --gold: #f59f00;
+            --platinum: #7950f2;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* ===== TOPBAR ===== */
+        .topbar {
+            background: var(--ink);
+            color: #fff;
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .topbar-logo { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent2); text-transform: uppercase; }
+        .topbar-title { font-size: 15px; font-weight: 700; flex: 1; }
+        .topbar-nav { display: flex; gap: 6px; }
+        .nav-link {
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            text-decoration: none; color: rgba(255,255,255,0.55); transition: all 0.15s;
+            border: 1px solid transparent; white-space: nowrap;
+        }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.08); }
+        .nav-link.active { color: #fff; background: var(--accent); border-color: var(--accent2); }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ===== LEFT PANEL ===== */
+        .panel-left {
+            width: 400px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .panel-header-top {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .panel-header h3 { font-size: 14px; font-weight: 700; color: var(--ink); }
+        .export-btn {
+            padding: 5px 10px; border-radius: 6px; border: 1.5px solid var(--border);
+            background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 11px;
+            font-weight: 600; cursor: pointer; color: var(--ink2); transition: all 0.15s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .export-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .search-wrap { position: relative; }
+        .search-wrap .si { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-size: 14px; pointer-events: none; }
+        .search-input {
+            width: 100%; padding: 9px 10px 9px 34px;
+            border: 1.5px solid var(--border); border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+            background: var(--bg); outline: none; transition: border-color 0.15s;
+        }
+        .search-input:focus { border-color: var(--accent2); background: #fff; }
+
+        .filter-tabs { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+        .ftab {
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            border: 1.5px solid var(--border); background: var(--bg); color: var(--ink2);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .ftab:hover { border-color: var(--accent); color: var(--accent); }
+        .ftab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* Top Pelanggan Leaderboard */
+        .leaderboard {
+            border-top: 1px solid var(--border);
+            padding: 12px 20px;
+            flex-shrink: 0;
+        }
+        .lb-toggle {
+            font-size: 12px; font-weight: 700; color: var(--ink2); cursor: pointer;
+            display: flex; align-items: center; gap: 6px; padding: 4px 0;
+            background: none; border: none; font-family: 'DM Sans', sans-serif;
+        }
+        .lb-toggle:hover { color: var(--accent); }
+        .lb-toggle .lb-arrow { transition: transform 0.2s; display: inline-block; }
+        .lb-toggle.open .lb-arrow { transform: rotate(90deg); }
+        .lb-list { display: none; margin-top: 8px; }
+        .lb-list.open { display: block; }
+        .lb-item {
+            display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+            border-radius: 8px; margin-bottom: 4px; background: var(--bg);
+            transition: background 0.15s; cursor: pointer;
+        }
+        .lb-item:hover { background: var(--surface2); }
+        .lb-rank {
+            width: 24px; height: 24px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 11px; font-weight: 800;
+            flex-shrink: 0;
+        }
+        .lb-rank.r1 { background: linear-gradient(135deg, #ffd700, #f59f00); color: #fff; }
+        .lb-rank.r2 { background: linear-gradient(135deg, #c0c0c0, #8a9bb0); color: #fff; }
+        .lb-rank.r3 { background: linear-gradient(135deg, #cd7f32, #a0522d); color: #fff; }
+        .lb-rank.r4, .lb-rank.r5 { background: var(--border); color: var(--ink3); }
+        .lb-info { flex: 1; min-width: 0; }
+        .lb-name { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lb-total { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink3); }
+        .lb-tier-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+
+        .pelanggan-scroll { flex: 1; overflow-y: auto; }
+        .pelanggan-scroll::-webkit-scrollbar { width: 5px; }
+        .pelanggan-scroll::-webkit-scrollbar-thumb { background: #d0d5e8; border-radius: 3px; }
+
+        .pelanggan-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        .pelanggan-item:hover { background: var(--surface2); }
+        .pelanggan-item:hover .wa-btn-list { opacity: 1; }
+        .pelanggan-item.active { background: #eef2ff; border-left: 3px solid var(--accent); }
+
+        .avatar {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 700; flex-shrink: 0;
+            color: #fff;
+        }
+        .av-umum { background: linear-gradient(135deg, #74c0fc, #228be6); }
+        .av-member { background: linear-gradient(135deg, #63e6be, #0ca678); }
+
+        .item-info { flex: 1; min-width: 0; }
+        .item-name { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-meta { font-size: 12px; color: var(--ink3); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+
+        .hutang-badge {
+            font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;
+            background: #ffe3e3; color: var(--red);
+        }
+
+        .item-right { text-align: right; flex-shrink: 0; }
+        .tier-badge {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 5px; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tier-none { background: #f1f3f5; color: var(--ink3); }
+        .tier-bronze { background: #fdf3e7; color: var(--bronze); }
+        .tier-silver { background: #f1f3f5; color: var(--silver); }
+        .tier-gold { background: #fff3bf; color: var(--gold); }
+        .tier-platinum { background: #f3f0ff; color: var(--platinum); }
+
+        .item-total { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); margin-top: 4px; }
+
+        /* WA button on list */
+        .wa-btn-list {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            padding: 4px 8px; border-radius: 6px; border: 1px solid #d0ebff;
+            background: #e7f5ff; font-size: 11px; cursor: pointer; color: #228be6;
+            font-family: 'DM Sans', sans-serif; font-weight: 600; opacity: 0;
+            transition: all 0.15s; z-index: 5;
+        }
+        .wa-btn-list:hover { background: #228be6; color: #fff; }
+
+        .add-btn {
+            margin: 16px 20px;
+            padding: 11px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .add-btn:hover { background: var(--accent2); }
+
+        /* ===== RIGHT PANEL ===== */
+        .panel-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        .detail-scroll { flex: 1; overflow-y: auto; padding: 24px; }
+        .detail-scroll::-webkit-scrollbar { width: 6px; }
+        .detail-scroll::-webkit-scrollbar-thumb { background: #d0d5e8; border-radius: 3px; }
+
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100%; color: var(--ink3); gap: 12px;
+        }
+        .empty-state .ei { font-size: 48px; }
+        .empty-state p { font-size: 14px; }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .profile-avatar {
+            width: 64px; height: 64px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 800; color: #fff; flex-shrink: 0;
+        }
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+        .profile-phone { font-size: 13px; color: var(--ink3); margin-bottom: 10px; }
+        .profile-email { font-size: 13px; color: var(--ink3); }
+        .profile-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .type-badge {
+            font-size: 11px; font-weight: 700; padding: 4px 12px;
+            border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .type-umum { background: #e7f5ff; color: #228be6; }
+        .type-member { background: #e6fcf5; color: #0ca678; }
+        .type-grosir { background: #fff4e6; color: #f76707; }
+
+        .profile-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: flex-start; flex-wrap: wrap; }
+        .btn-edit-p {
+            padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            border: 1.5px solid var(--border); background: var(--bg); color: var(--ink2);
+            cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+        }
+        .btn-edit-p:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-del-p {
+            padding: 8px 12px; border-radius: 8px; font-size: 13px;
+            border: 1.5px solid #ffd0d0; background: #fff5f5; color: var(--red);
+            cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+        }
+        .btn-del-p:hover { background: var(--red); color: #fff; border-color: var(--red); }
+        .btn-print-p {
+            padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            border: 1.5px solid #d0ebff; background: #e7f5ff; color: #228be6;
+            cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-print-p:hover { background: #228be6; color: #fff; border-color: #228be6; }
+        .btn-wa-p {
+            padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            border: 1.5px solid #d3f9d8; background: #ebfbee; color: #2b8a3e;
+            cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-wa-p:hover { background: #2b8a3e; color: #fff; border-color: #2b8a3e; }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink3); font-weight: 600; margin-bottom: 6px; }
+        .stat-value { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 700; color: var(--ink); }
+        .stat-value.danger { color: var(--red); }
+        .stat-sub { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+
+        /* Hutang Card */
+        .hutang-card {
+            background: #fff5f5;
+            border: 1.5px solid #ffe3e3;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .hutang-title { font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: 12px; }
+        .hutang-amount { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 700; color: var(--red); margin-bottom: 16px; }
+        .hutang-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+        .btn-hutang {
+            flex: 1; padding: 9px; border-radius: 8px; font-size: 12px; font-weight: 700;
+            cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+            border: 1.5px solid;
+        }
+        .btn-tambah-hutang { background: #fff5f5; border-color: #ffd0d0; color: var(--red); }
+        .btn-tambah-hutang:hover { background: var(--red); color: #fff; }
+        .btn-bayar-hutang { background: #ebfbee; border-color: #b2f2bb; color: #2b8a3e; }
+        .btn-bayar-hutang:hover { background: #2b8a3e; color: #fff; }
+        .hutang-log-title { font-size: 12px; font-weight: 700; color: var(--ink2); margin-bottom: 8px; }
+        .hutang-log-item {
+            display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+            border-radius: 6px; margin-bottom: 4px; font-size: 12px; background: rgba(255,255,255,0.7);
+        }
+        .hutang-log-item .hl-type { font-weight: 700; }
+        .hutang-log-item .hl-type.tambah { color: var(--red); }
+        .hutang-log-item .hl-type.bayar { color: var(--green); }
+        .hutang-log-item .hl-amount { font-family: 'DM Mono', monospace; font-weight: 600; }
+        .hutang-log-item .hl-date { color: var(--ink3); font-family: 'DM Mono', monospace; font-size: 11px; margin-left: auto; }
+        .hutang-log-item .hl-note { color: var(--ink3); font-size: 11px; margin-left: 8px; }
+        .hutang-log-empty { text-align: center; padding: 12px; color: var(--ink3); font-size: 12px; }
+
+        /* Hutang Modal */
+        .hutang-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .hutang-input-row input {
+            flex: 1; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink);
+            background: var(--bg); outline: none;
+        }
+        .hutang-input-row input:focus { border-color: var(--accent2); background: #fff; }
+        .hutang-input-row button {
+            padding: 10px 20px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 700; cursor: pointer; border: none; color: #fff;
+        }
+        .hutang-input-row .btn-confirm-tambah { background: var(--red); }
+        .hutang-input-row .btn-confirm-bayar { background: var(--green); }
+
+        /* Bonus Progress */
+        .bonus-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .bonus-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 16px; }
+        .bonus-tiers { display: flex; gap: 0; position: relative; margin-bottom: 12px; }
+        .bonus-tiers::before {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; top: 14px;
+            height: 4px;
+            background: var(--border);
+            z-index: 0;
+        }
+        .bonus-tier-node {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            position: relative; z-index: 1;
+        }
+        .tier-dot {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; border: 3px solid var(--surface);
+            box-shadow: 0 0 0 2px var(--border);
+        }
+        .tier-dot.reached { box-shadow: 0 0 0 2px currentColor; }
+        .tier-dot.bronze-dot { background: var(--bronze); color: #fff; }
+        .tier-dot.silver-dot { background: var(--silver); color: #fff; }
+        .tier-dot.gold-dot { background: var(--gold); color: #fff; }
+        .tier-dot.platinum-dot { background: var(--platinum); color: #fff; }
+        .tier-dot.unreach { background: var(--border); color: var(--ink3); }
+        .tier-node-label { font-size: 10px; font-weight: 700; color: var(--ink3); margin-top: 6px; text-align: center; }
+        .tier-node-label.reached { color: var(--ink2); }
+        .tier-node-req { font-size: 9px; color: var(--ink3); font-family: 'DM Mono', monospace; text-align: center; }
+
+        .progress-bar-wrap { background: var(--border); border-radius: 4px; height: 6px; margin-bottom: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .bonus-info { font-size: 12px; color: var(--ink2); }
+
+        /* Transaction History */
+        .section-title {
+            font-size: 13px; font-weight: 700; color: var(--ink);
+            margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .year-select {
+            font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 5px 10px;
+            border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg);
+            color: var(--ink); cursor: pointer; outline: none;
+        }
+
+        .trx-list { display: flex; flex-direction: column; gap: 8px; }
+        .trx-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        .trx-date-box {
+            width: 40px; text-align: center; flex-shrink: 0;
+            font-size: 11px; font-family: 'DM Mono', monospace;
+        }
+        .trx-date-box .day { font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1; }
+        .trx-date-box .mon { color: var(--ink3); }
+        .trx-info { flex: 1; }
+        .trx-id { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+        .trx-items { font-size: 12px; color: var(--ink2); margin-top: 2px; }
+        .trx-total { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: var(--ink); }
+        .trx-type-badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+        .trx-grosir { background: #fff4e6; color: #f76707; }
+        .trx-eceran { background: #e7f5ff; color: #228be6; }
+        .trx-umum { background: #f1f3f5; color: var(--ink3); }
+
+        .del-trx-btn {
+            position: absolute; top: 8px; right: 8px;
+            width: 20px; height: 20px; border-radius: 4px;
+            border: 1px solid #ffd0d0; background: #fff;
+            color: var(--red); font-size: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: all 0.15s;
+        }
+        .trx-card:hover .del-trx-btn { opacity: 1; }
+        .del-trx-btn:hover { background: var(--red); color: #fff; }
+
+        .empty-trx { text-align: center; padding: 40px 20px; color: var(--ink3); font-size: 13px; }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(10,12,20,0.6); backdrop-filter: blur(4px);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: var(--surface); border-radius: 16px;
+            width: 90%; max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-header h4 { font-size: 15px; font-weight: 700; }
+        .modal-close {
+            width: 30px; height: 30px; border-radius: 8px;
+            border: 1.5px solid var(--border); background: var(--bg);
+            font-size: 16px; cursor: pointer; color: var(--ink2);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-body { padding: 20px; overflow-y: auto; max-height: 70vh; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block; font-size: 11px; font-weight: 700;
+            color: var(--ink2); margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px 12px;
+            border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink);
+            background: var(--bg); outline: none; transition: border-color 0.15s;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--accent2); background: #fff; }
+
+        .type-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .type-opt {
+            padding: 10px 6px; border-radius: 10px; border: 2px solid var(--border);
+            background: var(--bg); cursor: pointer; text-align: center;
+            transition: all 0.15s; font-size: 12px; font-weight: 600; color: var(--ink2);
+        }
+        .type-opt .toi { font-size: 20px; display: block; margin-bottom: 4px; }
+        .type-opt.sel-umum { border-color: #228be6; background: #e7f5ff; color: #228be6; }
+        .type-opt.sel-member { border-color: #0ca678; background: #e6fcf5; color: #0ca678; }
+
+        .modal-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); }
+        .btn-cancel { flex: 1; padding: 11px; border-radius: 9px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--ink2); }
+        .btn-save { flex: 2; padding: 11px; border-radius: 9px; border: none; background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-save:hover { background: var(--accent2); }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #0f1117; color: #fff;
+            padding: 12px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: 500; z-index: 9999;
+            transition: transform 0.3s ease; white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: var(--green); }
+        .toast.error { background: var(--red); }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 640px) {
+            .panel-left { width: 100%; }
+            .main-layout { flex-direction: column; }
+            .panel-right { flex: 1; }
+            .topbar-nav { display: none; }
+        }
+
+        /* ===== Mobile Bottom Nav ===== */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f1117;
+            padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+            z-index: 200;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            justify-content: space-around;
+            align-items: center;
+        }
+        .bnav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.5);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+        .bnav-item.active, .bnav-item:hover { color: #4c6ef5; }
+        .bnav-icon { font-size: 20px; }
+        .bnav-label { font-size: 9px; }
+
+        /* Mobile Back Button */
+        .mobile-back-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            width: 100%;
+            text-align: left;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .mobile-back-btn:hover { background: #eef2ff; }
+        .mobile-back-btn::before { content: '←'; font-size: 18px; }
+
+        @media (max-width: 768px) {
+            .mobile-bottom-nav { display: flex; }
+            body { padding-bottom: 70px !important; }
+            .topbar { padding: 0 12px; }
+            .topbar-nav, .nav-link { display: none !important; }
+            html, body { max-width: 100vw; overflow-x: hidden; }
+
+            /* Detail panel as slide-over on mobile */
+            .main-layout { position: relative; }
+            .panel-left { width: 100%; flex: 1; }
+            .panel-right {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 160;
+                background: var(--bg);
+                transform: translateX(100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                flex-direction: column;
+            }
+            /* Show detail panel when it has non-empty content */
+            .panel-right:has(.detail-scroll > :not(.empty-state)) {
+                transform: translateX(0);
+            }
+            .mobile-back-btn { display: flex; }
+            .detail-scroll { padding: 16px 14px; }
+
+            /* Reduced padding on mobile */
+            .pelanggan-scroll { padding: 0 !important; }
+            .pelanggan-item { padding: 12px 14px; }
+            .panel-header { padding: 12px 14px; }
+            .panel-header h3 { font-size: 13px; }
+            .add-btn { margin: 12px 14px; }
+            .leaderboard { padding: 10px 14px; }
+            .filter-tabs { gap: 4px; }
+            .ftab { padding: 4px 10px; font-size: 11px; }
+
+            /* Profile card on mobile */
+            .profile-card { flex-direction: column; gap: 14px; padding: 16px; }
+            .profile-avatar { width: 56px; height: 56px; font-size: 24px; }
+            .profile-name { font-size: 17px; }
+            .profile-actions { gap: 6px; flex-wrap: wrap; }
+            .profile-actions button { flex: 1; min-width: 0; text-align: center; }
+
+            /* Stats row on mobile */
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+            .stat-card { padding: 12px; }
+            .stat-value { font-size: 15px; }
+
+            /* Hutang card on mobile */
+            .hutang-card { padding: 14px; }
+            .hutang-amount { font-size: 22px; }
+
+            /* Bonus card on mobile */
+            .bonus-card { padding: 14px; }
+            .bonus-tiers { gap: 0; }
+            .tier-node-req { font-size: 8px; }
+
+            /* Transaction list on mobile */
+            .trx-card { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+            .trx-total { font-size: 13px; }
+            .del-trx-btn { opacity: 1; }
+
+            /* Modal on mobile */
+            .modal-box { border-radius: 16px 16px 0 0; max-height: 95vh; width: 100%; margin-top: auto; }
+            .modal-overlay { align-items: flex-end; }
+            .toast { bottom: 80px; }
+            button, select, input, a { min-height: 36px; }
+
+            /* WA button always visible on touch */
+            .wa-btn-list { opacity: 1; }
+        }
+
+        /* Very small screens */
+        @media (max-width: 380px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .profile-actions { flex-direction: column; }
+            .profile-actions button { width: 100%; }
+        }
+
+        /* Visual Enhancements */
+        .pelanggan-item { transition: background 0.15s ease; }
+        .profile-card { box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+        .stat-card { transition: transform 0.15s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .trx-card { box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: all 0.15s ease; }
+        .hutang-card { box-shadow: 0 2px 8px rgba(240,62,62,0.08); }
+        .bonus-card { box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<!-- TOPBAR with Full Navigation -->
+<div class="topbar">
+    <span class="topbar-logo">POS PRO</span>
+    <span class="topbar-title">👥 Pelanggan</span>
+    <div class="topbar-nav">
+        <a href="index.html" class="nav-link">🏠 Beranda</a>
+        <a href="produk.html" class="nav-link">📦 Produk</a>
+        <a href="riwayat.html" class="nav-link">📋 Riwayat</a>
+        <a href="rekap.html" class="nav-link">📊 Rekap</a>
+        <a href="kadaluarsa.html" class="nav-link">🗓 Kadaluarsa</a>
+        <a href="pelanggan.html" class="nav-link active">👥 Pelanggan</a>
+    </div>
+</div>
+
+<div class="main-layout">
+    <!-- LEFT: List Pelanggan -->
+    <div class="panel-left">
+        <div class="panel-header">
+            <div class="panel-header-top">
+                <h3>Daftar Pelanggan</h3>
+                <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+            </div>
+            <div class="search-wrap">
+                <span class="si">🔍</span>
+                <input type="text" class="search-input" id="search-p" placeholder="Cari nama atau telepon..." oninput="renderList()">
+            </div>
+            <div class="filter-tabs">
+                <div class="ftab active" data-f="semua" onclick="setFilter('semua')">Semua</div>
+                <div class="ftab" data-f="umum" onclick="setFilter('umum')">Umum</div>
+                <div class="ftab" data-f="member" onclick="setFilter('member')">Member</div>
+                <div class="ftab" data-f="hutang" onclick="setFilter('hutang')">💰 Hutang</div>
+            </div>
+        </div>
+
+        <!-- Top Pelanggan Leaderboard -->
+        <div class="leaderboard" id="leaderboard-section">
+            <button class="lb-toggle" id="lb-toggle-btn" onclick="toggleLeaderboard()">
+                <span class="lb-arrow">▶</span> 🏆 Top Pelanggan
+            </button>
+            <div class="lb-list" id="lb-list"></div>
+        </div>
+
+        <div class="pelanggan-scroll" id="pelanggan-list"></div>
+        <button class="add-btn" onclick="openAddModal()">+ Tambah Pelanggan</button>
+    </div>
+
+    <!-- RIGHT: Detail -->
+    <div class="panel-right" id="panel-right">
+        <button class="mobile-back-btn" onclick="document.getElementById('detail-panel').innerHTML='<div class=\'empty-state\'><div class=\'ei\'>👥</div><p>Pilih pelanggan untuk lihat detail</p></div>';">Kembali ke Daftar</button>
+        <div class="detail-scroll" id="detail-panel">
+            <div class="empty-state">
+                <div class="ei">👥</div>
+                <p>Pilih pelanggan untuk lihat detail</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div id="form-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h4 id="modal-title">Tambah Pelanggan</h4>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="f-id">
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="f-name" placeholder="Contoh: Budi Santoso">
+            </div>
+            <div class="form-group">
+                <label>No. Telepon</label>
+                <input type="text" id="f-phone" placeholder="0812-xxxx-xxxx">
+            </div>
+            <div class="form-group">
+                <label>Email (Opsional)</label>
+                <input type="email" id="f-email" placeholder="email@contoh.com">
+            </div>
+            <div class="form-group">
+                <label>Alamat (Opsional)</label>
+                <input type="text" id="f-address" placeholder="Jl. Contoh No. 1, Kudus">
+            </div>
+            <div class="form-group">
+                <label>Tipe Pelanggan</label>
+                <div class="type-selector">
+                    <div class="type-opt sel-umum" id="opt-umum" onclick="selectType('umum')">
+                        <span class="toi">👤</span>Umum
+                    </div>
+                    <div class="type-opt" id="opt-member" onclick="selectType('member')">
+                        <span class="toi">⭐</span>Member
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Catatan (Opsional)</label>
+                <input type="text" id="f-note" placeholder="Contoh: Pelanggan VIP">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal()">Batal</button>
+            <button class="btn-save" onclick="savePelanggan()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- HUTANG MODAL -->
+<div id="hutang-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:380px;">
+        <div class="modal-header">
+            <h4 id="hutang-modal-title">Kelola Hutang</h4>
+            <button class="modal-close" onclick="closeHutangModal()">✕</button>
+        </div>
+        <div class="modal-body" id="hutang-modal-body"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="config.js"></script>
+
+<script>
+// ===== FIREBASE =====
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+var pelangganRef = db.ref('pelanggan');
+var transaksiRef = db.ref('transaksi');
+
+// ===== STATE =====
+var pelangganData = {};
+var transaksiData = {};
+var activeId = null;
+var filterType = 'semua';
+var selectedType = 'umum';
+var selectedYear = new Date().getFullYear();
+var leaderboardOpen = false;
+
+// ===== TOAST =====
+function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (type || '');
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+// ===== FILTER =====
+function setFilter(f) {
+    filterType = f;
+    document.querySelectorAll('.ftab').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.f === f);
+    });
+    renderList();
+}
+
+// ===== WHATSAPP =====
+function openWA(id) {
+    var p = pelangganData[id];
+    if (!p || !p.telepon) { showToast('Nomor telepon tidak tersedia', 'error'); return; }
+    var phone = p.telepon.replace(/[^0-9+]/g, '');
+    if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+    if (!phone.startsWith('+')) phone = '+' + phone;
+    var tokoNama = (typeof tokoConfig !== 'undefined' && tokoConfig.nama) ? tokoConfig.nama : 'Toko Kami';
+    var msg = encodeURIComponent('Halo ' + (p.nama || '') + ', terima kasih sudah berbelanja di ' + tokoNama + '!');
+    window.open('https://wa.me/' + phone.replace('+', '') + '?text=' + msg, '_blank');
+}
+
+function openWADetail(id) {
+    openWA(id);
+}
+
+// ===== EXPORT CSV =====
+function exportCSV() {
+    var keys = Object.keys(pelangganData);
+    var rows = [['No', 'Nama', 'Telepon', 'Alamat', 'Tipe', 'Total Belanja', 'Hutang']];
+    keys.sort(function(a, b) { return (pelangganData[a].nama || '').localeCompare(pelangganData[b].nama || ''); });
+    keys.forEach(function(id, idx) {
+        var p = pelangganData[id];
+        var total = getAllTimeTotal(id);
+        var hutang = p.hutang || 0;
+        rows.push([idx + 1, '"' + (p.nama || '') + '"', '"' + (p.telepon || '') + '"', '"' + (p.alamat || '') + '"', p.tipe || 'umum', total, hutang]);
+    });
+    var csv = rows.map(function(r) { return r.join(','); }).join('\n');
+    var bom = '\uFEFF';
+    var blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'pelanggan_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📥 CSV berhasil di-export!', 'success');
+}
+
+// ===== LEADERBOARD =====
+function toggleLeaderboard() {
+    leaderboardOpen = !leaderboardOpen;
+    var btn = document.getElementById('lb-toggle-btn');
+    var list = document.getElementById('lb-list');
+    if (leaderboardOpen) {
+        btn.classList.add('open');
+        list.classList.add('open');
+    } else {
+        btn.classList.remove('open');
+        list.classList.remove('open');
+    }
+    renderLeaderboard();
+}
+
+function renderLeaderboard() {
+    var list = document.getElementById('lb-list');
+    if (!leaderboardOpen) { list.innerHTML = ''; return; }
+
+    var ranked = Object.keys(pelangganData).map(function(id) {
+        return { id: id, nama: pelangganData[id].nama, total: getAllTimeTotal(id) };
+    }).sort(function(a, b) { return b.total - a.total; }).slice(0, 5);
+
+    if (ranked.length === 0) {
+        list.innerHTML = '<div style="text-align:center; padding:12px; color:var(--ink3); font-size:12px;">Belum ada data</div>';
+        return;
+    }
+
+    var html = '';
+    ranked.forEach(function(r, idx) {
+        var rank = idx + 1;
+        var tier = getBonusTier(r.total);
+        var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        html += '<div class="lb-item" onclick="showDetail(\'' + r.id + '\')">' +
+            '<div class="lb-rank r' + rank + '">' + medal + '</div>' +
+            '<div class="lb-info">' +
+              '<div class="lb-name">' + (r.nama || '—') + '</div>' +
+              '<div class="lb-total">Rp ' + r.total.toLocaleString('id-ID') + '</div>' +
+            '</div>' +
+            '<span class="lb-tier-badge tier-badge tier-' + tier + '">' + (tier === 'none' ? '—' : tierLabel(tier)) + '</span>' +
+            '</div>';
+    });
+    list.innerHTML = html;
+}
+
+// ===== HUTANG MANAGEMENT =====
+function openHutangModal(id, mode) {
+    var p = pelangganData[id];
+    if (!p) return;
+    var modal = document.getElementById('hutang-modal');
+    var title = document.getElementById('hutang-modal-title');
+    var body = document.getElementById('hutang-modal-body');
+    var currentHutang = p.hutang || 0;
+
+    title.textContent = mode === 'tambah' ? '💰 Tambah Hutang' : '💸 Bayar Hutang';
+    var color = mode === 'tambah' ? 'var(--red)' : 'var(--green)';
+    var btnClass = mode === 'tambah' ? 'btn-confirm-tambah' : 'btn-confirm-bayar';
+    var btnText = mode === 'tambah' ? 'Tambah Hutang' : 'Bayar Hutang';
+    var label = mode === 'tambah' ? 'Jumlah hutang baru' : 'Jumlah pembayaran';
+
+    body.innerHTML =
+        '<div style="margin-bottom:12px;">' +
+          '<div style="font-size:12px;color:var(--ink3);margin-bottom:4px;">Pelanggan</div>' +
+          '<div style="font-size:15px;font-weight:700;">' + (p.nama || '—') + '</div>' +
+          '<div style="font-size:13px;color:var(--ink3);">Sisa hutang saat ini: <strong style="color:var(--red);">Rp ' + currentHutang.toLocaleString('id-ID') + '</strong></div>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>' + label + '</label>' +
+          '<input type="number" id="hutang-amount" placeholder="0" min="0" style="font-family:DM Mono,monospace; font-size:16px;">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>Catatan (Opsional)</label>' +
+          '<input type="text" id="hutang-note" placeholder="Contoh: Belanja tempo hari">' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<button class="btn-cancel" onclick="closeHutangModal()" style="flex:1;">Batal</button>' +
+          '<button class="' + btnClass + '" style="flex:2;padding:11px;border-radius:9px;border:none;color:#fff;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;" onclick="processHutang(\'' + id + '\', \'' + mode + '\')">' + btnText + '</button>' +
+        '</div>';
+
+    modal.classList.remove('hidden');
+    setTimeout(function() {
+        var inp = document.getElementById('hutang-amount');
+        if (inp) inp.focus();
+    }, 100);
+}
+
+function closeHutangModal() {
+    document.getElementById('hutang-modal').classList.add('hidden');
+}
+
+function processHutang(id, mode) {
+    var amount = parseInt(document.getElementById('hutang-amount').value) || 0;
+    var note = document.getElementById('hutang-note').value.trim();
+    var p = pelangganData[id];
+    if (!p) return;
+    if (amount <= 0) { showToast('Jumlah harus lebih dari 0', 'error'); return; }
+
+    var currentHutang = p.hutang || 0;
+    var newHutang;
+    if (mode === 'tambah') {
+        newHutang = currentHutang + amount;
+        // Validasi batas maksimal hutang dari config
+        var maxHutang = (fiturConfig && fiturConfig.maxHutangPerPelanggan) ? fiturConfig.maxHutangPerPelanggan : 0;
+        if (maxHutang > 0 && newHutang > maxHutang) {
+            showToast('Batas hutang Rp ' + maxHutang.toLocaleString('id-ID') + ' terlampaui! Sisa limit: Rp ' + Math.max(0, maxHutang - currentHutang).toLocaleString('id-ID'), 'error');
+            return;
+        }
+    } else {
+        if (amount > currentHutang) { showToast('Pembayaran melebihi hutang! Max: Rp ' + currentHutang.toLocaleString('id-ID'), 'error'); return; }
+        newHutang = currentHutang - amount;
+    }
+
+    // Build log entry
+    var logEntry = {
+        amount: amount,
+        type: mode,
+        tanggal: new Date().toISOString(),
+        note: note || '',
+        sisa: newHutang
+    };
+
+    // Get existing log
+    var existingLog = [];
+    if (p.hutang_log && Array.isArray(p.hutang_log)) {
+        existingLog = p.hutang_log;
+    }
+
+    // Add new entry
+    existingLog.push(logEntry);
+
+    // Update Firebase
+    pelangganRef.child(id).update({
+        hutang: newHutang,
+        hutang_log: existingLog
+    }).then(function() {
+        closeHutangModal();
+        var msg = mode === 'tambah'
+            ? '💰 Hutang Rp ' + amount.toLocaleString('id-ID') + ' ditambahkan'
+            : '💸 Hutang Rp ' + amount.toLocaleString('id-ID') + ' dibayar';
+        showToast(msg, 'success');
+    }).catch(function(e) {
+        showToast('Gagal: ' + e.message, 'error');
+    });
+}
+
+// ===== BONUS TIER =====
+function getBonusTier(total) {
+    if (total >= 25000000) return 'platinum';
+    if (total >= 10000000) return 'gold';
+    if (total >= 5000000)  return 'silver';
+    if (total >= 1000000)  return 'bronze';
+    return 'none';
+}
+
+function tierLabel(tier) {
+    var map = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze', none: '—' };
+    return map[tier] || '—';
+}
+
+function getYearlyTotal(pid, year) {
+    var total = 0;
+    for (var tid in transaksiData) {
+        var t = transaksiData[tid];
+        if (t.pelanggan_id === pid && t.tahun === year) total += (t.total || 0);
+    }
+    return total;
+}
+
+function getAllTimeTotal(pid) {
+    var total = 0;
+    for (var tid in transaksiData) {
+        var t = transaksiData[tid];
+        if (t.pelanggan_id === pid) total += (t.total || 0);
+    }
+    return total;
+}
+
+function countTransaksi(pid) {
+    var count = 0;
+    for (var tid in transaksiData) {
+        if (transaksiData[tid].pelanggan_id === pid) count++;
+    }
+    return count;
+}
+
+function getUmumTransaksi() {
+    return Object.keys(transaksiData).filter(function(tid) {
+        var t = transaksiData[tid];
+        return !t.pelanggan_id || t.pelanggan_id === '';
+    });
+}
+
+function getUmumYearlyTotal(year) {
+    var total = 0;
+    getUmumTransaksi().forEach(function(tid) {
+        var t = transaksiData[tid];
+        if (t.tahun === year) total += (t.total || 0);
+    });
+    return total;
+}
+
+// ===== RENDER LIST =====
+function renderList() {
+    var q = (document.getElementById('search-p').value || '').toLowerCase();
+    var container = document.getElementById('pelanggan-list');
+    container.innerHTML = '';
+
+    // --- Entri virtual "Pelanggan Umum" ---
+    if (filterType === 'semua' || filterType === 'umum') {
+        var umumCount = getUmumTransaksi().length;
+        var umumYearly = getUmumYearlyTotal(new Date().getFullYear());
+        var matchUmum = 'pelanggan umum'.includes(q) || 'umum'.includes(q) || q === '';
+        if (matchUmum) {
+            var umumDiv = document.createElement('div');
+            umumDiv.className = 'pelanggan-item' + (activeId === '__umum__' ? ' active' : '');
+            umumDiv.onclick = function() { showDetailUmum(); };
+            umumDiv.innerHTML =
+                '<div class="avatar" style="background:linear-gradient(135deg,#adb5bd,#6c757d); font-size:20px;">👤</div>' +
+                '<div class="item-info">' +
+                  '<div class="item-name">Pelanggan Umum</div>' +
+                  '<div class="item-meta">Tanpa member · ' + umumCount + ' transaksi</div>' +
+                '</div>' +
+                '<div class="item-right">' +
+                  '<div class="tier-badge tier-none">Umum</div>' +
+                  '<div class="item-total">Rp ' + umumYearly.toLocaleString('id-ID') + '/thn</div>' +
+                '</div>';
+            container.appendChild(umumDiv);
+
+            var div = document.createElement('div');
+            div.style.cssText = 'height:1px; background:var(--border); margin:0 16px;';
+            container.appendChild(div);
+        }
+    }
+
+    var keys = Object.keys(pelangganData).sort(function(a, b) {
+        return (pelangganData[a].nama || '').localeCompare(pelangganData[b].nama || '');
+    });
+
+    var filtered = keys.filter(function(id) {
+        var p = pelangganData[id];
+        var matchQ = (p.nama || '').toLowerCase().includes(q) || (p.telepon || '').includes(q);
+        var matchF = true;
+        if (filterType === 'umum') matchF = p.tipe === 'umum';
+        else if (filterType === 'member') matchF = p.tipe === 'member';
+        else if (filterType === 'hutang') matchF = (p.hutang || 0) > 0;
+        return matchQ && matchF;
+    });
+
+    if (filtered.length === 0 && filterType !== 'semua' && filterType !== 'umum') {
+        container.innerHTML += '<div style="text-align:center; padding:40px 20px; color:var(--ink3); font-size:13px;">Tidak ada pelanggan</div>';
+        return;
+    }
+
+    filtered.forEach(function(id) {
+        var p = pelangganData[id];
+        var yearly = getYearlyTotal(id, new Date().getFullYear());
+        var tier = getBonusTier(yearly);
+        var avClass = 'av-' + (p.tipe || 'umum');
+        var initial = (p.nama || '?').charAt(0).toUpperCase();
+        var hutang = p.hutang || 0;
+
+        var div = document.createElement('div');
+        div.className = 'pelanggan-item' + (id === activeId ? ' active' : '');
+        div.setAttribute('data-id', id);
+        div.onclick = function(e) {
+            if (e.target.closest('.wa-btn-list')) return;
+            showDetail(id);
+        };
+        div.innerHTML =
+            '<div class="avatar ' + avClass + '">' + initial + '</div>' +
+            '<div class="item-info">' +
+              '<div class="item-name">' + (p.nama || '—') + '</div>' +
+              '<div class="item-meta">' +
+                '<span>' + (p.telepon || 'No telp') + ' · ' + (p.tipe || 'umum') + '</span>' +
+                (hutang > 0 ? '<span class="hutang-badge">💰 Rp ' + hutang.toLocaleString('id-ID') + '</span>' : '') +
+              '</div>' +
+            '</div>' +
+            '<div class="item-right">' +
+              '<div class="tier-badge tier-' + tier + '">' + (tier === 'none' ? 'Umum' : tierLabel(tier)) + '</div>' +
+              '<div class="item-total">Rp ' + yearly.toLocaleString('id-ID') + '/thn</div>' +
+            '</div>' +
+            (p.telepon ? '<button class="wa-btn-list" onclick="event.stopPropagation(); openWA(\'' + id + '\')">📱 WA</button>' : '');
+        container.appendChild(div);
+    });
+
+    renderLeaderboard();
+}
+
+// ===== DELETE TRANSAKSI =====
+function deleteTransaksi(tid) {
+    if (!confirm('Hapus transaksi #' + tid.slice(-6).toUpperCase() + '?\nData stok TIDAK otomatis kembali.')) return;
+    transaksiRef.child(tid).remove().then(function() {
+        showToast('Transaksi dihapus', 'success');
+        if (activeId === '__umum__') showDetailUmum();
+        else if (activeId) showDetail(activeId);
+    }).catch(function(e) {
+        showToast('Gagal hapus: ' + e.message, 'error');
+    });
+}
+
+// ===== CLEAR ALL UMUM TRANSAKSI =====
+function clearAllUmumTransactions() {
+    if (!confirm('Hapus SEMUA transaksi Pelanggan Umum?\nIni tidak bisa dibatalkan.')) return;
+    var updates = {};
+    getUmumTransaksi().forEach(function(tid) { updates[tid] = null; });
+    transaksiRef.update(updates).then(function() {
+        showToast('Semua transaksi umum telah dihapus', 'success');
+        showDetailUmum();
+    }).catch(function(e) {
+        showToast('Gagal: ' + e.message, 'error');
+    });
+}
+
+// ===== SHOW DETAIL UMUM =====
+function showDetailUmum() {
+    activeId = '__umum__';
+    renderList();
+
+    var umumKeys = getUmumTransaksi();
+    var allTimeTotal = 0;
+    umumKeys.forEach(function(tid) { allTimeTotal += (transaksiData[tid].total || 0); });
+    var yearlyTotal = getUmumYearlyTotal(selectedYear);
+
+    var years = new Set([new Date().getFullYear()]);
+    umumKeys.forEach(function(tid) { years.add(transaksiData[tid].tahun); });
+    var yearOpts = Array.from(years).sort(function(a,b){return b-a;}).map(function(y) {
+        return '<option value="' + y + '"' + (y === selectedYear ? ' selected' : '') + '>' + y + '</option>';
+    }).join('');
+
+    var trxKeys = umumKeys.filter(function(tid) {
+        return transaksiData[tid].tahun === selectedYear;
+    }).sort(function(a, b) {
+        return (transaksiData[b].timestamp||0) - (transaksiData[a].timestamp||0);
+    });
+
+    var trxHtml = '';
+    if (trxKeys.length === 0) {
+        trxHtml = '<div class="empty-trx">📭 Belum ada transaksi umum di tahun ' + selectedYear + '</div>';
+    } else {
+        trxKeys.forEach(function(tid) {
+            var t = transaksiData[tid];
+            var d = new Date(t.timestamp || Date.now());
+            var day = d.getDate().toString().padStart(2,'0');
+            var mon = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][d.getMonth()];
+            var itemsLabel = (t.items||[]).slice(0,2).map(function(x){return x.name+' x'+x.qty;}).join(', ');
+            if ((t.items||[]).length > 2) itemsLabel += ' +' + ((t.items||[]).length - 2) + ' lagi';
+            trxHtml +=
+                '<div class="trx-card">' +
+                '<button class="del-trx-btn" onclick="deleteTransaksi(\'' + tid + '\')" title="Hapus">🗑️</button>' +
+                '<div class="trx-date-box"><div class="day">'+day+'</div><div class="mon">'+mon+'</div></div>' +
+                '<div class="trx-info">' +
+                  '<div class="trx-id">#'+tid.slice(-6).toUpperCase()+' · <span class="trx-type-badge trx-umum">Umum</span></div>' +
+                  '<div class="trx-items">'+(itemsLabel||'—')+'</div>' +
+                '</div>' +
+                '<div class="trx-total">Rp '+(t.total||0).toLocaleString('id-ID')+'</div>' +
+                '</div>';
+        });
+    }
+
+    var html =
+        '<div class="profile-card">' +
+          '<div class="profile-avatar" style="background:linear-gradient(135deg,#adb5bd,#6c757d); font-size:28px;">👤</div>' +
+          '<div class="profile-info">' +
+            '<div class="profile-name">Pelanggan Umum</div>' +
+            '<div class="profile-phone">Transaksi tanpa data member</div>' +
+            '<div class="profile-tags"><span class="type-badge type-umum">Umum</span></div>' +
+          '</div>' +
+          '<div class="profile-actions">' +
+            '<button class="btn-print-p" onclick="printTransaksi(\'__umum__\')">🖨 Print</button>' +
+            '<button class="btn-del-p" onclick="clearAllUmumTransactions()">🗑 Bersihkan</button>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="stats-row">' +
+          '<div class="stat-card"><div class="stat-label">Total Belanja ' + selectedYear + '</div><div class="stat-value">Rp ' + yearlyTotal.toLocaleString('id-ID') + '</div><div class="stat-sub">Tahun ini</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Semua Waktu</div><div class="stat-value">Rp ' + allTimeTotal.toLocaleString('id-ID') + '</div><div class="stat-sub">Total belanja</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Transaksi</div><div class="stat-value">' + umumKeys.length + 'x</div><div class="stat-sub">Semua transaksi umum</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Tahun Ini</div><div class="stat-value">' + trxKeys.length + 'x</div><div class="stat-sub">Transaksi ' + selectedYear + '</div></div>' +
+        '</div>' +
+
+        '<div class="section-title">' +
+          '<span>📋 Riwayat Transaksi Umum</span>' +
+          '<select class="year-select" onchange="changeYearUmum(this.value)">' + yearOpts + '</select>' +
+        '</div>' +
+        '<div class="trx-list">' + trxHtml + '</div>';
+
+    document.getElementById('detail-panel').innerHTML = html;
+}
+
+function changeYearUmum(year) {
+    selectedYear = parseInt(year);
+    showDetailUmum();
+}
+
+// ===== SHOW DETAIL =====
+function showDetail(id) {
+    activeId = id;
+    renderList();
+
+    var p = pelangganData[id];
+    if (!p) return;
+
+    var yearlyTotal = getYearlyTotal(id, selectedYear);
+    var allTimeTotal = getAllTimeTotal(id);
+    var countTrx = countTransaksi(id);
+    var tier = getBonusTier(yearlyTotal);
+    var avClass = 'av-' + (p.tipe || 'umum');
+    var profileAvClass = 'profile-avatar ' + avClass;
+    var typeClass = 'type-badge type-' + (p.tipe || 'umum');
+    var initial = (p.nama || '?').charAt(0).toUpperCase();
+    var hutang = p.hutang || 0;
+
+    // Tier progress
+    var tiers = [
+        { key: 'bronze', label: 'Bronze', icon: '🥉', req: 1000000, dotClass: 'bronze-dot' },
+        { key: 'silver', label: 'Silver', icon: '🥈', req: 5000000, dotClass: 'silver-dot' },
+        { key: 'gold',   label: 'Gold',   icon: '🥇', req: 10000000, dotClass: 'gold-dot' },
+        { key: 'platinum', label: 'Platinum', icon: '💎', req: 25000000, dotClass: 'platinum-dot' },
+    ];
+
+    var nextTier = null;
+    var nextTierIdx = tiers.length;
+    for (var i = 0; i < tiers.length; i++) {
+        if (yearlyTotal < tiers[i].req) { nextTier = tiers[i]; nextTierIdx = i; break; }
+    }
+
+    var progressPct = 0;
+    var progressLabel = '';
+    if (nextTier) {
+        var prevReq = nextTierIdx > 0 ? tiers[nextTierIdx-1].req : 0;
+        progressPct = Math.min(100, ((yearlyTotal - prevReq) / (nextTier.req - prevReq)) * 100);
+        var sisa = nextTier.req - yearlyTotal;
+        progressLabel = 'Butuh Rp ' + sisa.toLocaleString('id-ID') + ' lagi untuk ' + nextTier.label;
+    } else {
+        progressPct = 100;
+        progressLabel = '🎉 Tier tertinggi (Platinum) telah dicapai!';
+    }
+
+    var tierNodesHtml = tiers.map(function(t) {
+        var reached = yearlyTotal >= t.req;
+        return '<div class="bonus-tier-node">' +
+            '<div class="tier-dot ' + (reached ? t.dotClass : 'unreach') + (reached ? ' reached' : '') + '">' + t.icon + '</div>' +
+            '<div class="tier-node-label' + (reached ? ' reached' : '') + '">' + t.label + '</div>' +
+            '<div class="tier-node-req">Rp ' + (t.req/1000000).toFixed(0) + 'jt</div>' +
+            '</div>';
+    }).join('');
+
+    var progressColor = { none: '#adb5bd', bronze: '#cd7f32', silver: '#8a9bb0', gold: '#f59f00', platinum: '#7950f2' }[tier] || '#adb5bd';
+
+    // Build year options
+    var years = new Set();
+    years.add(new Date().getFullYear());
+    for (var tid in transaksiData) {
+        if (transaksiData[tid].pelanggan_id === id) years.add(transaksiData[tid].tahun);
+    }
+    var yearOpts = Array.from(years).sort(function(a,b) { return b-a; }).map(function(y) {
+        return '<option value="' + y + '"' + (y === selectedYear ? ' selected' : '') + '>' + y + '</option>';
+    }).join('');
+
+    // Transactions for selected year
+    var trxKeys = Object.keys(transaksiData).filter(function(tid) {
+        return transaksiData[tid].pelanggan_id === id && transaksiData[tid].tahun === selectedYear;
+    }).sort(function(a, b) {
+        return (transaksiData[b].timestamp || 0) - (transaksiData[a].timestamp || 0);
+    });
+
+    var trxHtml = '';
+    if (trxKeys.length === 0) {
+        trxHtml = '<div class="empty-trx">📭 Belum ada transaksi di tahun ' + selectedYear + '</div>';
+    } else {
+        trxKeys.forEach(function(tid) {
+            var t = transaksiData[tid];
+            var d = new Date(t.timestamp || Date.now());
+            var day = d.getDate().toString().padStart(2, '0');
+            var mon = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][d.getMonth()];
+            var itemsLabel = (t.items || []).slice(0,2).map(function(x) { return x.name + ' x' + x.qty; }).join(', ');
+            if ((t.items || []).length > 2) itemsLabel += ' +' + ((t.items||[]).length - 2) + ' lagi';
+            var tBadge = t.tipe_harga === 'member' ? '<span class="trx-type-badge trx-eceran">Member</span>' : '<span class="trx-type-badge trx-umum">Eceran</span>';
+            trxHtml +=
+                '<div class="trx-card">' +
+                '<button class="del-trx-btn" onclick="deleteTransaksi(\'' + tid + '\')" title="Hapus">🗑️</button>' +
+                '<div class="trx-date-box"><div class="day">' + day + '</div><div class="mon">' + mon + '</div></div>' +
+                '<div class="trx-info">' +
+                  '<div class="trx-id">#' + tid.slice(-6).toUpperCase() + ' · ' + tBadge + '</div>' +
+                  '<div class="trx-items">' + (itemsLabel || '—') + '</div>' +
+                '</div>' +
+                '<div class="trx-total">Rp ' + (t.total||0).toLocaleString('id-ID') + '</div>' +
+                '</div>';
+        });
+    }
+
+    // Hutang card HTML
+    var hutangCardHtml = '';
+    if (hutang > 0 || (p.hutang_log && p.hutang_log.length > 0)) {
+        var hutangLogHtml = '';
+        var logs = (p.hutang_log || []).slice().reverse();
+        if (logs.length === 0) {
+            hutangLogHtml = '<div class="hutang-log-empty">Belum ada riwayat hutang</div>';
+        } else {
+            logs.forEach(function(log) {
+                var d = new Date(log.tanggal);
+                var dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                var typeLabel = log.type === 'tambah' ? '+' : '−';
+                var typeCls = log.type === 'tambah' ? 'tambah' : 'bayar';
+                hutangLogHtml +=
+                    '<div class="hutang-log-item">' +
+                      '<span class="hl-type ' + typeCls + '">' + typeLabel + '</span>' +
+                      '<span class="hl-amount">Rp ' + log.amount.toLocaleString('id-ID') + '</span>' +
+                      (log.note ? '<span class="hl-note">' + log.note + '</span>' : '') +
+                      '<span class="hl-date">→ Rp ' + log.sisa.toLocaleString('id-ID') + '</span>' +
+                      '<span class="hl-date" style="margin-left:4px;">' + dateStr + '</span>' +
+                    '</div>';
+            });
+        }
+
+        hutangCardHtml =
+            '<div class="hutang-card">' +
+              '<div class="hutang-title">💰 Hutang / Piutang</div>' +
+              '<div class="hutang-amount">Rp ' + hutang.toLocaleString('id-ID') + '</div>' +
+              '<div class="hutang-actions">' +
+                '<button class="btn-hutang btn-tambah-hutang" onclick="openHutangModal(\'' + id + '\', \'tambah\')">💰 Tambah Hutang</button>' +
+                '<button class="btn-hutang btn-bayar-hutang" onclick="openHutangModal(\'' + id + '\', \'bayar\')" ' + (hutang <= 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : '') + '>💸 Bayar Hutang</button>' +
+              '</div>' +
+              '<div class="hutang-log-title">📋 Riwayat Hutang</div>' +
+              hutangLogHtml +
+            '</div>';
+    }
+
+    // Email display
+    var emailHtml = '';
+    if (p.email) {
+        emailHtml = '<div class="profile-email">✉️ ' + p.email + '</div>';
+    }
+
+    var html =
+        '<div class="profile-card">' +
+          '<div class="' + profileAvClass + '">' + initial + '</div>' +
+          '<div class="profile-info">' +
+            '<div class="profile-name">' + (p.nama || '—') + '</div>' +
+            '<div class="profile-phone">📞 ' + (p.telepon || 'Belum diisi') + (p.alamat ? ' · 📍 ' + p.alamat : '') + '</div>' +
+            emailHtml +
+            '<div class="profile-tags">' +
+              '<span class="' + typeClass + '">' + (p.tipe || 'umum') + '</span>' +
+              (tier !== 'none' ? '<span class="tier-badge tier-' + tier + '">' + tierLabel(tier) + '</span>' : '') +
+              (hutang > 0 ? '<span class="hutang-badge" style="font-size:11px;padding:3px 10px;">💰 Hutang Rp ' + hutang.toLocaleString('id-ID') + '</span>' : '') +
+              (p.catatan ? '<span style="font-size:11px; color:var(--ink3); padding:4px 8px; background:var(--bg); border-radius:5px;">' + p.catatan + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="profile-actions">' +
+            (p.telepon ? '<button class="btn-wa-p" onclick="openWADetail(\'' + id + '\')">📱 WA</button>' : '') +
+            '<button class="btn-print-p" onclick="printTransaksi(\'' + id + '\')">🖨 Print</button>' +
+            '<button class="btn-edit-p" onclick="openEditModal(\'' + id + '\')">✏ Edit</button>' +
+            '<button class="btn-del-p" onclick="deletePelanggan(\'' + id + '\')">🗑</button>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="stats-row">' +
+          '<div class="stat-card"><div class="stat-label">Total Belanja ' + selectedYear + '</div><div class="stat-value">Rp ' + yearlyTotal.toLocaleString('id-ID') + '</div><div class="stat-sub">Tahun ini</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Semua Waktu</div><div class="stat-value">Rp ' + allTimeTotal.toLocaleString('id-ID') + '</div><div class="stat-sub">Total belanja</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Transaksi</div><div class="stat-value">' + countTrx + 'x</div><div class="stat-sub">Semua transaksi</div></div>' +
+          (hutang > 0 ? '<div class="stat-card" style="border-color:#ffe3e3;background:#fff5f5;"><div class="stat-label">Hutang</div><div class="stat-value danger">Rp ' + hutang.toLocaleString('id-ID') + '</div><div class="stat-sub">Belum dibayar</div></div>' : '<div class="stat-card"><div class="stat-label">Tier Bonus</div><div class="stat-value"><span class="tier-badge tier-' + tier + '" style="font-size:13px;">' + (tier === 'none' ? '—' : tierLabel(tier)) + '</span></div><div class="stat-sub">Berdasarkan ' + selectedYear + '</div></div>') +
+        '</div>' +
+
+        hutangCardHtml +
+
+        '<div class="bonus-card">' +
+          '<div class="bonus-title">🎁 Progress Bonus ' + selectedYear + '</div>' +
+          '<div class="bonus-tiers">' + tierNodesHtml + '</div>' +
+          '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:' + progressPct + '%; background:' + progressColor + ';"></div></div>' +
+          '<div class="bonus-info">' + progressLabel + '</div>' +
+        '</div>' +
+
+        '<div class="section-title">' +
+          '<span>📋 Riwayat Transaksi</span>' +
+          '<select class="year-select" onchange="changeYear(\'' + id + '\', this.value)">' + yearOpts + '</select>' +
+        '</div>' +
+        '<div class="trx-list">' + trxHtml + '</div>';
+
+    document.getElementById('detail-panel').innerHTML = html;
+}
+
+function changeYear(id, year) {
+    selectedYear = parseInt(year);
+    if (id === '__umum__') showDetailUmum();
+    else showDetail(id);
+}
+
+// ===== PRINT TRANSAKSI =====
+function printTransaksi(id) {
+    var isUmum = id === '__umum__';
+    var p = isUmum ? null : pelangganData[id];
+    var nama   = isUmum ? 'Pelanggan Umum' : (p ? p.nama : '—');
+    var telepon = isUmum ? '—' : (p ? (p.telepon || '—') : '—');
+    var alamat  = isUmum ? '' : (p ? (p.alamat || '') : '');
+    var tipe    = isUmum ? 'Umum' : (p ? (p.tipe || 'umum') : 'umum');
+
+    var trxKeys = isUmum
+        ? getUmumTransaksi()
+        : Object.keys(transaksiData).filter(function(tid) {
+            return transaksiData[tid].pelanggan_id === id;
+          });
+
+    trxKeys = trxKeys.filter(function(tid) {
+        return transaksiData[tid].tahun === selectedYear;
+    }).sort(function(a, b) {
+        return (transaksiData[a].timestamp||0) - (transaksiData[b].timestamp||0);
+    });
+
+    var grandTotal = 0;
+    trxKeys.forEach(function(tid) { grandTotal += (transaksiData[tid].total || 0); });
+
+    var bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    var byMonth = {};
+    trxKeys.forEach(function(tid) {
+        var t = transaksiData[tid];
+        var m = t.bulan || (new Date(t.timestamp||Date.now()).getMonth()+1);
+        if (!byMonth[m]) byMonth[m] = [];
+        byMonth[m].push({ tid: tid, t: t });
+    });
+
+    var rows = '';
+    var no = 1;
+    Object.keys(byMonth).sort(function(a,b){return a-b;}).forEach(function(m) {
+        var monthTotal = 0;
+        byMonth[m].forEach(function(entry) { monthTotal += (entry.t.total||0); });
+
+        rows += '<tr style="background:#f0f2f8;"><td colspan="5" style="padding:8px 10px; font-weight:700; font-size:12px; color:#3b5bdb; letter-spacing:0.5px; text-transform:uppercase;">' +
+            bulanNama[parseInt(m)-1] + ' ' + selectedYear +
+            '<span style="float:right; color:#555; font-weight:600;">Subtotal: Rp ' + monthTotal.toLocaleString('id-ID') + '</span></td></tr>';
+
+        byMonth[m].forEach(function(entry) {
+            var t = entry.t;
+            var d = new Date(t.timestamp || Date.now());
+            var tgl = d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getFullYear();
+            var itemsList = (t.items||[]).map(function(x) {
+                var detail = x.name + ' ×' + x.qty;
+                if (x.grosir_qty > 0 && x.normal_qty > 0) {
+                    detail += ' ('+x.grosir_qty+'×Rp'+x.harga_grosir.toLocaleString('id-ID')+' + '+x.normal_qty+'×Rp'+x.harga_normal.toLocaleString('id-ID')+')';
+                } else if (x.grosir_qty > 0) {
+                    detail += ' @Rp' + (x.harga_grosir||0).toLocaleString('id-ID') + ' [grosir]';
+                } else {
+                    detail += ' @Rp' + (x.harga_normal||x.price||0).toLocaleString('id-ID');
+                }
+                return detail;
+            }).join('<br>');
+            var tipeHarga = t.tipe_harga === 'member' ? 'Member' : 'Eceran';
+
+            rows += '<tr>' +
+                '<td style="padding:8px 10px; color:#555; font-size:12px;">' + (no++) + '</td>' +
+                '<td style="padding:8px 10px; font-size:12px;">' + tgl + '</td>' +
+                '<td style="padding:8px 10px; font-size:11px; color:#555;">#' + entry.tid.slice(-6).toUpperCase() + ' · ' + tipeHarga + '</td>' +
+                '<td style="padding:8px 10px; font-size:11px; line-height:1.6;">' + (itemsList||'—') + '</td>' +
+                '<td style="padding:8px 10px; font-weight:700; text-align:right; white-space:nowrap;">Rp ' + (t.total||0).toLocaleString('id-ID') + '</td>' +
+                '</tr>';
+        });
+    });
+
+    if (!rows) {
+        rows = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#aaa;">Tidak ada transaksi di tahun ' + selectedYear + '</td></tr>';
+    }
+
+    var now = new Date();
+    var printDate = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear();
+
+    var tierInfo = '';
+    if (!isUmum) {
+        var tier = getBonusTier(grandTotal);
+        tierInfo = '<div style="display:inline-block; margin-left:10px; padding:3px 12px; border-radius:5px; font-size:12px; font-weight:700; background:' +
+            ({none:'#f1f3f5',bronze:'#fdf3e7',silver:'#f1f3f5',gold:'#fff3bf',platinum:'#f3f0ff'}[tier]) + '; color:' +
+            ({none:'#868e96',bronze:'#cd7f32',silver:'#8a9bb0',gold:'#f59f00',platinum:'#7950f2'}[tier]) + ';">' +
+            (tier === 'none' ? 'Belum ada tier' : '🏅 Tier ' + tierLabel(tier)) + '</div>';
+    }
+
+    var win = window.open('', '_blank', 'width=800,height=900');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Rekap Transaksi - ' + nama + ' - ' + selectedYear + '</title><style>body{font-family:Segoe UI,sans-serif;margin:0;padding:30px;color:#0f1117;font-size:13px;}.header{border-bottom:3px solid #3b5bdb;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;}.header-left h1{margin:0 0 4px;font-size:22px;color:#3b5bdb;}.header-left p{margin:0;color:#666;font-size:12px;}.header-right{text-align:right;font-size:12px;color:#666;}.info-box{display:flex;gap:30px;background:#f8f9fc;border-radius:10px;padding:14px 20px;margin-bottom:20px;border:1px solid #e4e7ef;}.info-item label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#8891a5;font-weight:700;margin-bottom:3px;}.info-item span{font-size:13px;font-weight:600;}.summary-box{display:flex;gap:16px;margin-bottom:20px;}.sum-card{flex:1;background:#f8f9fc;border:1px solid #e4e7ef;border-radius:8px;padding:12px 16px;}.sum-card .sl{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#8891a5;font-weight:700;margin-bottom:4px;}.sum-card .sv{font-size:17px;font-weight:800;color:#0f1117;}table{width:100%;border-collapse:collapse;}thead th{background:#3b5bdb;color:white;padding:10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;}thead th:last-child{text-align:right;}tbody tr:nth-child(even):not([style]){background:#f8f9fc;}tbody tr:hover:not([style]){background:#eef2ff;}.footer{margin-top:24px;padding-top:14px;border-top:1px solid #e4e7ef;display:flex;justify-content:space-between;font-size:11px;color:#aaa;}.grand-total{background:#eef2ff !important;font-weight:800;}@media print{body{padding:15px;}}</style></head><body><div class="header"><div class="header-left"><h1>Rekap Transaksi ' + selectedYear + '</h1><p>Dicetak pada ' + printDate + ' · POS Pro</p></div><div class="header-right"><div style="font-size:20px;font-weight:800;color:#3b5bdb;">' + selectedYear + '</div><div>Laporan Tahunan</div></div></div><div class="info-box"><div class="info-item"><label>Nama</label><span>' + nama + '</span></div><div class="info-item"><label>Telepon</label><span>' + telepon + '</span></div>' + (alamat ? '<div class="info-item"><label>Alamat</label><span>' + alamat + '</span></div>' : '') + '<div class="info-item"><label>Tipe</label><span>' + tipe + '</span></div></div><div class="summary-box"><div class="sum-card"><div class="sl">Total Transaksi</div><div class="sv">' + trxKeys.length + 'x</div></div><div class="sum-card"><div class="sl">Total Belanja ' + selectedYear + '</div><div class="sv">Rp ' + grandTotal.toLocaleString('id-ID') + '</div></div>' + (!isUmum ? '<div class="sum-card"><div class="sl">Tier Bonus</div><div class="sv">' + tierInfo + '</div></div>' : '') + '</div><table><thead><tr><th style="width:30px">No</th><th style="width:90px">Tanggal</th><th style="width:100px">ID Transaksi</th><th>Detail Pembelian</th><th style="width:120px;text-align:right">Total</th></tr></thead><tbody>' + rows + '<tr class="grand-total"><td colspan="4" style="padding:10px;text-align:right;font-size:13px;">GRAND TOTAL ' + selectedYear + '</td><td style="padding:10px;text-align:right;font-size:14px;color:#3b5bdb;">Rp ' + grandTotal.toLocaleString('id-ID') + '</td></tr></tbody></table><div class="footer"><span>Rekap transaksi ' + nama + ' — Tahun ' + selectedYear + '</span><span>POS Pro · ' + printDate + '</span></div></body></html>');
+    win.document.close();
+    win.focus();
+    setTimeout(function() { win.print(); }, 400);
+}
+
+// ===== MODAL =====
+function openAddModal() {
+    document.getElementById('modal-title').textContent = 'Tambah Pelanggan';
+    document.getElementById('f-id').value = '';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-phone').value = '';
+    document.getElementById('f-email').value = '';
+    document.getElementById('f-address').value = '';
+    document.getElementById('f-note').value = '';
+    selectType('umum');
+    document.getElementById('form-modal').classList.remove('hidden');
+}
+
+function openEditModal(id) {
+    var p = pelangganData[id];
+    if (!p) return;
+    document.getElementById('modal-title').textContent = 'Edit Pelanggan';
+    document.getElementById('f-id').value = id;
+    document.getElementById('f-name').value = p.nama || '';
+    document.getElementById('f-phone').value = p.telepon || '';
+    document.getElementById('f-email').value = p.email || '';
+    document.getElementById('f-address').value = p.alamat || '';
+    document.getElementById('f-note').value = p.catatan || '';
+    selectType(p.tipe || 'umum');
+    document.getElementById('form-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('form-modal').classList.add('hidden');
+}
+
+function selectType(type) {
+    selectedType = type;
+    ['umum', 'member'].forEach(function(t) {
+        var el = document.getElementById('opt-' + t);
+        el.className = 'type-opt' + (t === type ? ' sel-' + t : '');
+    });
+}
+
+function savePelanggan() {
+    var id = document.getElementById('f-id').value;
+    var nama = document.getElementById('f-name').value.trim();
+    var telepon = document.getElementById('f-phone').value.trim();
+    var email = document.getElementById('f-email').value.trim();
+    var alamat = document.getElementById('f-address').value.trim();
+    var catatan = document.getElementById('f-note').value.trim();
+    if (!nama) { showToast('Nama wajib diisi!', 'error'); return; }
+
+    var data = { nama: nama, telepon: telepon, email: email, alamat: alamat, catatan: catatan, tipe: selectedType };
+
+    if (id) {
+        pelangganRef.child(id).update(data).then(function() {
+            showToast('✅ Data diperbarui!', 'success');
+            closeModal();
+            showDetail(id);
+        });
+    } else {
+        data.created_at = Date.now();
+        data.hutang = 0;
+        data.hutang_log = [];
+        pelangganRef.push(data).then(function() {
+            showToast('✅ Pelanggan ditambahkan!', 'success');
+            closeModal();
+        });
+    }
+}
+
+function deletePelanggan(id) {
+    if (!confirm('Hapus pelanggan ini? Riwayat transaksi tetap tersimpan.')) return;
+    pelangganRef.child(id).remove().then(function() {
+        showToast('Pelanggan dihapus', '');
+        activeId = null;
+        document.getElementById('detail-panel').innerHTML = '<div class="empty-state"><div class="ei">👥</div><p>Pilih pelanggan untuk lihat detail</p></div>';
+    });
+}
+
+// ===== REALTIME =====
+pelangganRef.on('value', function(snap) {
+    pelangganData = snap.val() || {};
+    renderList();
+    if (activeId === '__umum__') { /* umum tidak perlu refresh dari pelangganRef */ }
+    else if (activeId && pelangganData[activeId]) showDetail(activeId);
+});
+
+transaksiRef.on('value', function(snap) {
+    transaksiData = snap.val() || {};
+    renderList();
+    if (activeId === '__umum__') showDetailUmum();
+    else if (activeId && pelangganData[activeId]) showDetail(activeId);
+});
+</script>
+
+<nav class="mobile-bottom-nav">
+    <a href="index.html" class="bnav-item"><span class="bnav-icon">🏠</span><span class="bnav-label">Beranda</span></a>
+    <a href="produk.html" class="bnav-item"><span class="bnav-icon">📦</span><span class="bnav-label">Produk</span></a>
+    <a href="riwayat.html" class="bnav-item"><span class="bnav-icon">📋</span><span class="bnav-label">Riwayat</span></a>
+    <a href="rekap.html" class="bnav-item"><span class="bnav-icon">📊</span><span class="bnav-label">Rekap</span></a>
+    <a href="pelanggan.html" class="bnav-item active"><span class="bnav-icon">👥</span><span class="bnav-label">Pelanggan</span></a>
+</nav>
+</body>
+</html>

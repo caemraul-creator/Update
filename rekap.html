@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Penjualan</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f1117; --ink2: #3d4350; --ink3: #8891a5;
+            --border: #e4e7ef; --bg: #f0f2f8; --surface: #ffffff;
+            --accent: #3b5bdb; --accent2: #4c6ef5;
+            --green: #0ca678; --red: #f03e3e; --amber: #f59f00;
+            --surface2: #f8f9fc;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* TOPBAR */
+        .topbar {
+            background: var(--ink); color: #fff;
+            padding: 0 24px; height: 56px;
+            display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+            overflow-x: auto;
+        }
+        .topbar::-webkit-scrollbar { height: 0; }
+        .topbar-logo { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent2); text-transform: uppercase; }
+        .topbar-title { font-size: 15px; font-weight: 700; flex: 1; white-space: nowrap; }
+        .nav-link {
+            padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            text-decoration: none; color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+            transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .nav-link.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .filter-group { display: flex; align-items: center; gap: 8px; }
+        .filter-label { font-size: 12px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-select {
+            padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+            background: var(--bg); outline: none; cursor: pointer; transition: border-color 0.15s;
+        }
+        .filter-select:focus { border-color: var(--accent2); background: #fff; }
+        .mode-btn {
+            padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 600;
+            border: 1.5px solid var(--border); background: var(--bg); color: var(--ink2);
+            cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+        }
+        .mode-btn.active { border-color: var(--accent); background: #eef2ff; color: var(--accent); }
+        .mode-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .divider { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
+        .summary-chips { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; align-items: center; }
+        .chip {
+            padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+            font-family: 'DM Mono', monospace;
+        }
+        .chip-blue { background: #dbe4ff; color: var(--accent); }
+        .chip-green { background: #d3f9d8; color: var(--green); }
+        .action-btn {
+            padding: 6px 16px; background: var(--accent); color: #fff; border: none;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px;
+            font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+        }
+        .action-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+        .action-btn-green { background: var(--green); }
+        .action-btn-green:hover { background: #099268; }
+
+        /* CONTENT */
+        .content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .content::-webkit-scrollbar { width: 6px; }
+        .content::-webkit-scrollbar-thumb { background: #d0d5e8; border-radius: 3px; }
+
+        /* BAR CHART */
+        .bar-chart-card {
+            background: var(--surface); border-radius: 14px; padding: 20px 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px;
+        }
+        .bar-chart-title {
+            font-size: 13px; font-weight: 700; color: var(--ink2);
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;
+        }
+        .bar-chart-container { display: flex; align-items: flex-end; gap: 16px; height: 180px; padding: 0 8px; }
+        .bar-chart-item { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+        .bar-chart-qty {
+            font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700;
+            color: var(--ink); margin-bottom: 6px;
+        }
+        .bar-chart-bar-wrap {
+            width: 100%; max-width: 56px; height: 100%; display: flex; align-items: flex-end; justify-content: center;
+        }
+        .bar-chart-bar {
+            width: 100%; border-radius: 6px 6px 2px 2px;
+            transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative; min-height: 4px;
+        }
+        .bar-chart-bar::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+            border-radius: 6px 6px 0 0;
+        }
+        .bar-chart-bar.b1 { background: linear-gradient(180deg, #f59f00, #e67700); box-shadow: 0 4px 12px rgba(245,159,0,0.3); }
+        .bar-chart-bar.b2 { background: linear-gradient(180deg, #868e96, #6b7280); box-shadow: 0 4px 12px rgba(134,142,150,0.3); }
+        .bar-chart-bar.b3 { background: linear-gradient(180deg, #cd7f32, #b06a20); box-shadow: 0 4px 12px rgba(205,127,50,0.3); }
+        .bar-chart-bar.b4 { background: linear-gradient(180deg, var(--accent2), var(--accent)); box-shadow: 0 4px 12px rgba(59,91,219,0.2); }
+        .bar-chart-bar.b5 { background: linear-gradient(180deg, #7950f2, #6741d9); box-shadow: 0 4px 12px rgba(121,80,242,0.2); }
+        .bar-chart-name {
+            font-size: 11px; font-weight: 600; color: var(--ink2);
+            margin-top: 8px; text-align: center; max-width: 80px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* COMPARISON BADGE */
+        .comparison-section {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .comparison-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+            font-family: 'DM Mono', monospace;
+        }
+        .badge-up { background: #d3f9d8; color: #099268; }
+        .badge-down { background: #ffe3e3; color: #e03131; }
+        .badge-neutral { background: #f1f3f5; color: #868e96; }
+        .comparison-label { font-size: 12px; color: var(--ink3); font-weight: 600; }
+
+        /* TABLE */
+        .rekap-table {
+            width: 100%; border-collapse: collapse;
+            background: var(--surface); border-radius: 12px; overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .rekap-table thead th {
+            padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--ink3);
+            text-transform: uppercase; letter-spacing: 0.8px;
+            background: var(--surface2); border-bottom: 2px solid var(--border);
+            text-align: left;
+        }
+        .rekap-table thead th.right { text-align: right; }
+        .rekap-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+        .rekap-table tbody tr:last-child { border-bottom: none; }
+        .rekap-table tbody tr:hover { background: var(--surface2); }
+        .rekap-table td { padding: 12px 16px; font-size: 13px; vertical-align: middle; }
+        .td-rank { font-family: 'DM Mono', monospace; font-weight: 700; font-size: 14px; color: var(--ink3); width: 40px; }
+        .td-rank.gold   { color: #f59f00; }
+        .td-rank.silver { color: #8a9bb0; }
+        .td-rank.bronze { color: #cd7f32; }
+        .td-name { font-weight: 600; color: var(--ink); }
+        .td-qty  { font-family: 'DM Mono', monospace; font-weight: 700; text-align: right; }
+        .td-omzet { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); text-align: right; }
+        .td-bar  { width: 160px; }
+
+        .bar-wrap { background: #e9ecf5; border-radius: 4px; height: 8px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.4s ease; }
+        .bar-fill.top1 { background: #f59f00; }
+        .bar-fill.top2 { background: #8a9bb0; }
+        .bar-fill.top3 { background: #cd7f32; }
+
+        /* TOP PELANGGAN */
+        .pelanggan-card {
+            background: var(--surface); border-radius: 14px; padding: 20px 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-top: 16px;
+        }
+        .pelanggan-card h3 {
+            font-size: 13px; font-weight: 700; color: var(--ink2);
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;
+        }
+        .pelanggan-list { display: flex; flex-direction: column; gap: 8px; }
+        .pelanggan-row {
+            display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+            border-radius: 10px; transition: background 0.15s;
+        }
+        .pelanggan-row:hover { background: var(--surface2); }
+        .pelanggan-rank {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 800;
+            flex-shrink: 0;
+        }
+        .pelanggan-rank.r1 { background: linear-gradient(135deg, #f59f00, #e67700); color: #fff; box-shadow: 0 2px 8px rgba(245,159,0,0.3); }
+        .pelanggan-rank.r2 { background: linear-gradient(135deg, #868e96, #6b7280); color: #fff; }
+        .pelanggan-rank.r3 { background: linear-gradient(135deg, #cd7f32, #b06a20); color: #fff; }
+        .pelanggan-rank.r4, .pelanggan-rank.r5 { background: var(--bg); color: var(--ink3); }
+        .pelanggan-info { flex: 1; min-width: 0; }
+        .pelanggan-name { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pelanggan-trx { font-size: 11px; color: var(--ink3); }
+        .pelanggan-total {
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700;
+            color: var(--accent); white-space: nowrap;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: var(--ink3);
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 60px; color: var(--ink3); font-size: 14px; }
+
+        /* Section title */
+        .section-title {
+            font-size: 14px; font-weight: 700; color: var(--ink2);
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; }
+        .toast {
+            background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex; align-items: center; gap: 10px;
+            animation: toastIn 0.3s ease;
+        }
+        .toast .undo-btn {
+            background: var(--accent); color: #fff; border: none; padding: 4px 12px;
+            border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .toast .undo-btn:hover { background: var(--accent2); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LABA HARIAN */
+        .btn-ambil-laba {
+            padding: 8px 16px; background: var(--green); color: #fff; border: none;
+            border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+            font-weight: 700; cursor: pointer; transition: all 0.15s;
+        }
+        .btn-ambil-laba:hover { background: #099268; opacity: 0.9; }
+        .laba-taken-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 5px 12px; border-radius: 8px; background: #d3f9d8;
+            color: #099268; font-size: 12px; font-weight: 700;
+        }
+        .laba-taken-info {
+            font-size: 10px; color: var(--ink3); font-family: 'DM Mono', monospace;
+        }
+        .btn-batalkan-laba {
+            padding: 4px 10px; border-radius: 6px; border: 1px solid #ffd0d0;
+            background: #fff5f5; font-family: 'DM Sans', sans-serif; font-size: 11px;
+            font-weight: 600; cursor: pointer; color: var(--red); transition: all 0.15s;
+        }
+        .btn-batalkan-laba:hover { background: #ffe3e3; }
+    .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #0f1117; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 200; border-top: 1px solid rgba(255,255,255,0.1); justify-content: space-around; align-items: center; }
+    .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 600; padding: 4px 8px; transition: color 0.2s; }
+    .bnav-item.active, .bnav-item:hover { color: #4c6ef5; }
+    .bnav-icon { font-size: 20px; }
+    .bnav-label { font-size: 9px; }
+    @media (max-width: 768px) { .mobile-bottom-nav { display: flex; } body { padding-bottom: 70px !important; } }
+    @media (max-width: 768px) {
+        .topbar { padding: 0 12px; }
+        .topbar .nav-link { display: none !important; }
+        html, body { max-width: 100vw; overflow-x: hidden; }
+        .filter-bar { padding: 10px 12px !important; gap: 8px; }
+        .filter-group { width: 100%; }
+        .filter-group .filter-select { flex: 1; min-width: 0; }
+        .divider { display: none; }
+        .summary-chips { margin-left: 0; width: 100%; }
+        .summary-chips .chip { flex: 1; text-align: center; }
+        .summary-chips .action-btn { flex: 1; text-align: center; }
+        .content { padding: 12px !important; padding-bottom: 80px !important; }
+        .bar-chart-card { padding: 14px 12px; }
+        .bar-chart-container { height: 140px; gap: 8px; }
+        .bar-chart-name { font-size: 9px; max-width: 56px; }
+        .bar-chart-bar-wrap { max-width: 36px; }
+        .rekap-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .rekap-table thead th { padding: 8px 10px; font-size: 10px; }
+        .rekap-table td { padding: 8px 10px; font-size: 12px; }
+        .td-bar { min-width: 80px; width: 80px !important; }
+        .pelanggan-card { padding: 14px 12px; }
+        .comparison-section { gap: 8px; }
+        .toast-container { bottom: 80px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <span class="topbar-logo">POS</span>
+    <span class="topbar-title">📊 Rekap Penjualan</span>
+    <a href="index.html" class="nav-link">🏪 Kasir</a>
+    <a href="riwayat.html" class="nav-link">📋 Riwayat</a>
+    <a href="rekap.html" class="nav-link active">📊 Rekap</a>
+    <a href="pelanggan.html" class="nav-link">👥 Pelanggan</a>
+    <a href="kadaluarsa.html" class="nav-link">🗓️ Kadaluarsa</a>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+    <!-- Mode: Bulanan / Tahunan -->
+    <div class="filter-group">
+        <span class="filter-label">Tampilan</span>
+        <button class="mode-btn active" id="btn-bulanan" onclick="setMode('bulanan')">📅 Bulanan</button>
+        <button class="mode-btn" id="btn-tahunan" onclick="setMode('tahunan')">📆 Tahunan</button>
+        <button class="mode-btn" id="btn-harian" onclick="setMode('harian')">💵 Laba Harian</button>
+    </div>
+    <div class="divider"></div>
+    <!-- Filter Tahun -->
+    <div class="filter-group">
+        <span class="filter-label">Tahun</span>
+        <select class="filter-select" id="sel-tahun" onchange="render()"></select>
+    </div>
+    <!-- Filter Bulan (hanya di mode bulanan) -->
+    <div class="filter-group" id="wrap-bulan">
+        <span class="filter-label">Bulan</span>
+        <select class="filter-select" id="sel-bulan" onchange="render()">
+            <option value="1">Januari</option><option value="2">Februari</option>
+            <option value="3">Maret</option><option value="4">April</option>
+            <option value="5">Mei</option><option value="6">Juni</option>
+            <option value="7">Juli</option><option value="8">Agustus</option>
+            <option value="9">September</option><option value="10">Oktober</option>
+            <option value="11">November</option><option value="12">Desember</option>
+        </select>
+    </div>
+    <div class="divider"></div>
+    <!-- Filter Metode Pembayaran -->
+    <div class="filter-group" id="wrap-metode">
+        <span class="filter-label">Metode</span>
+        <select class="filter-select" id="sel-metode" onchange="render()">
+            <option value="">Semua</option>
+            <option value="Tunai">Tunai</option>
+            <option value="Transfer">Transfer</option>
+            <option value="QRIS">QRIS</option>
+            <option value="Kartu">Kartu</option>
+        </select>
+    </div>
+    <!-- Summary chips -->
+    <div class="summary-chips">
+        <div class="chip chip-blue" id="chip-transaksi">0 Transaksi</div>
+        <div class="chip chip-green" id="chip-omzet">Rp 0</div>
+        <div class="chip" id="chip-laba" style="background:#d3f9d8; color: #0ca678; display:none;">Laba Rp 0</div>
+        <button onclick="exportCSV()" class="action-btn action-btn-green">📥 Export CSV</button>
+        <button onclick="printRekap()" class="action-btn">🖨 Export/Print</button>
+    </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content">
+    <div class="loading">⏳ Memuat data...</div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="config.js"></script>
+
+<script>
+// ====== INIT ======
+var db, transaksiRef, productsRef;
+var allTransaksi = {};
+var allProducts = {};
+var mode = 'bulanan'; // 'bulanan' | 'tahunan' | 'harian'
+var labaDiambilRef;
+var labaDiambilData = {};
+var _renderTimeout = null; // Untuk debounce
+
+var BULAN_NAMA = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+// Fungsi safe number
+function safeNumber(value) {
+    var num = parseInt(value, 10);
+    return isNaN(num) ? 0 : num;
+}
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    transaksiRef = db.ref('transaksi');
+    productsRef = db.ref('products');
+    
+    productsRef.on('value', function(snap) {
+        allProducts = snap.val() || {};
+        render(); // Render ulang setelah produk dimuat (untuk laba)
+    });
+
+    labaDiambilRef = db.ref('laba_diambil');
+    labaDiambilRef.on('value', function(snap) {
+        labaDiambilData = snap.val() || {};
+        render();
+    });
+    
+    transaksiRef.on('value', function(snap) {
+        allTransaksi = snap.val() || {};
+        populateTahun();
+        render();
+    });
+} catch(e) {
+    document.getElementById('content').innerHTML = '<div class="loading">❌ Gagal koneksi: ' + e.message + '</div>';
+}
+
+// ====== POPULATE TAHUN ======
+function populateTahun() {
+    var years = new Set();
+    var now = new Date();
+    years.add(now.getFullYear());
+    Object.values(allTransaksi).forEach(function(t) {
+        if (t.tahun) years.add(t.tahun);
+        else if (t.timestamp) years.add(new Date(t.timestamp).getFullYear());
+    });
+    var sel = document.getElementById('sel-tahun');
+    var current = sel.value;
+    sel.innerHTML = '';
+    Array.from(years).sort(function(a,b){return b-a;}).forEach(function(y) {
+        var o = document.createElement('option');
+        o.value = y; o.textContent = y;
+        sel.appendChild(o);
+    });
+    if (current) sel.value = current;
+    else sel.value = now.getFullYear();
+
+    // Set bulan ke bulan saat ini
+    var bSel = document.getElementById('sel-bulan');
+    if (!bSel.value) bSel.value = now.getMonth() + 1;
+}
+
+// ====== MODE ======
+function setMode(m) {
+    mode = m;
+    document.getElementById('btn-bulanan').classList.toggle('active', m === 'bulanan');
+    document.getElementById('btn-tahunan').classList.toggle('active', m === 'tahunan');
+    document.getElementById('btn-harian').classList.toggle('active', m === 'harian');
+    document.getElementById('wrap-bulan').style.display = (m === 'bulanan' || m === 'harian') ? 'flex' : 'none';
+    document.getElementById('wrap-metode').style.display = m === 'harian' ? 'none' : 'flex';
+    render();
+}
+
+// ====== RENDER DENGAN DEBOUNCE ======
+function render() {
+    if (_renderTimeout) clearTimeout(_renderTimeout);
+    _renderTimeout = setTimeout(function() {
+        _render();
+    }, 100);
+}
+
+// ====== HELPER: Get filtered transactions ======
+function getFilteredTransactions(tahun, bulan, prevMode) {
+    var metode = document.getElementById('sel-metode').value;
+    return Object.values(allTransaksi).filter(function(t) {
+        var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+        var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+        if (prevMode === 'tahunan') return tTahun === tahun;
+        return tTahun === tahun && tBulan === bulan;
+    }).filter(function(t) {
+        if (metode && t.metode !== metode) return false;
+        return true;
+    });
+}
+
+function _render() {
+    if (mode === 'harian') {
+        _renderHarian();
+        return;
+    }
+    var tahun = safeNumber(document.getElementById('sel-tahun').value);
+    var bulan = safeNumber(document.getElementById('sel-bulan').value);
+    var metode = document.getElementById('sel-metode').value;
+    
+    if (!allTransaksi) allTransaksi = {};
+    if (!allProducts) allProducts = {};
+
+    // Filter transaksi (current period)
+    var filtered = Object.values(allTransaksi).filter(function(t) {
+        var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+        var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+        if (mode === 'tahunan') return tTahun === tahun;
+        return tTahun === tahun && tBulan === bulan;
+    });
+    // Apply metode filter
+    var metodeFiltered = filtered;
+    if (metode) {
+        metodeFiltered = filtered.filter(function(t) {
+            return t.metode === metode;
+        });
+    }
+
+    // Aggregate per item
+    var map = {}; // { name: { qty, omzet, laba } }
+    metodeFiltered.forEach(function(t) {
+        if (!t.items) return;
+        t.items.forEach(function(item) {
+            var key = item.name;
+            if (!map[key]) map[key] = { name: key, qty: 0, omzet: 0, laba: 0, hasHpp: false };
+            map[key].qty   += item.qty || 0;
+            map[key].omzet += item.subtotal || 0;
+            // Cari HPP dari products data
+            var pid = item.id || item.product_id;
+            if (pid && allProducts[pid] && allProducts[pid].hpp) {
+                var hpp = allProducts[pid].hpp;
+                map[key].laba += (item.subtotal || 0) - (hpp * (item.qty || 0));
+                map[key].hasHpp = true;
+            }
+        });
+    });
+
+    var rows = Object.values(map).sort(function(a,b) { return b.qty - a.qty; });
+    var totalOmzet = metodeFiltered.reduce(function(s,t){return s+(t.total||0);}, 0);
+    var totalLaba = rows.reduce(function(s,r){return s+r.laba;}, 0);
+    var anyHpp = rows.some(function(r){return r.hasHpp;});
+
+    // Summary chips
+    document.getElementById('chip-transaksi').textContent = metodeFiltered.length + ' Transaksi';
+    document.getElementById('chip-omzet').textContent = 'Rp ' + totalOmzet.toLocaleString('id-ID');
+    var labaChip = document.getElementById('chip-laba');
+    if (anyHpp) {
+        labaChip.style.display = '';
+        labaChip.textContent = 'Laba ≈ Rp ' + totalLaba.toLocaleString('id-ID');
+        labaChip.style.background = totalLaba >= 0 ? '#d3f9d8' : '#ffe3e3';
+        labaChip.style.color = totalLaba >= 0 ? '#0ca678' : '#f03e3e';
+    } else {
+        labaChip.style.display = 'none';
+    }
+
+    // ===== PERIOD COMPARISON =====
+    var comparisonHtml = '';
+    var prevOmzet = 0;
+    var comparisonLabel = '';
+    if (mode === 'bulanan') {
+        // Compare with previous month
+        var prevBulan = bulan - 1;
+        var prevTahun = tahun;
+        if (prevBulan < 1) { prevBulan = 12; prevTahun--; }
+        var prevFiltered = Object.values(allTransaksi).filter(function(t) {
+            var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+            var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+            if (metode && t.metode !== metode) return false;
+            return tTahun === prevTahun && tBulan === prevBulan;
+        });
+        prevOmzet = prevFiltered.reduce(function(s,t){return s+(t.total||0);}, 0);
+        comparisonLabel = 'vs ' + BULAN_NAMA[prevBulan] + ' ' + prevTahun;
+    } else {
+        // Compare with previous year
+        var prevFiltered = Object.values(allTransaksi).filter(function(t) {
+            var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+            if (metode && t.metode !== metode) return false;
+            return tTahun === (tahun - 1);
+        });
+        prevOmzet = prevFiltered.reduce(function(s,t){return s+(t.total||0);}, 0);
+        comparisonLabel = 'vs Tahun ' + (tahun - 1);
+    }
+
+    if (prevOmzet > 0 || totalOmzet > 0) {
+        var pctChange = prevOmzet > 0 ? Math.round(((totalOmzet - prevOmzet) / prevOmzet) * 100) : (totalOmzet > 0 ? 100 : 0);
+        var isUp = totalOmzet >= prevOmzet;
+        var badgeClass = isUp ? 'badge-up' : 'badge-down';
+        var arrow = isUp ? '↑' : '↓';
+        var sign = isUp ? '+' : '';
+        if (prevOmzet === 0 && totalOmzet === 0) badgeClass = 'badge-neutral';
+        comparisonHtml = '<div class="comparison-section">' +
+            '<span class="comparison-label">' + comparisonLabel + '</span>' +
+            '<span class="comparison-badge ' + badgeClass + '">' +
+            arrow + ' ' + sign + pctChange + '%</span>' +
+            '<span style="font-size:12px;color:var(--ink3);font-family:\'DM Mono\',monospace;">' +
+            'Rp ' + prevOmzet.toLocaleString('id-ID') + ' → Rp ' + totalOmzet.toLocaleString('id-ID') +
+            '</span></div>';
+    }
+
+    // ===== BAR CHART (Top 5) ======
+    var chartHtml = '';
+    var top5 = rows.slice(0, 5);
+    if (top5.length > 0) {
+        var chartMaxQty = top5[0].qty || 1;
+        var barColors = ['b1','b2','b3','b4','b5'];
+        chartHtml = '<div class="bar-chart-card"><div class="bar-chart-title">🏆 Top 5 Produk (Qty Terjual)</div>';
+        chartHtml += '<div class="bar-chart-container">';
+        top5.forEach(function(row, i) {
+            var heightPct = Math.round((row.qty / chartMaxQty) * 100);
+            chartHtml += '<div class="bar-chart-item">' +
+                '<div class="bar-chart-qty">' + row.qty + '</div>' +
+                '<div class="bar-chart-bar-wrap">' +
+                '<div class="bar-chart-bar ' + barColors[i] + '" style="height:0%;" data-height="' + heightPct + '"></div>' +
+                '</div>' +
+                '<div class="bar-chart-name" title="' + escHtml(row.name) + '">' + escHtml(row.name) + '</div>' +
+                '</div>';
+        });
+        chartHtml += '</div></div>';
+    }
+
+    // ===== TOP 5 PELANGGAN =====
+    var pelangganHtml = '';
+    var pelangganMap = {};
+    metodeFiltered.forEach(function(t) {
+        if (!t.pelanggan_nama || t.pelanggan_nama.toLowerCase() === 'umum') return;
+        var name = t.pelanggan_nama;
+        if (!pelangganMap[name]) pelangganMap[name] = { name: name, total: 0, count: 0 };
+        pelangganMap[name].total += t.total || 0;
+        pelangganMap[name].count++;
+    });
+    var pelangganList = Object.values(pelangganMap).sort(function(a,b){ return b.total - a.total; });
+    var topPelanggan = pelangganList.slice(0, 5);
+    if (topPelanggan.length > 0) {
+        pelangganHtml = '<div class="pelanggan-card"><h3>👑 Top 5 Pelanggan</h3><div class="pelanggan-list">';
+        topPelanggan.forEach(function(pel, i) {
+            var rankClass = i < 3 ? 'r' + (i + 1) : 'r' + (i + 1);
+            pelangganHtml += '<div class="pelanggan-row">' +
+                '<div class="pelanggan-rank ' + rankClass + '">' + (i + 1) + '</div>' +
+                '<div class="pelanggan-info">' +
+                '<div class="pelanggan-name">' + escHtml(pel.name) + '</div>' +
+                '<div class="pelanggan-trx">' + pel.count + ' transaksi</div>' +
+                '</div>' +
+                '<div class="pelanggan-total">Rp ' + pel.total.toLocaleString('id-ID') + '</div>' +
+                '</div>';
+        });
+        pelangganHtml += '</div></div>';
+    }
+
+    var judul = mode === 'tahunan'
+        ? 'Rekap Tahunan — ' + tahun
+        : 'Rekap Bulanan — ' + BULAN_NAMA[bulan] + ' ' + tahun;
+    if (metode) judul += ' [' + metode + ']';
+
+    var maxQty = rows.length > 0 ? rows[0].qty : 1;
+    var content = document.getElementById('content');
+    
+    if (!content) return;
+
+    if (rows.length === 0) {
+        content.innerHTML =
+            '<p class="section-title">' + judul + '</p>' +
+            comparisonHtml +
+            '<div class="empty-state"><div class="icon">📭</div><p>Tidak ada data penjualan untuk periode ini.</p></div>';
+        return;
+    }
+
+    var html = '<p class="section-title">' + judul + ' · ' + rows.length + ' produk terjual</p>';
+    html += comparisonHtml;
+    html += chartHtml;
+
+    // Table
+    html += '<table class="rekap-table"><thead><tr>' +
+        '<th style="width:48px;">#</th>' +
+        '<th>Nama Produk</th>' +
+        '<th class="right">Qty Terjual</th>' +
+        '<th class="right">Omzet</th>' +
+        (anyHpp ? '<th class="right">Laba Kotor</th>' : '') +
+        '<th class="td-bar">Proporsi</th>' +
+        '</tr></thead><tbody>';
+
+    rows.forEach(function(row, i) {
+        var rank = i + 1;
+        var rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+        var barClass  = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+        var pct = maxQty > 0 ? Math.round((row.qty / maxQty) * 100) : 0;
+        var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        var labaCell = '';
+        if (anyHpp) {
+            if (row.hasHpp) {
+                var labaColor = row.laba >= 0 ? 'color:#0ca678;' : 'color:#f03e3e;';
+                labaCell = '<td class="td-omzet" style="' + labaColor + '">Rp ' + row.laba.toLocaleString('id-ID') + '</td>';
+            } else {
+                labaCell = '<td class="td-omzet" style="color:#c0c8d8;">—</td>';
+            }
+        }
+        html +=
+            '<tr>' +
+            '<td class="td-rank ' + rankClass + '">' + medal + '</td>' +
+            '<td class="td-name">' + escHtml(row.name) + '</td>' +
+            '<td class="td-qty">' + row.qty.toLocaleString('id-ID') + ' pcs</td>' +
+            '<td class="td-omzet">Rp ' + row.omzet.toLocaleString('id-ID') + '</td>' +
+            labaCell +
+            '<td class="td-bar"><div class="bar-wrap"><div class="bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div></td>' +
+            '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    // Top Pelanggan section
+    html += pelangganHtml;
+
+    content.innerHTML = html;
+
+    // Animate bar chart
+    setTimeout(function() {
+        var bars = content.querySelectorAll('.bar-chart-bar[data-height]');
+        bars.forEach(function(bar) {
+            bar.style.height = bar.getAttribute('data-height') + '%';
+        });
+    }, 50);
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ====== EXPORT CSV ======
+function exportCSV() {
+    var tahun = safeNumber(document.getElementById('sel-tahun').value);
+    var bulan = safeNumber(document.getElementById('sel-bulan').value);
+    var metode = document.getElementById('sel-metode').value;
+
+    var filtered = Object.values(allTransaksi).filter(function(t) {
+        var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+        var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+        if (mode === 'tahunan') { if (tTahun !== tahun) return false; }
+        else { if (tTahun !== tahun || tBulan !== bulan) return false; }
+        if (metode && t.metode !== metode) return false;
+        return true;
+    });
+
+    var map = {};
+    filtered.forEach(function(t) {
+        if (!t.items) return;
+        t.items.forEach(function(item) {
+            var key = item.name;
+            if (!map[key]) map[key] = { name: key, qty: 0, omzet: 0, laba: 0, hasHpp: false };
+            map[key].qty   += item.qty || 0;
+            map[key].omzet += item.subtotal || 0;
+            var pid = item.id || item.product_id;
+            if (pid && allProducts[pid] && allProducts[pid].hpp) {
+                var hpp = allProducts[pid].hpp;
+                map[key].laba += (item.subtotal || 0) - (hpp * (item.qty || 0));
+                map[key].hasHpp = true;
+            }
+        });
+    });
+
+    var rows = Object.values(map).sort(function(a,b){ return b.qty - a.qty; });
+    var anyHpp = rows.some(function(r){ return r.hasHpp; });
+
+    var csv = '\uFEFF'; // BOM for Excel UTF-8
+    var headers = ['No', 'Nama Produk', 'Qty Terjual', 'Omzet'];
+    if (anyHpp) headers.push('Laba Kotor');
+    csv += headers.join(';') + '\n';
+
+    rows.forEach(function(row, i) {
+        var line = [(i+1), '"' + row.name.replace(/"/g, '""') + '"', row.qty, row.omzet];
+        if (anyHpp) line.push(row.hasHpp ? row.laba : 0);
+        csv += line.join(';') + '\n';
+    });
+
+    var filename;
+    if (mode === 'bulanan') {
+        filename = 'rekap_' + BULAN_NAMA[bulan].toLowerCase() + '_' + tahun + '.csv';
+    } else {
+        filename = 'rekap_tahunan_' + tahun + '.csv';
+    }
+
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+    showToast('✅ CSV berhasil diunduh: ' + filename);
+}
+
+function printRekap() {
+    var tahun = safeNumber(document.getElementById('sel-tahun').value);
+    var bulan = safeNumber(document.getElementById('sel-bulan').value);
+    var metode = document.getElementById('sel-metode').value;
+
+    var filtered = Object.values(allTransaksi).filter(function(t) {
+        var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+        var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+        if (mode === 'tahunan') return tTahun === tahun;
+        return tTahun === tahun && tBulan === bulan;
+    }).filter(function(t) {
+        if (metode && t.metode !== metode) return false;
+        return true;
+    });
+
+    var map = {};
+    filtered.forEach(function(t) {
+        if (!t.items) return;
+        t.items.forEach(function(item) {
+            var key = item.name;
+            if (!map[key]) map[key] = { name: key, qty: 0, omzet: 0, laba: 0, hasHpp: false };
+            map[key].qty   += item.qty || 0;
+            map[key].omzet += item.subtotal || 0;
+            var pid = item.id || item.product_id;
+            if (pid && allProducts[pid] && allProducts[pid].hpp) {
+                var hpp = allProducts[pid].hpp;
+                map[key].laba += (item.subtotal || 0) - (hpp * (item.qty || 0));
+                map[key].hasHpp = true;
+            }
+        });
+    });
+
+    var rows = Object.values(map).sort(function(a,b){ return b.qty - a.qty; });
+    var totalOmzet = filtered.reduce(function(s,t){ return s+(t.total||0); }, 0);
+    var totalLaba  = rows.reduce(function(s,r){ return s+r.laba; }, 0);
+    var anyHpp = rows.some(function(r){ return r.hasHpp; });
+    var judul = mode === 'tahunan' ? 'Rekap Tahunan ' + tahun : 'Rekap Bulanan ' + BULAN_NAMA[bulan] + ' ' + tahun;
+    if (metode) judul += ' [' + metode + ']';
+    var tokoNama = (tokoConfig && tokoConfig.nama) ? tokoConfig.nama : 'TOKO';
+    var tokoAlamat = (tokoConfig && tokoConfig.alamat) ? tokoConfig.alamat : '';
+    var now = new Date();
+    var printDate = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear();
+
+    var tableRows = '';
+    rows.forEach(function(row, i) {
+        var rank = i + 1;
+        var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        var labaCell = anyHpp
+            ? (row.hasHpp
+                ? '<td style="text-align:right; color:' + (row.laba >= 0 ? '#0ca678' : '#f03e3e') + '; font-weight:700;">Rp ' + row.laba.toLocaleString('id-ID') + '</td>'
+                : '<td style="text-align:right; color:#ccc;">—</td>')
+            : '';
+        tableRows += '<tr style="border-bottom:1px solid #e4e7ef;">' +
+            '<td style="padding:10px 12px; font-size:14px;">' + medal + '</td>' +
+            '<td style="padding:10px 12px; font-weight:600;">' + escHtml(row.name) + '</td>' +
+            '<td style="padding:10px 12px; text-align:right; font-weight:700; font-family:monospace;">' + row.qty.toLocaleString('id-ID') + ' pcs</td>' +
+            '<td style="padding:10px 12px; text-align:right; font-family:monospace;">Rp ' + row.omzet.toLocaleString('id-ID') + '</td>' +
+            labaCell + '</tr>';
+    });
+
+    var labaHeader = anyHpp ? '<th style="background:#3b5bdb;color:#fff;padding:10px 12px;text-align:right;">Laba Kotor</th>' : '';
+    var labaFooter = anyHpp ? '<td style="text-align:right; font-weight:800; color:' + (totalLaba>=0?'#0ca678':'#f03e3e') + ';">Rp ' + totalLaba.toLocaleString('id-ID') + '</td>' : '';
+
+    var win = window.open('', '_blank', 'width=800,height=900');
+    if (!win) {
+        alert('Popup diblokir! Izinkan popup untuk mencetak rekap.');
+        return;
+    }
+    
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + judul + '</title><style>' +
+        'body{font-family:"Segoe UI",sans-serif;margin:0;padding:28px;color:#0f1117;font-size:13px;}' +
+        '.header{border-bottom:3px solid #3b5bdb;padding-bottom:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;}' +
+        '.header h1{margin:0 0 4px;font-size:22px;color:#3b5bdb;}.header p{margin:0;color:#666;font-size:12px;}' +
+        '.header-right{text-align:right;font-size:12px;color:#666;}' +
+        '.summary{display:flex;gap:14px;margin-bottom:20px;}' +
+        '.sum-card{flex:1;background:#f8f9fc;border:1px solid #e4e7ef;border-radius:8px;padding:12px 16px;}' +
+        '.sum-card .sl{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#8891a5;font-weight:700;margin-bottom:4px;}' +
+        '.sum-card .sv{font-size:18px;font-weight:800;color:#0f1117;}' +
+        'table{width:100%;border-collapse:collapse;}' +
+        'thead th{background:#3b5bdb;color:#fff;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;}' +
+        'thead th:last-child{text-align:right;}' +
+        'tbody tr:nth-child(even){background:#f8f9fc;}' +
+        'tbody tr:hover{background:#eef2ff;}' +
+        '.footer-row{background:#eef2ff!important;font-weight:800;}' +
+        '.footer-bar{margin-top:24px;padding-top:12px;border-top:1px solid #e4e7ef;display:flex;justify-content:space-between;font-size:11px;color:#aaa;}' +
+        '@media print{body{padding:12px;}@page{margin:0.5cm;size:A4;}}' +
+        '</style></head><body>' +
+        '<div class="header"><div><h1>' + judul + '</h1><p>' + tokoNama + (tokoAlamat ? ' · ' + tokoAlamat : '') + '</p></div>' +
+        '<div class="header-right"><div style="font-size:11px;">Dicetak: ' + printDate + '</div><div style="font-size:11px;">' + filtered.length + ' transaksi</div></div></div>' +
+        '<div class="summary">' +
+        '<div class="sum-card"><div class="sl">Total Transaksi</div><div class="sv">' + filtered.length + 'x</div></div>' +
+        '<div class="sum-card"><div class="sl">Total Omzet</div><div class="sv">Rp ' + totalOmzet.toLocaleString('id-ID') + '</div></div>' +
+        (anyHpp ? '<div class="sum-card"><div class="sl">Estimasi Laba</div><div class="sv" style="color:' + (totalLaba>=0?'#0ca678':'#f03e3e') + ';">Rp ' + totalLaba.toLocaleString('id-ID') + '</div></div>' : '') +
+        '<div class="sum-card"><div class="sl">Produk Terjual</div><div class="sv">' + rows.length + ' jenis</div></div>' +
+        '</div>' +
+        '<table><thead><tr>' +
+        '<th style="background:#3b5bdb;color:#fff;padding:10px 12px;width:44px;">#</th>' +
+        '<th style="background:#3b5bdb;color:#fff;padding:10px 12px;">Nama Produk</th>' +
+        '<th style="background:#3b5bdb;color:#fff;padding:10px 12px;text-align:right;">Qty Terjual</th>' +
+        '<th style="background:#3b5bdb;color:#fff;padding:10px 12px;text-align:right;">Omzet</th>' +
+        labaHeader + '</tr></thead><tbody>' + tableRows +
+        '<tr class="footer-row"><td colspan="2" style="padding:10px 12px;text-align:right;">TOTAL</td>' +
+        '<td style="padding:10px 12px;text-align:right;font-family:monospace;">' + rows.reduce(function(s,r){return s+r.qty;},0).toLocaleString('id-ID') + ' pcs</td>' +
+        '<td style="padding:10px 12px;text-align:right;font-family:monospace;">Rp ' + totalOmzet.toLocaleString('id-ID') + '</td>' +
+        labaFooter + '</tr>' +
+        '</tbody></table>' +
+        '<div class="footer-bar"><span>' + judul + ' · ' + tokoNama + '</span><span>POS Pro · ' + printDate + '</span></div>' +
+        '</body></html>');
+    win.document.close();
+    win.focus();
+    setTimeout(function(){ win.print(); }, 400);
+}
+
+// ====== RENDER HARIAN (LABA) ======
+function _renderHarian() {
+    var tahun = safeNumber(document.getElementById('sel-tahun').value);
+    var bulan = safeNumber(document.getElementById('sel-bulan').value);
+    var content = document.getElementById('content');
+    if (!content) return;
+
+    // Get all transactions for this month
+    var monthlyTrx = Object.values(allTransaksi).filter(function(t) {
+        var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+        var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+        return tTahun === tahun && tBulan === bulan;
+    });
+
+    // Group by day
+    var dailyMap = {};
+    monthlyTrx.forEach(function(t) {
+        var d = new Date(t.timestamp || 0);
+        var dayKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        if (!dailyMap[dayKey]) dailyMap[dayKey] = { trx: [], omzet: 0, laba: 0, count: 0 };
+        dailyMap[dayKey].trx.push(t);
+        dailyMap[dayKey].omzet += t.total || 0;
+        dailyMap[dayKey].count++;
+        // Calculate laba from items
+        if (t.items) {
+            t.items.forEach(function(item) {
+                var pid = item.id || item.product_id;
+                if (pid && allProducts[pid] && allProducts[pid].hpp) {
+                    var hpp = allProducts[pid].hpp;
+                    dailyMap[dayKey].laba += (item.subtotal || 0) - (hpp * (item.qty || 0));
+                }
+            });
+        }
+    });
+
+    // Sort days descending (newest first)
+    var days = Object.keys(dailyMap).sort().reverse();
+
+    // Calculate totals
+    var totalOmzetBulan = monthlyTrx.reduce(function(s,t){return s+(t.total||0);}, 0);
+    var totalLabaBulan = 0;
+    var totalSudahDiambil = 0;
+    var totalBelumDiambil = 0;
+    days.forEach(function(dayKey) {
+        var laba = dailyMap[dayKey].laba;
+        totalLabaBulan += laba;
+        if (labaDiambilData[dayKey]) {
+            totalSudahDiambil += laba;
+        } else {
+            totalBelumDiambil += laba;
+        }
+    });
+
+    var judul = '💵 Laba Harian — ' + BULAN_NAMA[bulan] + ' ' + tahun;
+
+    var HARI_NAMA = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+    // Build HTML
+    var html = '<p class="section-title">' + judul + '</p>';
+
+    // Summary cards
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:20px;">';
+    html += '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:10px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Total Omzet</div><div style="font-family:DM Mono,monospace;font-size:18px;font-weight:700;color:var(--accent);">Rp ' + totalOmzetBulan.toLocaleString('id-ID') + '</div></div>';
+    html += '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:10px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Total Laba Bulan Ini</div><div style="font-family:DM Mono,monospace;font-size:18px;font-weight:700;color:' + (totalLabaBulan >= 0 ? 'var(--green)' : 'var(--red)') + ';">Rp ' + totalLabaBulan.toLocaleString('id-ID') + '</div></div>';
+    html += '<div style="background:#e6fcf5;border:1.5px solid #b2f2bb;border-radius:12px;padding:16px;"><div style="font-size:10px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">✅ Sudah Diambil</div><div style="font-family:DM Mono,monospace;font-size:18px;font-weight:700;color:var(--green);">Rp ' + totalSudahDiambil.toLocaleString('id-ID') + '</div></div>';
+    html += '<div style="background:#fff3bf;border:1.5px solid #ffe066;border-radius:12px;padding:16px;"><div style="font-size:10px;color:#b07d00;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">⏳ Belum Diambil</div><div style="font-family:DM Mono,monospace;font-size:18px;font-weight:700;color:#b07d00;">Rp ' + totalBelumDiambil.toLocaleString('id-ID') + '</div></div>';
+    html += '</div>';
+
+    // Update summary chips
+    document.getElementById('chip-transaksi').textContent = monthlyTrx.length + ' Transaksi';
+    document.getElementById('chip-omzet').textContent = 'Rp ' + totalOmzetBulan.toLocaleString('id-ID');
+    var labaChip = document.getElementById('chip-laba');
+    labaChip.style.display = '';
+    labaChip.textContent = 'Laba Rp ' + totalLabaBulan.toLocaleString('id-ID');
+    labaChip.style.background = totalLabaBulan >= 0 ? '#d3f9d8' : '#ffe3e3';
+    labaChip.style.color = totalLabaBulan >= 0 ? '#0ca678' : '#f03e3e';
+
+    // Ambil semua button
+    var belumDiambilDays = days.filter(function(d){ return !labaDiambilData[d] && dailyMap[d].laba !== 0; });
+    if (belumDiambilDays.length > 0) {
+        html += '<div style="margin-bottom:16px;text-align:right;"><button onclick="ambilSemuaLaba()" style="padding:10px 20px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.15s;">💰 Ambil Semua Laba (' + belumDiambilDays.length + ' hari)</button></div>';
+    }
+
+    if (days.length === 0) {
+        html += '<div class="empty-state"><div class="icon">📭</div><p>Tidak ada data penjualan untuk bulan ini.</p></div>';
+        content.innerHTML = html;
+        return;
+    }
+
+    // Daily cards
+    days.forEach(function(dayKey) {
+        var data = dailyMap[dayKey];
+        var d = new Date(dayKey + 'T12:00:00');
+        var hariNama = HARI_NAMA[d.getDay()];
+        var tglStr = d.getDate() + ' ' + BULAN_NAMA[d.getMonth()+1] + ' ' + d.getFullYear();
+        var isTaken = !!labaDiambilData[dayKey];
+        var labaColor = data.laba >= 0 ? 'var(--green)' : 'var(--red)';
+
+        html += '<div style="background:var(--surface);border:1.5px solid ' + (isTaken ? '#b2f2bb' : 'var(--border)') + ';border-radius:14px;padding:16px 20px;margin-bottom:10px;' + (isTaken ? 'background:#f6fff8;' : '') + '">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">';
+        html += '<div><div style="font-size:15px;font-weight:700;color:var(--ink);">' + hariNama + ', ' + tglStr + '</div>';
+        html += '<div style="font-size:12px;color:var(--ink3);">' + data.count + ' transaksi</div></div>';
+
+        if (isTaken) {
+            var takenData = labaDiambilData[dayKey];
+            var takenTime = takenData.diambil_pada ? new Date(takenData.diambil_pada) : null;
+            var timeStr = takenTime ? takenTime.getDate() + '/' + (takenTime.getMonth()+1) + '/' + takenTime.getFullYear() + ' ' + String(takenTime.getHours()).padStart(2,'0') + ':' + String(takenTime.getMinutes()).padStart(2,'0') : '—';
+            html += '<div style="display:flex;align-items:center;gap:8px;">';
+            html += '<span class="laba-taken-badge">✅ Sudah Diambil</span>';
+            html += '<span class="laba-taken-info">' + timeStr + '</span>';
+            html += '<button onclick="batalkanAmbilLaba(\'' + dayKey + '\')" class="btn-batalkan-laba">Batalkan</button>';
+            html += '</div>';
+        } else {
+            if (data.laba !== 0) {
+                html += '<button onclick="ambilLabaHarian(\'' + dayKey + '\')" class="btn-ambil-laba">💰 Ambil Laba</button>';
+            } else {
+                html += '<span style="font-size:11px;color:var(--ink3);font-style:italic;">Laba Rp 0</span>';
+            }
+        }
+
+        html += '</div>';
+
+        // Stats row
+        html += '<div style="display:flex;gap:16px;flex-wrap:wrap;">';
+        html += '<div><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;">Omzet</div><div style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:var(--accent);">Rp ' + data.omzet.toLocaleString('id-ID') + '</div></div>';
+        html += '<div><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;">Laba</div><div style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:' + labaColor + ';">Rp ' + data.laba.toLocaleString('id-ID') + '</div></div>';
+        html += '</div>';
+
+        html += '</div>';
+    });
+
+    content.innerHTML = html;
+}
+
+// ====== AMBIL LABA HARIAN ======
+function ambilLabaHarian(dayKey) {
+    if (!confirm('Ambil laba untuk tanggal ' + dayKey + '?\n\nData laba akan ditandai sebagai sudah diambil.')) return;
+
+    // Calculate laba for this day
+    var dayTrx = Object.values(allTransaksi).filter(function(t) {
+        var d = new Date(t.timestamp || 0);
+        var tKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        return tKey === dayKey;
+    });
+
+    var omzet = dayTrx.reduce(function(s,t){return s+(t.total||0);}, 0);
+    var laba = 0;
+    dayTrx.forEach(function(t) {
+        if (t.items) {
+            t.items.forEach(function(item) {
+                var pid = item.id || item.product_id;
+                if (pid && allProducts[pid] && allProducts[pid].hpp) {
+                    var hpp = allProducts[pid].hpp;
+                    laba += (item.subtotal || 0) - (hpp * (item.qty || 0));
+                }
+            });
+        }
+    });
+
+    labaDiambilRef.child(dayKey).set({
+        tanggal: dayKey,
+        jumlah: laba,
+        omzet: omzet,
+        trx_count: dayTrx.length,
+        diambil_pada: new Date().toISOString(),
+        diambil_oleh: 'Admin'
+    }).then(function() {
+        showToast('✅ Laba Rp ' + laba.toLocaleString('id-ID') + ' (' + dayKey + ') berhasil diambil!');
+    }).catch(function(e) {
+        showToast('❌ Gagal: ' + e.message);
+    });
+}
+
+// ====== BATALKAN AMBIL LABA ======
+function batalkanAmbilLaba(dayKey) {
+    if (!confirm('Batalkan pengambilan laba untuk ' + dayKey + '?')) return;
+    labaDiambilRef.child(dayKey).remove().then(function() {
+        showToast('↩ Pengambilan laba (' + dayKey + ') dibatalkan');
+    }).catch(function(e) {
+        showToast('❌ Gagal: ' + e.message);
+    });
+}
+
+// ====== AMBIL SEMUA LABA ======
+function ambilSemuaLaba() {
+    var tahun = safeNumber(document.getElementById('sel-tahun').value);
+    var bulan = safeNumber(document.getElementById('sel-bulan').value);
+
+    var monthlyTrx = Object.values(allTransaksi).filter(function(t) {
+        var tTahun = t.tahun || (t.timestamp ? new Date(t.timestamp).getFullYear() : null);
+        var tBulan = t.bulan || (t.timestamp ? new Date(t.timestamp).getMonth() + 1 : null);
+        return tTahun === tahun && tBulan === bulan;
+    });
+
+    var dailyMap = {};
+    monthlyTrx.forEach(function(t) {
+        var d = new Date(t.timestamp || 0);
+        var dayKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        if (!dailyMap[dayKey]) dailyMap[dayKey] = { omzet: 0, laba: 0, count: 0 };
+        dailyMap[dayKey].omzet += t.total || 0;
+        dailyMap[dayKey].count++;
+        if (t.items) {
+            t.items.forEach(function(item) {
+                var pid = item.id || item.product_id;
+                if (pid && allProducts[pid] && allProducts[pid].hpp) {
+                    var hpp = allProducts[pid].hpp;
+                    dailyMap[dayKey].laba += (item.subtotal || 0) - (hpp * (item.qty || 0));
+                }
+            });
+        }
+    });
+
+    var days = Object.keys(dailyMap).sort().reverse();
+    var toTake = days.filter(function(d){ return !labaDiambilData[d] && dailyMap[d].laba !== 0; });
+
+    if (toTake.length === 0) {
+        showToast('Semua laba sudah diambil!');
+        return;
+    }
+
+    if (!confirm('Ambil laba untuk ' + toTake.length + ' hari sekaligus?')) return;
+
+    var batch = {};
+    var now = new Date().toISOString();
+    toTake.forEach(function(dayKey) {
+        batch[dayKey] = {
+            tanggal: dayKey,
+            jumlah: dailyMap[dayKey].laba,
+            omzet: dailyMap[dayKey].omzet,
+            trx_count: dailyMap[dayKey].count,
+            diambil_pada: now,
+            diambil_oleh: 'Admin'
+        };
+    });
+
+    labaDiambilRef.update(batch).then(function() {
+        showToast('✅ Laba ' + toTake.length + ' hari berhasil diambil!');
+    }).catch(function(e) {
+        showToast('❌ Gagal: ' + e.message);
+    });
+}
+
+// ====== TOAST ======
+function showToast(message) {
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = message;
+    container.appendChild(toast);
+    setTimeout(function(){ toast.remove(); }, 3000);
+}
+</script>
+<nav class="mobile-bottom-nav">
+    <a href="index.html" class="bnav-item"><span class="bnav-icon">🏠</span><span class="bnav-label">Beranda</span></a>
+    <a href="produk.html" class="bnav-item"><span class="bnav-icon">📦</span><span class="bnav-label">Produk</span></a>
+    <a href="riwayat.html" class="bnav-item"><span class="bnav-icon">📋</span><span class="bnav-label">Riwayat</span></a>
+    <a href="rekap.html" class="bnav-item active"><span class="bnav-icon">📊</span><span class="bnav-label">Rekap</span></a>
+    <a href="pelanggan.html" class="bnav-item"><span class="bnav-icon">👥</span><span class="bnav-label">Pelanggan</span></a>
+</nav>
+</body>
+</html>
