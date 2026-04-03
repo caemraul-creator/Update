@@ -28,10 +28,12 @@
   <div class="card-body p-4">
     <h4 class="mb-3 text-center">Login Inventaris</h4>
     <p class="text-muted small text-center mb-4">Masuk untuk mengelola data barang</p>
-    <form id="loginForm">
+    <form id="loginForm" novalidate>
       <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input type="text" name="username" class="form-control" required>
+        <!-- FIX: Ganti field 'username' → 'email', type text → email -->
+        <label class="form-label">Email / Username</label>
+        <input type="text" name="email" class="form-control"
+               placeholder="contoh: admin@sekolah.com" required>
       </div>
       <div class="mb-3">
         <label class="form-label">Password</label>
@@ -46,59 +48,65 @@
 </div>
 
 <script>
-// SAMAKAN DENGAN HALAMAN LAIN
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXwlo3zAPceXbw_E6VR2BWbUdzmip4lC8I5JmVmWhj3umNSqyjqT8JCfLtKW-SWcOs/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyKnjybJowQti_vLIpUd54wT5CBTXjhWXnqFKm6XDChcdjeTcSx4AvlCSc58h00lgH5/exec';
 
-function apiRaw(action, params = {}){
+function apiRaw(action, params){
   const body = new URLSearchParams({ action });
-  Object.entries(params).forEach(([k,v])=>{
-    if(v !== undefined && v !== null) body.append(k,v);
+  Object.entries(params).forEach(function([k,v]){
+    if (v !== undefined && v !== null) body.append(k, v);
   });
-  return fetch(GAS_URL,{method:'POST',body})
-    .then(r=>r.json())
-    .then(res=>{
-      if(!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+  return fetch(GAS_URL, { method:'POST', body })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
       return res.data;
     });
 }
 
 function doLogin(){
-  const form = document.getElementById('loginForm');
-  const btn  = document.getElementById('btnLogin');
-  const errEl= document.getElementById('errorMsg');
+  const form  = document.getElementById('loginForm');
+  const btn   = document.getElementById('btnLogin');
+  const errEl = document.getElementById('errorMsg');
   errEl.textContent = '';
 
-  if(!form.checkValidity()){
+  if (!form.checkValidity()){
     form.reportValidity();
     return;
   }
 
-  const fd = new FormData(form);
-  const username = fd.get('username');
-  const password = fd.get('password');
+  const fd       = new FormData(form);
+  // FIX: ambil field 'email' (bukan 'username')
+  const email    = (fd.get('email') || '').trim();
+  const password = (fd.get('password') || '').trim();
 
-  btn.disabled = true;
+  if (!email || !password){
+    errEl.textContent = 'Email dan password wajib diisi.';
+    return;
+  }
+
+  btn.disabled  = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Masuk...';
 
-  apiRaw('login',{ username, password })
-    .then(u => {
-      // simpan token & info user
-      localStorage.setItem('token', u.token);
-      localStorage.setItem('username', u.username);
-      localStorage.setItem('nama', u.nama || '');
-      localStorage.setItem('role', u.role || 'viewer');
+  // FIX: kirim field 'email' ke GAS
+  apiRaw('login', { email: email, password: password })
+    .then(function(u){
+      // GAS kini mengembalikan { token, username, nama, role } secara flat
+      localStorage.setItem('token',    u.token    || '');
+      localStorage.setItem('username', u.username || u.email || email);
+      localStorage.setItem('nama',     u.nama     || '');
+      localStorage.setItem('role',     u.role     || 'viewer');
       window.location.href = 'dashboard.html';
     })
-    .catch(err => {
+    .catch(function(err){
       errEl.textContent = 'Login gagal: ' + err.message;
     })
-    .finally(()=>{
-      btn.disabled = false;
+    .finally(function(){
+      btn.disabled  = false;
       btn.innerHTML = 'Login';
     });
 }
 
-// optional: enter di field langsung panggil doLogin
+// Enter di field langsung panggil doLogin
 document.getElementById('loginForm').addEventListener('submit', function(e){
   e.preventDefault();
   doLogin();

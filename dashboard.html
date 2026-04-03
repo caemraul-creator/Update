@@ -5,32 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - Inventaris</title>
 
-  <!-- CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Layout global -->
   <link rel="stylesheet" href="layout.css">
 
   <style>
-    /* ====== KHUSUS DASHBOARD ====== */
-
-    /* header sedikit dirapikan */
     .page-header{
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:1rem;
     }
-
-    /* warna icon di kartu statistik */
-    .stats-card.primary  .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
-    .stats-card.success  .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
-    .stats-card.warning  .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
-    .stats-card.danger   .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
-
+    .stats-card.primary .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+    .stats-card.success .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
+    .stats-card.warning .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
+    .stats-card.danger  .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
     .stats-card:hover{transform:translateY(-3px);transition:.25s;}
     .stats-number{font-size:1.6rem;}
     .stats-label{font-size:.8rem;color:#6b7280;}
@@ -42,7 +33,6 @@
       margin-top:1.5rem;
       margin-bottom:1.75rem;
     }
-
     .card-glass{
       background:rgba(255,255,255,.96);
       backdrop-filter:blur(12px);
@@ -55,7 +45,6 @@
       font-weight:600;
       margin-bottom:.6rem;
     }
-
     .table-section{
       background:rgba(255,255,255,.96);
       backdrop-filter:blur(12px);
@@ -72,21 +61,11 @@
       justify-content:space-between;
       align-items:center;
     }
-    .table-title{
-      margin:0;
-      font-size:1.05rem;
-      font-weight:600;
-    }
-    .table-content{
-      padding:1.25rem 1.4rem 1.4rem;
-    }
-    .table{
-      margin:0;
-      font-size:.9rem;
-    }
+    .table-title{margin:0;font-size:1.05rem;font-weight:600;}
+    .table-content{padding:1.25rem 1.4rem 1.4rem;}
+    .table{margin:0;font-size:.9rem;}
     .table thead th{white-space:nowrap;}
     .badge{white-space:nowrap;}
-
     .btn{
       border-radius:999px;
       padding:.4rem 1rem;
@@ -97,56 +76,28 @@
     }
     .btn i{font-size:1rem;}
 
-    /* ====== TABEL JADI KARTU DI HP (lebih nyaman dibaca) ====== */
     @media (max-width:575.98px){
-      .page-header{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-
-      .grid-2{
-        grid-template-columns:1fr;
-      }
-
-      .stats-number{
-        font-size:1.4rem;
-      }
-
-      .table-mobile-cards thead{
-        display:none;
-      }
+      .page-header{flex-direction:column;align-items:flex-start;}
+      .grid-2{grid-template-columns:1fr;}
+      .stats-number{font-size:1.4rem;}
+      .table-mobile-cards thead{display:none;}
       .table-mobile-cards tbody tr{
-        display:block;
-        margin-bottom:.75rem;
-        border-radius:.85rem;
-        background:#ffffff;
-        box-shadow:0 8px 20px -12px rgba(15,23,42,.45);
-        overflow:hidden;
+        display:block;margin-bottom:.75rem;border-radius:.85rem;
+        background:#ffffff;box-shadow:0 8px 20px -12px rgba(15,23,42,.45);overflow:hidden;
       }
       .table-mobile-cards tbody td{
-        display:flex;
-        justify-content:space-between;
-        gap:.75rem;
-        padding:.5rem .9rem;
-        font-size:.86rem;
-        border-bottom:1px solid #f1f5f9;
+        display:flex;justify-content:space-between;gap:.75rem;
+        padding:.5rem .9rem;font-size:.86rem;border-bottom:1px solid #f1f5f9;
       }
-      .table-mobile-cards tbody td:last-child{
-        border-bottom:none;
-      }
+      .table-mobile-cards tbody td:last-child{border-bottom:none;}
       .table-mobile-cards tbody td::before{
-        content:attr(data-label);
-        font-weight:500;
-        color:#6b7280;
-        text-align:left;
-        flex:0 0 45%;
+        content:attr(data-label);font-weight:500;color:#6b7280;text-align:left;flex:0 0 45%;
       }
     }
   </style>
 </head>
 <body>
 <div class="main-wrapper">
-  <!-- SIDEBAR (pakai layout.css) -->
   <nav class="sidebar">
     <div class="brand">
       <i class="bi bi-box-seam"></i>
@@ -155,19 +106,15 @@
     <div class="nav flex-column">
       <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
       <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
-      <a class="nav-link" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung &amp; Ruangan</a>
       <a class="nav-link" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
     </div>
   </nav>
 
-  <!-- MAIN -->
   <main class="main-content">
-    <!-- HEADER + TOGGLE SIDEBAR + USER -->
     <div class="page-header">
       <div class="d-flex align-items-center gap-2">
-        <!-- Tombol buka sidebar di HP/Tablet -->
-        <button type="button"
-                id="btnToggleSidebar"
+        <button type="button" id="btnToggleSidebar"
                 class="btn btn-outline-light btn-sm d-md-none btn-rounded">
           <i class="bi bi-list"></i>
         </button>
@@ -248,7 +195,6 @@
       </div>
       <div class="table-content">
         <div class="table-responsive">
-          <!-- TAMBAH class table-mobile-cards -->
           <table class="table table-hover mb-0 table-mobile-cards">
             <thead>
               <tr>
@@ -270,49 +216,44 @@
   </main>
 </div>
 
-<!-- Script -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="layout.js"></script>
 
 <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzXwlo3zAPceXbw_E6VR2BWbUdzmip4lC8I5JmVmWhj3umNSqyjqT8JCfLtKW-SWcOs/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyKnjybJowQti_vLIpUd54wT5CBTXjhWXnqFKm6XDChcdjeTcSx4AvlCSc58h00lgH5/exec';
 
 /* ===== API WRAPPER ===== */
-function api(action, params = {}) {
+function api(action, params) {
+  params = params || {};
   const body = new URLSearchParams({ action });
-
   const token = localStorage.getItem('token');
   if (token) body.append('token', token);
-
-  Object.entries(params).forEach(([k,v]) => {
+  Object.entries(params).forEach(function([k,v]){
     if (v !== undefined && v !== null) body.append(k, v);
   });
-
-  return fetch(GAS_URL, { method: 'POST', body })
-    .then(r => r.json())
-    .then(res => {
+  return fetch(GAS_URL, { method:'POST', body })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
       if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
       return res.data;
     });
 }
 
-/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
+/* ===== AUTH ===== */
 function cekLogin(){
   const token = localStorage.getItem('token');
   if (!token){
     window.location.href = 'login.html';
     return;
   }
-
-  api('getCurrentUser')
-    .then(u => {
+  // FIX: gunakan action 'me' (getCurrentUser adalah alias-nya di GAS)
+  api('me')
+    .then(function(u){
       const userInfo = document.getElementById('userInfo');
-      if (userInfo){
-        userInfo.textContent = `${u.nama} (${u.role})`;
-      }
+      if (userInfo) userInfo.textContent = (u.nama || '') + ' (' + (u.role || '') + ')';
     })
-    .catch(() => {
+    .catch(function(){
       localStorage.clear();
       window.location.href = 'login.html';
     });
@@ -320,7 +261,7 @@ function cekLogin(){
 
 function doLogout(){
   api('logout')
-    .finally(() => {
+    .finally(function(){
       localStorage.clear();
       window.location.href = 'login.html';
     });
@@ -328,99 +269,102 @@ function doLogout(){
 
 /* ===== UTIL ===== */
 function formatDateDisplay(iso){
-  if(!iso) return '';
+  if (!iso) return '';
   const d = new Date(iso);
-  if(isNaN(d)) return iso;
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  if (isNaN(d)) return iso;
+  return String(d.getDate()).padStart(2,'0') + '/' +
+         String(d.getMonth()+1).padStart(2,'0') + '/' +
+         d.getFullYear();
 }
 
 function badgeStatus(s){
   let cls = 'bg-secondary';
-  if(s==='Aktif') cls = 'bg-success';
-  else if(s==='Perawatan') cls = 'bg-warning text-dark';
-  else if(s==='Rusak') cls = 'bg-danger';
-  else if(s==='Tersedia') cls = 'bg-primary';
-  return `<span class="badge ${cls}">${s}</span>`;
+  if (s==='Aktif')     cls = 'bg-success';
+  else if (s==='Perawatan') cls = 'bg-warning text-dark';
+  else if (s==='Rusak')     cls = 'bg-danger';
+  else if (s==='Tersedia')  cls = 'bg-primary';
+  return '<span class="badge ' + cls + '">' + s + '</span>';
 }
 
 let chartGedungInst, chartStatusInst;
 
 /* ===== LOAD DASHBOARD ===== */
+// FIX: hanya panggil getDashboard (tidak perlu getSummary terpisah)
+//      semua field sudah dikembalikan oleh GAS dalam satu response
 async function loadDashboard(){
   try {
-    const [dashboard, summary, barang] = await Promise.all([
+    // Jalankan getDashboard dan getBarang secara paralel
+    const [dashboard, barang] = await Promise.all([
       api('getDashboard'),
-      api('getSummary'),
       api('getBarang')
     ]);
 
-    // Summary
-    document.getElementById('statTotalBarang').textContent = dashboard.total || 0;
-    document.getElementById('statRusak').textContent       = dashboard.rusak || 0;
-    document.getElementById('statGedung').textContent      = summary.totGdg || 0;
-    document.getElementById('statRuangan').textContent     = summary.totRuang || 0;
+    // FIX: field yang benar sesuai GAS getDashboard yang sudah diperbaiki
+    document.getElementById('statTotalBarang').textContent = dashboard.total    || 0;
+    document.getElementById('statRusak').textContent       = dashboard.rusak    || 0;
+    document.getElementById('statGedung').textContent      = dashboard.totGdg   || 0;
+    document.getElementById('statRuangan').textContent     = dashboard.totRuang || 0;
 
-    // Barang terbaru
+    // Barang terbaru (field 'tgl', bukan 'tglMasuk')
     const latestBody = document.getElementById('latestBody');
     latestBody.innerHTML = '';
-    (dashboard.recent || []).forEach(b => {
-      latestBody.insertAdjacentHTML('beforeend', `
-        <tr>
-          <td data-label="Nama Barang">${b.nama}</td>
-          <td data-label="Kategori">${b.kategori}</td>
-          <td data-label="Gedung">${b.gedung}</td>
-          <td data-label="Ruangan">${b.ruangan || '-'}</td>
-          <td data-label="Tanggal Masuk">${formatDateDisplay(b.tgl)}</td>
-          <td data-label="Status">${badgeStatus(b.status)}</td>
-        </tr>
-      `);
+    (dashboard.recent || []).forEach(function(b){
+      latestBody.insertAdjacentHTML('beforeend',
+        '<tr>' +
+        '<td data-label="Nama Barang">' + b.nama + '</td>' +
+        '<td data-label="Kategori">'    + b.kategori + '</td>' +
+        '<td data-label="Gedung">'      + b.gedung + '</td>' +
+        '<td data-label="Ruangan">'     + (b.ruangan || '-') + '</td>' +
+        '<td data-label="Tanggal Masuk">' + formatDateDisplay(b.tgl) + '</td>' +
+        '<td data-label="Status">'      + badgeStatus(b.status) + '</td>' +
+        '</tr>'
+      );
     });
-    if((dashboard.recent || []).length === 0){
+    if ((dashboard.recent || []).length === 0){
       latestBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada data</td></tr>';
     }
 
     // Chart per Gedung
-    const labelsGedung = dashboard.chartLabel || [];
-    const dataGedung   = dashboard.chartData || [];
     const ctxG = document.getElementById('chartGedung');
-    if(chartGedungInst) chartGedungInst.destroy();
+    if (chartGedungInst) chartGedungInst.destroy();
     chartGedungInst = new Chart(ctxG, {
-      type:'bar',
-      data:{
-        labels:labelsGedung,
-        datasets:[{
-          label:'Jumlah Barang',
-          data:dataGedung
+      type: 'bar',
+      data: {
+        labels: dashboard.chartLabel || [],
+        datasets: [{
+          label: 'Jumlah Barang',
+          data:  dashboard.chartData  || []
         }]
       },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{legend:{display:false}},
-        scales:{y:{beginAtZero:true,precision:0}}
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, precision: 0 } }
       }
     });
 
-    // Chart Status (diambil dari getBarang)
-    const counts = {Aktif:0, Perawatan:0, Rusak:0, Tersedia:0, Lainnya:0};
-    (barang || []).forEach(b=>{
-      if(counts[b.status] !== undefined) counts[b.status]++; else counts.Lainnya++;
+    // Chart Status (dari getBarang)
+    const counts = { Aktif:0, Perawatan:0, Rusak:0, Tersedia:0, Lainnya:0 };
+    (barang || []).forEach(function(b){
+      if (counts[b.status] !== undefined) counts[b.status]++;
+      else counts.Lainnya++;
     });
-    const labelsStatus = Object.keys(counts).filter(k=>counts[k]>0);
-    const dataStatus   = labelsStatus.map(k=>counts[k]);
+    const labelsStatus = Object.keys(counts).filter(function(k){ return counts[k] > 0; });
+    const dataStatus   = labelsStatus.map(function(k){ return counts[k]; });
 
     const ctxS = document.getElementById('chartStatus');
-    if(chartStatusInst) chartStatusInst.destroy();
+    if (chartStatusInst) chartStatusInst.destroy();
     chartStatusInst = new Chart(ctxS, {
-      type:'doughnut',
-      data:{
-        labels:labelsStatus,
-        datasets:[{ data:dataStatus }]
+      type: 'doughnut',
+      data: {
+        labels: labelsStatus,
+        datasets: [{ data: dataStatus }]
       },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom'}}
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
       }
     });
 

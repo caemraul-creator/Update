@@ -5,17 +5,15 @@
   <title>Cetak Barcode / QR Barang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Bootstrap & Icon -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <!-- QRCode JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     /* ===== TAMPILAN LAYAR ===== */
     body{
       background:#f5f6f8;
-      font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
       padding:1rem;
     }
     h1.title{
@@ -34,25 +32,15 @@
       box-shadow:0 2px 8px rgba(0,0,0,0.05);
       margin-bottom:1rem;
     }
-    .toolbar .form-label{
-      font-size:.75rem;
-      margin-bottom:2px;
-    }
-    .toolbar input{
-      font-size:.85rem;
-    }
-    .btn-reset{
-      background:#ef4444;
-      color:#fff;
-    }
+    .toolbar .form-label{ font-size:.75rem; margin-bottom:2px; }
+    .toolbar input{ font-size:.85rem; }
+    .btn-reset{ background:#ef4444; color:#fff; }
 
-    /* Grid di layar (fleksibel) */
     .label-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
       gap:10px;
     }
-
     .label-box{
       background:#fff;
       border-radius:6px;
@@ -61,8 +49,6 @@
       align-items:center;
       justify-content:center;
     }
-
-    /* Satu border: QR + ID di dalamnya */
     .qr-box{
       padding:5px 7px 6px;
       border:1px solid #9ca3af;
@@ -73,12 +59,7 @@
       justify-content:center;
       gap:4px;
     }
-
-    .qr-box canvas{
-      width:90px !important;
-      height:90px !important;
-    }
-
+    .qr-box canvas{ width:90px !important; height:90px !important; }
     .label-id{
       font-size:.8rem;
       font-weight:600;
@@ -90,58 +71,33 @@
     }
 
     /* ===== MODE CETAK: A4 LANDSCAPE, 9 x 5 ===== */
-    @page{
-      size:A4 landscape;
-      margin:10mm;
-    }
+    @page{ size:A4 landscape; margin:10mm; }
 
     @media print{
-      body{
-        padding:0;
-        background:#ffffff;
-      }
-      .toolbar,
-      h1.title{
-        display:none !important;
-      }
+      body{ padding:0; background:#ffffff; }
+      .toolbar, h1.title{ display:none !important; }
 
-      /* 9 kolom; gap kecil biar muat */
       .label-grid{
         grid-template-columns:repeat(9, 1fr);
         gap:1.6mm;
       }
-
-      /* Hitungan:
-         tinggi area isi ≈ 198mm (210 - 2*6mm margin)
-         5 baris, 4 gap*2mm = 8mm
-         198 - 8 = 190mm → 190/5 = 38mm per baris
-      */
       .label-box{
         width:100%;
-        height:36mm;  /* 5 baris pas A4 */
+        height:36mm;
         padding:0;
         border:none;
         display:flex;
         align-items:center;
         justify-content:center;
       }
-
       .qr-box{
         border-color:#000;
         border-width:1px;
         padding:1.5mm 2mm 1.8mm;
         gap:1.2mm;
       }
-
-      .qr-box canvas{
-        width:24mm !important;
-        height:24mm !important;
-      }
-
-      .label-id{
-        font-size:7pt;
-        letter-spacing:0.05em;
-      }
+      .qr-box canvas{ width:24mm !important; height:24mm !important; }
+      .label-id{ font-size:7pt; letter-spacing:0.05em; }
     }
   </style>
 </head>
@@ -151,7 +107,6 @@
     <i class="bi bi-upc-scan"></i> Cetak Barcode / QR Barang (9 × 5 per halaman A4)
   </h1>
 
-  <!-- FILTER (hanya layar) -->
   <div class="toolbar">
     <div>
       <label class="form-label">Dari Tanggal Masuk</label>
@@ -163,11 +118,8 @@
     </div>
     <div style="min-width:260px;">
       <label class="form-label">Cari Semua</label>
-      <input
-        type="text"
-        id="filterGlobal"
-        class="form-control form-control-sm"
-        placeholder="Cari: ID / nama / kategori / lokasi / status">
+      <input type="text" id="filterGlobal" class="form-control form-control-sm"
+             placeholder="Cari: ID / nama / kategori / lokasi / status">
     </div>
     <div class="ms-auto d-flex gap-2">
       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="filterLabels()">
@@ -182,42 +134,67 @@
     </div>
   </div>
 
-  <!-- GRID LABEL -->
   <div id="labelContainer" class="label-grid"></div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzXwlo3zAPceXbw_E6VR2BWbUdzmip4lC8I5JmVmWhj3umNSqyjqT8JCfLtKW-SWcOs/exec";
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbyKnjybJowQti_vLIpUd54wT5CBTXjhWXnqFKm6XDChcdjeTcSx4AvlCSc58h00lgH5/exec';
+const BASE_URL = 'https://invenruangan.pages.dev/';
 let semuaBarang = [];
 
-/* === API helper === */
-function api(action, params = {}){
+/* ===== API helper — FIX: sertakan token ===== */
+function api(action, params){
+  params = params || {};
   const body = new URLSearchParams({ action });
-  Object.entries(params).forEach(([k,v]) => {
+  // FIX: tambahkan token agar getBarang tidak error 401
+  const token = localStorage.getItem('token');
+  if (token) body.append('token', token);
+  Object.entries(params).forEach(function([k,v]){
     if (v !== undefined && v !== null) body.append(k, v);
   });
-
   return fetch(GAS_URL, { method:'POST', body })
-    .then(r => r.json())
-    .then(res => {
-      if(!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
       return res.data;
     });
 }
 
-/* === LOAD DATA AWAL === */
-function loadData(){
-  api('getBarang')
-    .then(data => {
-      semuaBarang = data || [];
-      render(semuaBarang);
+/* ===== AUTH: cek login sebelum load data ===== */
+function cekLogin(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+  // Verifikasi token masih valid
+  api('me')
+    .then(function(){
+      loadData();
     })
-    .catch(err => {
-      console.error(err);
-      alert('Gagal memuat data barang: ' + err.message);
+    .catch(function(){
+      localStorage.clear();
+      window.location.href = 'login.html';
     });
 }
 
-/* === RESET FILTER === */
+/* ===== LOAD DATA ===== */
+function loadData(){
+  const container = document.getElementById('labelContainer');
+  container.innerHTML = '<p class="text-muted text-center py-4">' +
+    '<span class="spinner-border spinner-border-sm me-2"></span>Memuat data barang...</p>';
+
+  api('getBarang')
+    .then(function(data){
+      semuaBarang = data || [];
+      render(semuaBarang);
+    })
+    .catch(function(err){
+      console.error(err);
+      container.innerHTML = '<p class="text-danger text-center py-4">Gagal memuat data: ' + err.message + '</p>';
+    });
+}
+
+/* ===== RESET FILTER ===== */
 function resetFilter(){
   document.getElementById('tglFrom').value = '';
   document.getElementById('tglTo').value   = '';
@@ -225,90 +202,81 @@ function resetFilter(){
   render(semuaBarang);
 }
 
-/* === FILTER === */
+/* ===== FILTER ===== */
 function filterLabels(){
-  const tFrom = document.getElementById('tglFrom').value;
-  const tTo   = document.getElementById('tglTo').value;
+  const tFrom   = document.getElementById('tglFrom').value;
+  const tTo     = document.getElementById('tglTo').value;
   const keyword = document.getElementById('filterGlobal').value.trim().toLowerCase();
 
   let fromDate = tFrom ? new Date(tFrom) : null;
   let toDate   = tTo   ? new Date(tTo)   : null;
 
-  if(fromDate && toDate && toDate < fromDate){
+  if (fromDate && toDate && toDate < fromDate){
     alert('Tanggal "Sampai" tidak boleh lebih awal dari "Dari".');
     return;
   }
 
-  const filtered = semuaBarang.filter(b => {
-    // filter tanggal
+  const filtered = semuaBarang.filter(function(b){
     if (b.tglMasuk) {
       const d = new Date(b.tglMasuk);
-      if(fromDate && d < fromDate) return false;
-      if(toDate){
+      if (fromDate && d < fromDate) return false;
+      if (toDate){
         const end = new Date(toDate);
         end.setHours(23,59,59,999);
-        if(d > end) return false;
+        if (d > end) return false;
       }
     } else {
-      if(fromDate || toDate) return false;
+      if (fromDate || toDate) return false;
     }
-
-    // filter keyword global
     if (keyword){
       const text = (
-        String(b.id) + ' ' +
-        String(b.nama) + ' ' +
-        String(b.kategori) + ' ' +
+        String(b.id) + ' ' + String(b.nama) + ' ' + String(b.kategori) + ' ' +
         String(b.gedungNama || b.gedung || '') + ' ' +
-        String(b.ruangan || '') + ' ' +
+        String(b.ruanganNama || b.ruangan || '') + ' ' +
         String(b.status || '')
       ).toLowerCase();
       if (!text.includes(keyword)) return false;
     }
-
     return true;
   });
 
   render(filtered);
 }
 
-/* === RENDER LABELS === */
+/* ===== RENDER LABELS ===== */
 function render(data){
   const container = document.getElementById('labelContainer');
   container.innerHTML = '';
 
-  // Samakan dengan label.html
-  var BASE_URL = 'https://invenruangan.netlify.app/';
+  if (data.length === 0){
+    container.innerHTML = '<p class="text-muted text-center py-4">Tidak ada barang yang cocok.</p>';
+    return;
+  }
 
-  data.forEach(item => {
+  data.forEach(function(item){
     const wrap = document.createElement('div');
     wrap.className = 'label-box';
-    wrap.innerHTML = `
-      <div class="qr-box">
-        <div id="qr_${item.id}"></div>
-        <div class="label-id">${item.id}</div>
-      </div>
-    `;
+    wrap.innerHTML =
+      '<div class="qr-box">' +
+        '<div id="qr_' + item.id + '"></div>' +
+        '<div class="label-id">' + item.id + '</div>' +
+      '</div>';
     container.appendChild(wrap);
 
     const target = document.getElementById('qr_' + item.id);
+    if (!target) return;
     target.innerHTML = '';
 
-    // FIX: encode gedung & ruangan di QR URL agar scan menampilkan lokasi yang benar
     const detailUrl = BASE_URL + 'detail-barang.html?id=' + encodeURIComponent(item.id) +
       '&gedung='  + encodeURIComponent(item.gedung  || '') +
       '&ruangan=' + encodeURIComponent(item.ruangan || '');
 
-    new QRCode(target, {
-      text: detailUrl,
-      width: 100,
-      height: 100
-    });
+    new QRCode(target, { text: detailUrl, width: 100, height: 100 });
   });
 }
 
 /* INIT */
-window.onload = loadData;
+window.onload = cekLogin;
 </script>
 </body>
 </html>
