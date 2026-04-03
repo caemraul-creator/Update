@@ -294,7 +294,10 @@ function render(data){
     const target = document.getElementById('qr_' + item.id);
     target.innerHTML = '';
 
-    const detailUrl = BASE_URL + 'detail-barang.html?id=' + encodeURIComponent(item.id);
+    // FIX: encode gedung & ruangan di QR URL agar scan menampilkan lokasi yang benar
+    const detailUrl = BASE_URL + 'detail-barang.html?id=' + encodeURIComponent(item.id) +
+      '&gedung='  + encodeURIComponent(item.gedung  || '') +
+      '&ruangan=' + encodeURIComponent(item.ruangan || '');
 
     new QRCode(target, {
       text: detailUrl,
@@ -309,4 +312,3 @@ window.onload = loadData;
 </script>
 </body>
 </html>
-

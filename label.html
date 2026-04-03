@@ -2,150 +2,184 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Label Barang</title>
+  <title>Label QR Barang</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Library QRCode -->
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- QRCode JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
-    body{
+    body {
+      background: #f5f6f8;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:#f3f4f6;
-      padding:1rem;
+      padding: 1rem;
     }
 
-    .label-wrapper{
-      width: 60mm;              /* kira-kira 5–6 cm */
-      min-height: 40mm;
-      background:#ffffff;
-      border:1px solid #e5e7eb;
-      border-radius:6px;
-      padding:6mm 6mm 4mm;
-      margin:0 auto;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
+    .label-container {
+      max-width: 500px;
+      margin: 0 auto;
     }
 
-    /* SATU BORDER: QR + ID DI DALAMNYA */
-    .qr-box{
-      padding:4px 6px 6px;
-      border:1px solid #9ca3af;
-      border-radius:6px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:4px;
+    .label-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 2rem;
+      text-align: center;
     }
 
-    #qrcode{
-      width:90px;
-      height:90px;
+    .label-card h4 {
+      margin-bottom: 1.5rem;
+      font-weight: 700;
     }
 
-    .item-id{
-      font-size:12px;
-      font-weight:600;
-      letter-spacing:0.08em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      text-align:center;
+    .qr-wrap {
+      display: inline-block;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      background: #fafafa;
     }
 
-    .print-actions{
-      margin: 0.75rem auto 0;
-      max-width: 60mm;
-      display:flex;
-      justify-content:space-between;
-      gap:0.5rem;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    .label-id {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #1f2937;
     }
 
-    .btn{
-      flex:1;
-      border-radius:999px;
-      border:1px solid #d1d5db;
-      background:#f9fafb;
-      padding:0.35rem 0.5rem;
-      font-size:0.75rem;
-      cursor:pointer;
+    .label-lokasi {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #6b7280;
     }
 
-    .btn-primary{
-      background:#2563eb;
-      border-color:#2563eb;
-      color:#fff;
+    .label-nama {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #374151;
     }
 
-    @media print{
-      body{
-        background:#ffffff;
-        padding:0;
-      }
-      .print-actions{
-        display:none !important;
-      }
-      .label-wrapper{
-        margin:0;
-        border:none;
-        box-shadow:none;
-      }
-      /* Saat print, border kotak jadi hitam tegas */
-      .qr-box{
-        border-color:#000;
-        border-width:1px;
-      }
+    .btn-print {
+      margin-top: 1.5rem;
+    }
+
+    .loading-msg {
+      padding: 3rem;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    .error-msg {
+      padding: 2rem;
+      text-align: center;
+      color: #dc3545;
+    }
+
+    /* Print mode */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .btn-print { display: none !important; }
+      .label-card { box-shadow: none; border: 1px solid #ccc; }
     }
   </style>
 </head>
 <body>
-  <div class="label-wrapper">
-    <div class="qr-box">
-      <div id="qrcode"></div>
-      <div class="item-id" id="itemId">ID</div>
+
+  <div class="label-container">
+    <div id="labelContent" class="loading-msg">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Memuat...</span>
+      </div>
+      <p class="mt-3">Memuat data barang...</p>
     </div>
   </div>
 
-  <div class="print-actions">
-    <button class="btn" onclick="window.close()">Tutup</button>
-    <button class="btn btn-primary" onclick="window.print()">Cetak</button>
-  </div>
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycby7p2PR6d7I3hYhPdBg4gI3AKzSFcFuFrhljlllxslkHUi92leCExIkUNQDof30SpZW/exec';
+    const BASE_URL = 'https://invenruangan.netlify.app/';
 
-<script>
-function loadLabel(){
-  // ambil ?id= dari URL
-  var params = new URLSearchParams(window.location.search);
-  var id = params.get('id');
-  if(!id){
-    alert('ID barang tidak ditemukan di URL');
-    return;
-  }
+    /* API helper (tanpa token, untuk publik) */
+    function api(action, params = {}) {
+      const body = new URLSearchParams({ action });
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) body.append(k, v);
+      });
+      return fetch(GAS_URL, { method: 'POST', body, redirect: 'follow' })
+        .then(r => r.json())
+        .then(res => {
+          if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
+          return res.data;
+        });
+    }
 
-  // tampilkan ID di dalam kotak
-  document.getElementById('itemId').textContent = id;
+    function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id      = urlParams.get('id') || '';
+      const gedung  = urlParams.get('gedung') || '';
+      const ruangan = urlParams.get('ruangan') || '';
 
-  // domain Netlify kamu (ganti kalau nanti domain berubah)
-  var BASE_URL = 'https://invenruangan.netlify.app/';
+      if (!id) {
+        document.getElementById('labelContent').innerHTML =
+          '<div class="error-msg"><i class="bi bi-exclamation-circle" style="font-size:2rem;"></i>' +
+          '<p class="mt-2">ID barang tidak ditemukan di URL.</p></div>';
+        return;
+      }
 
-  // URL halaman detail yang dibuka saat QR di-scan
-  // kalau mau versi public, ganti ke: detail-barang-public.html
-  var detailUrl = BASE_URL + 'detail-barang.html?id=' + encodeURIComponent(id);
+      // Pakai getBarangByIdPublic (tanpa login)
+      api('getBarangByIdPublic', { id, gedung, ruangan })
+        .then(b => {
+          renderLabel(b, gedung, ruangan);
+        })
+        .catch(err => {
+          document.getElementById('labelContent').innerHTML =
+            '<div class="error-msg"><i class="bi bi-x-circle" style="font-size:2rem;"></i>' +
+            '<p class="mt-2">Barang tidak ditemukan: ' + err.message + '</p></div>';
+        });
+    }
 
-  var qrContainer = document.getElementById('qrcode');
-  qrContainer.innerHTML = '';
+    function renderLabel(b, gedung, ruangan) {
+      const container = document.getElementById('labelContent');
 
-  new QRCode(qrContainer, {
-    text: detailUrl,
-    width: 90,
-    height: 90
-  });
-}
+      // Buat URL QR dengan lokasi spesifik
+      const qrUrl = BASE_URL + 'detail-barang.html?id=' +
+        encodeURIComponent(b.id) +
+        '&gedung=' + encodeURIComponent(b.gedung || gedung || '') +
+        '&ruangan=' + encodeURIComponent(b.ruangan || ruangan || '');
 
-window.onload = loadLabel;
-</script>
+      container.innerHTML = `
+        <div class="label-card">
+          <h4><i class="bi bi-upc-scan"></i> Label Inventaris</h4>
+          <div class="qr-wrap">
+            <div id="qrCode"></div>
+          </div>
+          <div class="label-id">${b.id}</div>
+          <div class="label-nama">${b.nama}</div>
+          <div class="label-lokasi">${b.gedung || '-'} / ${b.ruangan || '-'}</div>
+          <div style="margin-top:0.5rem;">
+            <span class="badge ${b.status === 'Aktif' ? 'bg-success' : b.status === 'Rusak' ? 'bg-danger' : 'bg-secondary'}">${b.status || '-'}</span>
+          </div>
+          <button class="btn btn-primary btn-print" onclick="window.print()">
+            <i class="bi bi-printer"></i> Cetak Label
+          </button>
+        </div>
+      `;
+
+      // Generate QR Code
+      new QRCode(document.getElementById('qrCode'), {
+        text: qrUrl,
+        width: 180,
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    window.onload = init;
+  </script>
 </body>
 </html>

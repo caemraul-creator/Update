@@ -1,9 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manajemen Barang - Inventaris</title>
+<title>Manajemen Barang - Inventaris</title>
 
   <!-- CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -817,27 +812,39 @@ function loadBarang(){
       const tbody = document.getElementById('barangBody');
       tbody.innerHTML = '';
       items.forEach(b=>{
+        // ============================================================
+        // FIX: teruskan gedung & ruangan ke viewItem dan openLabel
+        // agar detail yang ditampilkan sesuai lokasi baris ini
+        // ============================================================
+        const gedungEsc  = (b.gedung  || '').replace(/'/g, "\\'");
+        const ruanganEsc = (b.ruangan || '').replace(/'/g, "\\'");
+
         const fotoBtn = `
-          <button class="btn btn-light btn-sm" title="Lihat Foto" onclick="viewItem('${b.id}')">
+          <button class="btn btn-light btn-sm" title="Lihat Foto"
+                  onclick="viewItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
             <i class="bi bi-image"></i>
           </button>`;
 
         let actionsHtml = '';
         if (currentRole === 'viewer') {
           actionsHtml = `
-            <button type="button" class="btn btn-success btn-sm" onclick="viewItem('${b.id}')">
+            <button type="button" class="btn btn-success btn-sm"
+                    onclick="viewItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
               <i class="bi bi-eye"></i>
             </button>
           `;
         } else {
           actionsHtml = `
-            <button type="button" class="btn btn-warning btn-sm" onclick="editItem('${b.id}')">
+            <button type="button" class="btn btn-warning btn-sm"
+                    onclick="editItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
               <i class="bi bi-pencil"></i>
             </button>
-            <button type="button" class="btn btn-success btn-sm" onclick="viewItem('${b.id}')">
+            <button type="button" class="btn btn-success btn-sm"
+                    onclick="viewItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
               <i class="bi bi-eye"></i>
             </button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openLabel('${b.id}')">
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    onclick="openLabel('${b.id}','${gedungEsc}','${ruanganEsc}')">
               <i class="bi bi-upc-scan"></i>
             </button>
             <button type="button" class="btn btn-danger btn-sm" onclick="deleteItem('${b.id}')">
@@ -920,8 +927,8 @@ function saveItem(){
     });
 }
 
-function editItem(id){
-  api('getBarangById', { id })
+function editItem(id, gedung, ruangan){
+  api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
     .then(b => {
       const form = document.getElementById('editItemForm');
 
@@ -990,8 +997,9 @@ function deleteItem(id){
 }
 
 /* ===== DETAIL / TINJAU ===== */
-function viewItem(id){
-  api('getBarangById', { id })
+// FIX: terima gedung & ruangan agar detail sesuai lokasi baris yang diklik
+function viewItem(id, gedung, ruangan){
+  api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
     .then(b => {
       const img   = document.getElementById('viewFoto');
       const empty = document.getElementById('viewFotoEmpty');
@@ -1056,9 +1064,15 @@ function exportData(){
   document.body.removeChild(form);
 }
 
-/* ===== BUKA LABEL QR (per barang) ===== */
-function openLabel(id){
-  window.open('label.html?id=' + encodeURIComponent(id), '_blank');
+/* ===== BUKA LABEL QR (per lokasi) ===== */
+// FIX: teruskan gedung & ruangan agar QR encode URL yang spesifik per lokasi
+function openLabel(id, gedung, ruangan){
+  window.open(
+    'label.html?id='      + encodeURIComponent(id) +
+    '&gedung='  + encodeURIComponent(gedung  || '') +
+    '&ruangan=' + encodeURIComponent(ruangan || ''),
+    '_blank'
+  );
 }
 
 /* INIT */

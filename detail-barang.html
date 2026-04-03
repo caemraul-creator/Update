@@ -931,8 +931,8 @@ function saveItem(){
     });
 }
 
-function editItem(id){
-  api('getBarangById', { id })
+function editItem(id, gedung, ruangan){
+  api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
     .then(b => {
       const form = document.getElementById('editItemForm');
 
@@ -1080,7 +1080,125 @@ function openLabel(id, gedung, ruangan){
 }
 
 /* INIT */
-window.onload = cekLogin;
+window.onload = function(){
+  // FIX: Cek apakah ada token di localStorage.
+  // - Kalau ADA → mode admin/staff (cekLogin, tampilkan sidebar & tombol aksi)
+  // - Kalau TIDAK → mode publik (dari scan QR, pakai getBarangByIdPublic)
+  const token = localStorage.getItem('token');
+  if (token) {
+    cekLogin();  // akan loadBarang + fillLokasi setelah verifikasi
+  } else {
+    // Mode publik: langsung muat data tanpa login
+    applyPublicMode();
+  }
+};
+
+/* ===== MODE PUBLIK (scan QR tanpa login) ===== */
+function applyPublicMode(){
+  // Sembunyikan sidebar & tombol yang butuh login
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) sidebar.style.display = 'none';
+
+  // Tambahkan tombol kembali di header
+  const headerEl = document.querySelector('.page-header .d-flex:first-child div');
+  if (headerEl) {
+    headerEl.insertAdjacentHTML('afterbegin',
+      '<a href="' + window.location.origin + '" class="btn btn-outline-primary btn-sm btn-pill me-2">' +
+      '<i class="bi bi-arrow-left"></i> Kembali</a>'
+    );
+  }
+
+  // Sembunyikan tombol yang butuh auth
+  applyRoleUI('viewer');
+
+  // Cek apakah ada id di URL (dari scan QR)
+  const urlParams = new URLSearchParams(window.location.search);
+  const id      = urlParams.get('id');
+  const gedung  = urlParams.get('gedung') || '';
+  const ruangan = urlParams.get('ruangan') || '';
+
+  if (id) {
+    // Muat data barang publik dan langsung tampilkan detail
+    api('getBarangByIdPublic', { id, gedung, ruangan })
+      .then(b => showPublicDetail(b))
+      .catch(err => {
+        document.getElementById('barangBody').innerHTML =
+          '<tr><td colspan="12" class="text-center text-danger">Barang tidak ditemukan: ' +
+          err.message + '</td></tr>';
+      });
+  } else {
+    // Tidak ada ID → tampilkan pesan
+    document.getElementById('barangBody').innerHTML =
+      '<tr><td colspan="12" class="text-center text-muted">Scan QR code untuk melihat detail barang</td></tr>';
+  }
+}
+
+function showPublicDetail(b){
+  // Tampilkan data barang yang di-scan di tabel (baris tunggal)
+  const tbody = document.getElementById('barangBody');
+  tbody.innerHTML = '';
+
+  tbody.insertAdjacentHTML('beforeend', `
+    <tr>
+      <td data-label="ID">${b.id}</td>
+      <td data-label="Nama Barang">${b.nama}</td>
+      <td data-label="Kategori">${b.kategori}</td>
+      <td data-label="Merk/Model">${b.merk || '-'}</td>
+      <td data-label="Jumlah">${b.jumlah || 1}</td>
+      <td data-label="Satuan">${b.satuan || 'Unit'}</td>
+      <td data-label="Gedung">${b.gedung || '-'}</td>
+      <td data-label="Ruangan">${b.ruangan || '-'}</td>
+      <td data-label="Tanggal Masuk">${formatDateDisplay(b.tglMasuk)}</td>
+      <td data-label="Status">${badge(b.status)}</td>
+      <td data-label="Foto" class="text-center">
+        ${b.foto ? '<img src="' + b.foto + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="window.open(this.src,\'_blank\')">' : '-'}
+      </td>
+      <td data-label="Aksi">-</td>
+    </tr>
+  `);
+
+  // Otomatis buka modal detail
+  viewItemDirect(b);
+}
+
+// Fungsi viewItem langsung dari data (tanpa API call)
+function viewItemDirect(b){
+  const img   = document.getElementById('viewFoto');
+  const empty = document.getElementById('viewFotoEmpty');
+
+  if (b.foto && String(b.foto).trim() !== '') {
+    const urlFoto = String(b.foto).trim();
+    img.src = urlFoto;
+    img.classList.remove('d-none');
+    empty.classList.add('d-none');
+    img.onclick = function(){ window.open(urlFoto, '_blank'); };
+  } else {
+    img.src = '';
+    img.classList.add('d-none');
+    empty.classList.remove('d-none');
+    img.onclick = null;
+  }
+
+  var jumlahText = (b.jumlah !== undefined && b.jumlah !== null && b.jumlah !== '')
+    ? b.jumlah : 1;
+  var satuanText = b.satuan ? b.satuan : '';
+
+  const body = document.getElementById('viewDetailBody');
+  body.innerHTML = `
+    <tr><th style="width:35%">ID</th><td>${b.id}</td></tr>
+    <tr><th>Nama Barang</th><td>${b.nama}</td></tr>
+    <tr><th>Kategori</th><td>${b.kategori}</td></tr>
+    <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
+    <tr><th>Jumlah</th><td>${jumlahText} ${satuanText}</td></tr>
+    <tr><th>Gedung</th><td>${b.gedung || '-'}</td></tr>
+    <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
+    <tr><th>Tanggal Masuk</th><td>${formatDateDisplay(b.tglMasuk)}</td></tr>
+    <tr><th>Status</th><td>${b.status}</td></tr>
+    <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
+  `;
+
+  new bootstrap.Modal(document.getElementById('viewItemModal')).show();
+}
 </script>
 </body>
 </html>
