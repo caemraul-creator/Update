@@ -270,7 +270,7 @@ function api(action, params = {}) {
     if (v !== undefined && v !== null) body.append(k, v);
   });
 
-  return fetch(GAS_URL, { method: 'POST', body })
+  return fetch(GAS_URL, { method: 'POST', body, redirect: 'follow' })
     .then(r => r.json())
     .then(res => {
       if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
@@ -436,17 +436,42 @@ async function loadDetail(){
       return;
     }
 
-    const [gedung, ruanganAll, barang] = await Promise.all([
-      api('getGedungByKode', { kode }),
+    // FIX: getGedungByKode & getBarangByGedung TIDAK ADA di backend GAS.
+    // Gunakan getGedung + getRuangan + getBarang, lalu filter di sisi client.
+    const [gedungAll, ruanganAll, barangAll] = await Promise.all([
+      api('getGedung'),
       api('getRuangan'),
-      api('getBarangByGedung', { kodeGedung:kode })
+      api('getBarang')
     ]);
 
-    const ruanganList = (ruanganAll || []).filter(r=>r.kodeGedung === kode);
-    const barangList  = barang || [];
+    // Cari gedung yang kode-nya cocok
+    const gedung = (gedungAll || []).find(g => String(g.kode) === String(kode) || String(g.id) === String(kode));
+    if (!gedung) {
+      alert('Gedung dengan kode "' + kode + '" tidak ditemukan.');
+      window.location.href = 'gedung-ruangan.html';
+      return;
+    }
+
+    // Filter ruangan di gedung ini
+    const ruanganList = (ruanganAll || []).filter(r => {
+      // Cocokkan berdasarkan kodeGedung atau gedungId
+      return String(r.kodeGedung || r.gedungId || '') === String(kode)
+          || String(r.kodeGedung || r.gedungId || '') === String(gedung.id || '');
+    });
+
+    // Filter barang di gedung ini
+    const barangList = (barangAll || []).filter(b =>
+      String(b.gedung || '') === String(kode) ||
+      String(b.gedung || '') === String(gedung.id || '') ||
+      String(b.gedung || '') === String(gedung.kode || '')
+    );
 
     ruanganList.forEach(r=>{
-      r.jmlBarang = barangList.filter(b=>b.ruangan === r.nama).length;
+      r.jmlBarang = barangList.filter(b => {
+        const rNama = (r.nama || '').toString().toLowerCase();
+        const bRuang = (b.ruangan || '').toString().toLowerCase();
+        return rNama === bRuang;
+      }).length;
     });
 
     detail = {

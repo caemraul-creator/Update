@@ -552,7 +552,7 @@
 <!-- Script khusus barang -->
 <script>
 /* ===== KONFIGURASI ===== */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyKnjybJowQti_vLIpUd54wT5CBTXjhWXnqFKm6XDChcdjeTcSx4AvlCSc58h00lgH5/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwf0-lnhByB4_vS6xUbz72c3vkTfsAY2F-pWllB2LdMOXBNSHqP2xG3ze0pDGRmxyXy/exec';
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
 let currentRole = 'viewer'; // default viewer
@@ -589,7 +589,7 @@ function api(action, params = {}) {
     if (v !== undefined && v !== null) body.append(k, v);
   });
 
-  return fetch(GAS_URL, { method: 'POST', body })
+  return fetch(GAS_URL, { method: 'POST', body, redirect: 'follow' })
     .then(r => r.json())
     .then(res => {
       if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
@@ -785,7 +785,7 @@ function fillRuangan(kodeGedung, formType){
     return;
   }
 
-  api('getRuanganByGedung', { gedung: kodeGedung })
+  api('getRuangan', { gedung_id: kodeGedung })
     .then(data => {
       const opt = (data || [])
         .map(r=>`<option value="${r.nama}">${r.nama}</option>`)

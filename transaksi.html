@@ -452,7 +452,7 @@ function onGedungTujuanChange(){
 
   // Kalau lokal kosong, coba panggil API (fallback)
   if (ruanganDiGedung.length === 0){
-    api('getRuanganByGedung', { gedung: kode })
+    api('getRuangan', { gedung_id: kode })
       .then(data => {
         const names = (data || []).map(r => r.nama).filter(n => n && n.trim() !== '');
         renderRuanganTujuan(selR, hintR, names);

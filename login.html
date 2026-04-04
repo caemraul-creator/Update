@@ -55,7 +55,7 @@ function apiRaw(action, params){
   Object.entries(params).forEach(function([k,v]){
     if (v !== undefined && v !== null) body.append(k, v);
   });
-  return fetch(GAS_URL, { method:'POST', body })
+  return fetch(GAS_URL, { method:'POST', body, redirect: 'follow' })
     .then(function(r){ return r.json(); })
     .then(function(res){
       if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');

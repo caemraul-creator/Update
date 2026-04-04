@@ -594,7 +594,7 @@ function api(action, params = {}) {
     if (v !== undefined && v !== null) body.append(k, v);
   });
 
-  return fetch(GAS_URL, { method: 'POST', body })
+  return fetch(GAS_URL, { method: 'POST', body, redirect: 'follow' })
     .then(r => r.json())
     .then(res => {
       if (!res.success) throw new Error(res.error || 'Terjadi kesalahan');
