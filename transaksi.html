@@ -255,6 +255,16 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwk1rG1AAyZkOQ_pXv0xZVV
 // simpan role saat ini (default viewer)
 let currentRole = 'viewer';
 
+/* ===== FORMAT TANGGAL dd/mm/yyyy ===== */
+function formatDateDisplay(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return String(d.getDate()).padStart(2,'0') + '/' +
+         String(d.getMonth()+1).padStart(2,'0') + '/' +
+         d.getFullYear();
+}
+
 /* ===== API WRAPPER =====
  *  FIX: redirect: 'follow' WAJIB ada untuk GAS Web App.
  *       Tanpa ini, fetch gagal diam-diam di beberapa browser.
@@ -752,7 +762,7 @@ function loadTransaksi(){
 
         tbody.insertAdjacentHTML('beforeend',
           '<tr>' +
-          '<td data-label="Tanggal">' + t.tanggal + '</td>' +
+          '<td data-label="Tanggal">' + formatDateDisplay(t.tanggal) + '</td>' +
           '<td data-label="Jenis"><span class="badge bg-' +
             (t.jenis==='MASUK' ? 'success' : t.jenis==='KELUAR' ? 'danger' : 'warning') +
             '">' + t.jenis + '</span></td>' +
