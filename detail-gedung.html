@@ -3,127 +3,175 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detail Gedung - Inventaris</title>
+  <title>Manajemen Barang - Inventaris</title>
 
   <!-- CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Layout global -->
   <link rel="stylesheet" href="layout.css">
 
-  <!-- CSS khusus halaman detail gedung -->
+  <!-- CSS khusus halaman barang -->
   <style>
-    .badge{white-space:nowrap}
+  /* Kartu statistik memakai .stats-grid & .stats-card dari layout.css */
+  .stats-card.primary  .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+  .stats-card.success  .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
+  .stats-card.warning  .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
+  .stats-card.danger   .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
+  .stats-card:hover{transform:translateY(-4px);transition:.25s;}
 
-    .info-list{
-      list-style:none;
-      padding-left:0;
-      margin:0;
-      font-size:.9rem;
-    }
-    .info-list li{
-      display:flex;
-      gap:.75rem;
-      margin-bottom:.25rem;
-    }
-    .info-label{
-      width:90px;
-      color:#6b7280;
-    }
+  /* Section tabel */
+  .table-section{
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(20px);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+    overflow-y:visible;
+    margin-bottom:1.75rem;
+  }
 
-    .grid-main{
-      display:grid;
-      grid-template-columns:2fr 1.3fr;
-      gap:1.5rem;
-    }
-    .card-glass{
-      background:rgba(255,255,255,.95);
-      backdrop-filter:blur(20px);
-      border-radius:var(--radius);
-      padding:1.25rem 1.25rem 1rem;
-      box-shadow:var(--shadow);
-    }
-    .card-title-sm{
-      font-size:.95rem;
-      font-weight:600;
-      margin-bottom:.6rem;
-    }
-    .table{
-      font-size:.86rem;
-    }
-    .table thead th{
-      white-space:nowrap;
-    }
+  .table-header{
+    background:rgba(248,250,252,.8);
+    padding:1.1rem 1.4rem;
+    border-bottom:1px solid rgba(226,232,240,.5);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:.75rem;
+    flex-wrap:wrap;
+  }
+  .table-title{
+    margin:0;
+    font-size:1.05rem;
+    font-weight:600;
+  }
+  .table-content{
+    padding:1.25rem 1.4rem 1.4rem;
+  }
+  .table{margin:0;font-size:.9rem;}
+  .table thead th{white-space:nowrap;}
+  #itemsTable td{vertical-align:middle;}
+  .badge{white-space:nowrap;}
 
-    .tabs{
-      border-bottom:1px solid rgba(226,232,240,.8);
-      margin-bottom:.75rem;
-    }
-    .tabs button{
-      border:none;
-      background:none;
-      padding:.45rem .9rem;
-      font-size:.86rem;
-      border-radius:999px 999px 0 0;
-      margin-right:.25rem;
-      color:#6b7280;
-    }
-    .tabs button.active{
-      background:#eef2ff;
-      color:#1d4ed8;
-    }
+  /* Kunci kolom Foto & Aksi supaya tidak melar */
+  #itemsTable th:nth-child(11),
+  #itemsTable th:nth-child(12),
+  #itemsTable td[data-label="Foto"],
+  #itemsTable td[data-label="Aksi"]{
+    white-space:nowrap;
+    width:1%;
+  }
 
-    /* === PRINT AREA (KARTU INVENTARIS BARANG) === */
-    #kibPrint{
-      display:none;
-    }
+  /* Kolom Merk/Model: jangan wrap, potong dengan ... */
+  #itemsTable th:nth-child(4),
+  #itemsTable td:nth-child(4),
+  #itemsTable td[data-label="Merk/Model"]{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
 
-    @media(max-width:992px){
-      .grid-main{
-        grid-template-columns:1fr;
-      }
-    }
+  /* TOMBOL BESAR DI HEADER / PAGE HEADER */
+  .btn-pill{
+    border-radius:999px;
+    padding:.45rem 1.1rem !important;
+    font-size:.875rem !important;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.25rem;
+  }
+  .btn-pill i{
+    font-size:.95rem;
+  }
 
-    /* === PRINT MODE === */
-    @media print {
-      body{
-        background:#fff !important;
-      }
-      .sidebar{
-        display:none !important;
-      }
-      .page-header,
-      .grid-main{
-        display:none !important;
-      }
-      .main-content{
-        margin:0 !important;
-        padding:1cm !important;
-      }
-      #kibPrint{
-        display:block !important;
-      }
+  .btn-primary{
+    background:linear-gradient(135deg,#3b82f6,#6366f1);
+    border:none;
+  }
+  .btn-success{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    border:none;
+  }
 
-      /* Tebalkan garis tabel KIB HANYA untuk tabel isi (kib-body) */
-      #kibPrint table.kib-body{
-        border-collapse:collapse !important;
-      }
-      #kibPrint table.kib-body th,
-      #kibPrint table.kib-body td{
-        border:2px solid #000 !important;
-      }
-      #kibPrint table.kib-body thead th{
-        font-weight:700;
-      }
+  /* Spinner mini */
+  .loading-spinner{
+    display:inline-block;
+    width:1rem;height:1rem;
+    border:2px solid rgba(255,255,255,.3);
+    border-top:2px solid #fff;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);} }
+
+  /* Preview gambar */
+  .img-preview{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid #ced4da;
+  }
+
+  /* === TOMBOL KECIL DI DALAM TABEL (Foto & Aksi) === */
+  #itemsTable td .btn{
+    padding:.15rem .35rem !important;
+    font-size:.70rem !important;
+    border-radius:999px !important;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.2rem;
+    min-width:0;
+    line-height:1.1;
+    margin:0 1px;
+  }
+  #itemsTable td .btn i{
+    font-size:.8rem !important;
+  }
+
+  /* SEMBUNYIKAN hanya control length DataTables saat layar sempit,
+     search tetap tampil */
+  @media (max-width: 992px){
+    div.dataTables_length{
+      display:none !important;
     }
+  }
+
+  /* Tambahan agar 12 kolom tetap full, teks panjang tidak wrap */
+  @media (max-width: 992px) {
+    .table-responsive {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  #itemsTable th:nth-child(4),
+  #itemsTable td:nth-child(4) {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+  #itemsTable th:nth-child(11),
+  #itemsTable th:nth-child(12),
+  #itemsTable td[data-label="Foto"],
+  #itemsTable td[data-label="Aksi"] {
+    width: 1%;
+    white-space: nowrap;
+  }
   </style>
 </head>
 <body>
 <div class="main-wrapper">
-  <!-- Sidebar -->
+  <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="brand">
       <i class="bi bi-box-seam"></i>
@@ -131,138 +179,416 @@
     </div>
     <div class="nav flex-column">
       <a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2"></i>Dashboard</a>
-      <a class="nav-link" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
-      <a class="nav-link active" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
+      <a class="nav-link active" href="barang.html"><i class="bi bi-box"></i>Manajemen Barang</a>
+      <a class="nav-link" href="gedung-ruangan.html"><i class="bi bi-building"></i>Gedung & Ruangan</a>
       <a class="nav-link" href="transaksi.html"><i class="bi bi-arrow-left-right"></i>Transaksi / Mutasi</a>
     </div>
   </nav>
 
-  <!-- Main -->
+  <!-- MAIN -->
   <main class="main-content">
+    <!-- HEADER + USER + LOGOUT -->
     <div class="page-header d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-2">
         <!-- Toggle sidebar untuk HP/Tablet -->
         <button type="button"
                 id="btnToggleSidebar"
-                class="btn btn-outline-primary btn-sm d-md-none btn-rounded">
+                class="btn btn-outline-primary btn-sm btn-pill d-lg-none">
           <i class="bi bi-list"></i>
         </button>
         <div>
-          <h1 class="page-title mb-0" id="gdNama">Nama Gedung</h1>
-          <p class="page-subtitle mb-0" id="gdKode">Kode: -</p>
-          <ul class="info-list mt-2">
-            <li><span class="info-label">Fungsi</span><span id="gdFungsi">-</span></li>
-            <li><span class="info-label">Kapasitas</span><span id="gdKap">-</span></li>
-            <li><span class="info-label">Deskripsi</span><span id="gdKet">-</span></li>
-          </ul>
+          <h1 class="page-title mb-0">Manajemen Barang</h1>
+          <p class="page-subtitle mb-0">Kelola data barang inventaris dengan efisien</p>
         </div>
       </div>
       <div class="text-end">
-        <div class="mb-2">
-          <span class="badge bg-primary me-1" id="gdJmlRuangan">0 Ruangan</span>
-          <span class="badge bg-success" id="gdJmlBarang">0 Barang</span>
-        </div>
-        <!-- PRINT PER GEDUNG -->
-        <button class="btn btn-primary btn-sm mb-2 btn-rounded" onclick="handlePrintKIB()">
-          <i class="bi bi-printer"></i> Cetak Kartu Inventaris Barang
+        <div id="userInfo" class="small text-muted mb-1"></div>
+        <button type="button" class="btn btn-outline-danger btn-sm btn-pill" onclick="doLogout()">
+          <i class="bi bi-box-arrow-right"></i> Logout
         </button>
+      </div>
+    </div>
+
+    <!-- Statistik -->
+    <div class="stats-grid mb-3">
+      <div class="stats-card primary">
+        <div class="stats-icon"><i class="bi bi-box"></i></div>
         <div>
-          <a href="gedung-ruangan.html" class="btn btn-outline-light btn-sm border btn-rounded">
-            <i class="bi bi-arrow-left"></i> Kembali ke Gedung
-          </a>
+          <p class="stats-number" id="totalBrg">-</p>
+          <p class="stats-label">Total Barang</p>
+        </div>
+      </div>
+      <div class="stats-card success">
+        <div class="stats-icon"><i class="bi bi-check-circle"></i></div>
+        <div>
+          <p class="stats-number" id="aktifBrg">-</p>
+          <p class="stats-label">Barang Aktif</p>
+        </div>
+      </div>
+      <div class="stats-card warning">
+        <div class="stats-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+          <p class="stats-number" id="rawatBrg">-</p>
+          <p class="stats-label">Perawatan</p>
+        </div>
+      </div>
+      <div class="stats-card danger">
+        <div class="stats-icon"><i class="bi bi-x-circle"></i></div>
+        <div>
+          <p class="stats-number" id="rusakBrg">-</p>
+          <p class="stats-label">Barang Rusak</p>
         </div>
       </div>
     </div>
 
-    <div class="grid-main">
-      <!-- kiri: tabel -->
-      <div class="card-glass">
-        <div class="tabs">
-          <button id="tabRuangan" class="active" onclick="showTab('ruangan')">Ruangan</button>
-          <button id="tabBarang" onclick="showTab('barang')">Barang di Gedung</button>
-        </div>
-
-        <!-- Tabel ruangan -->
-        <div id="panelRuangan">
-          <div class="card-title-sm d-flex justify-content-between align-items-center">
-            <span>Daftar Ruangan</span>
-            <small class="text-muted" id="infoRuangan">0 ruangan</small>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th>Nama Ruangan</th>
-                  <th>Kapasitas</th>
-                  <th>Jumlah Barang</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyRuangan">
-                <tr><td colspan="5" class="text-center text-muted">Memuat...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Tabel barang -->
-        <div id="panelBarang" class="d-none">
-          <div class="card-title-sm d-flex justify-content-between align-items-center">
-            <span>Barang di Gedung Ini</span>
-            <small class="text-muted" id="infoBarang">0 barang</small>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nama Barang</th>
-                  <th>Ruangan</th>
-                  <th>Kategori</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyBarang">
-                <tr><td colspan="5" class="text-center text-muted">Memuat...</td></tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- Tabel -->
+    <div class="table-section">
+      <div class="table-header">
+        <h5 class="table-title mb-0">Daftar Barang</h5>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="btnCetakBarcode"
+                  class="btn btn-outline-dark btn-sm btn-pill"
+                  type="button"
+                  onclick="window.open('cetak-barcode.html','_blank')">
+            <i class="bi bi-upc-scan"></i> Cetak Barcode
+          </button>
+          <button class="btn btn-success btn-sm btn-pill" type="button" onclick="exportData()">
+            <i class="bi bi-download"></i> Export
+          </button>
+          <button class="btn btn-primary btn-sm btn-pill" type="button"
+                  data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="bi bi-plus-circle"></i> Tambah Barang
+          </button>
         </div>
       </div>
-
-      <!-- kanan: chart -->
-      <div class="card-glass">
-        <div class="card-title-sm mb-2">Distribusi Barang per Ruangan</div>
-        <div style="height:230px">
-          <canvas id="chartPerRuangan"></canvas>
+      <div class="table-content">
+        <div class="table-responsive">
+          <table id="itemsTable" class="table table-hover w-100 align-middle table-mobile-cards">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Merk/Model</th>
+                <th>Jumlah</th>
+                <th>Satuan</th>
+                <th>Gedung</th>
+                <th>Ruangan</th>
+                <th>Tanggal Masuk</th>
+                <th>Status</th>
+                <th>Foto</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="barangBody"></tbody>
+          </table>
         </div>
-        <small class="text-muted d-block mt-2">
-          Menampilkan jumlah barang per ruangan di gedung ini.
-        </small>
       </div>
-    </div>
-
-    <!-- AREA CETAK KIB (HANYA MUNCUL SAAT PRINT) -->
-    <div id="kibPrint">
-      <!-- Diisi via JS buildKIB() / buildKIBRuangan() -->
     </div>
   </main>
 </div>
 
-<!-- Script -->
+<!-- Modal Tambah -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-semibold">Tambah Barang Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="addItemForm" class="modal-body pt-3">
+        <div class="row g-3">
+          <!-- Nama & Kategori -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Nama Barang</label>
+            <input type="text" name="nama" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label mb-1">Kategori</label>
+            <select name="kategori" class="form-select" required>
+              <option value="">Pilih</option>
+              <option>Elektronik</option>
+              <option>Furniture</option>
+              <option>Alat Tulis</option>
+              <option>Kendaraan</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+
+          <!-- Merk -->
+          <div class="col-md-12">
+            <label class="form-label mb-1">Merk/Model</label>
+            <input type="text" name="merk" class="form-control">
+          </div>
+
+          <!-- Jumlah & Satuan -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Jumlah</label>
+            <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Satuan</label>
+            <input type="text" name="satuan" class="form-control" value="Unit" required>
+          </div>
+
+          <!-- Gedung & Ruangan -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Gedung</label>
+            <select name="gedung" class="form-select" required
+                    onchange="fillRuangan(this.value,'add')">
+              <option value="">Pilih Gedung</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Ruangan</label>
+            <select name="ruangan" id="addRuangan" class="form-select" required>
+              <option value="">Pilih Ruangan</option>
+            </select>
+          </div>
+
+          <!-- Tanggal Masuk & Status -->
+          <div class="col-md-3">
+            <label class="form-label mb-1">Tanggal Masuk</label>
+            <input type="date" name="tglMasuk" class="form-control" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label mb-1">Status</label>
+            <select name="status" class="form-select" required>
+              <option value="">Pilih</option>
+              <option>Aktif</option>
+              <option>Perawatan</option>
+              <option>Rusak</option>
+              <option>Tersedia</option>
+              <option>Dalam Perbaikan</option>
+            </select>
+          </div>
+
+          <!-- Deskripsi -->
+          <div class="col-md-12">
+            <label class="form-label mb-1">Deskripsi</label>
+            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+          </div>
+
+          <!-- Foto -->
+          <div class="col-md-12">
+            <label class="form-label mb-1">Foto Barang</label>
+            <input type="file"
+                   class="form-control"
+                   accept="image/*"
+                   capture="environment"
+                   onchange="previewFoto(this,'addPreview')">
+            <div class="mt-2">
+              <img id="addPreview" class="img-preview d-none" alt="Preview">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 mt-4 pt-2">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+          <button class="btn btn-primary" id="btnSaveItem" type="button" onclick="saveItem()">
+            Simpan Barang
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="editItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Barang</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editItemForm">
+          <input type="hidden" name="id">
+          <input type="hidden" name="gedungAsal">
+          <input type="hidden" name="ruanganAsal">
+
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label">Nama Barang</label>
+              <input type="text" name="nama" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Kategori</label>
+              <select name="kategori" class="form-select" required>
+                <option value="">Pilih</option>
+                <option>Elektronik</option>
+                <option>Furniture</option>
+                <option>Alat Tulis</option>
+                <option>Kendaraan</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Merk/Model</label>
+              <input type="text" name="merk" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Gedung</label>
+              <select name="gedung" class="form-select" required onchange="fillRuangan(this.value,'edit')">
+                <option value="">Pilih Gedung</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Jumlah & Satuan (EDIT) -->
+          <div class="row mt-3">
+            <div class="col-md-3">
+              <label class="form-label mb-1">Jumlah</label>
+              <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1">Satuan</label>
+              <input type="text" name="satuan" class="form-control" value="Unit" required>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Ruangan</label>
+              <select name="ruangan" id="editRuangan" class="form-select" required>
+                <option value="">Pilih Ruangan</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tanggal Masuk</label>
+              <input type="date" name="tglMasuk" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select" required>
+                <option value="">Pilih</option>
+                <option>Aktif</option>
+                <option>Perawatan</option>
+                <option>Rusak</option>
+                <option>Tersedia</option>
+                <option>Dalam Perbaikan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Foto Barang</label>
+            <input type="file"
+                   class="form-control"
+                   accept="image/*"
+                   capture="environment"
+                   onchange="previewFoto(this,'editPreview')">
+            <div class="mt-2">
+              <img id="editPreview" class="img-preview d-none" alt="Preview">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-warning" id="btnUpdateItem" onclick="updateItem()">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail / Tinjau Barang -->
+<div class="modal fade" id="viewItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detail Barang</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="row g-3 align-items-start">
+          <!-- Keterangan di kiri -->
+          <div class="col-md-7">
+            <table class="table table-sm table-bordered mb-0">
+              <tbody id="viewDetailBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Gambar di kanan -->
+          <div class="col-md-5 text-center">
+            <div class="border rounded p-2 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height:260px;">
+              <img id="viewFoto"
+                   src=""
+                   alt="Foto barang"
+                   class="img-fluid rounded mb-2 d-none"
+                   style="max-height:240px; object-fit:contain;">
+              <div id="viewFotoEmpty" class="text-muted">
+                <i class="bi bi-image mb-1" style="font-size:2rem;"></i>
+                <div>Tidak ada foto</div>
+              </div>
+            </div>
+            <small class="text-muted d-block mt-2">
+              Klik gambar untuk membuka ukuran penuh
+            </small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <!-- Layout global -->
 <script src="layout.js"></script>
 
+<!-- Script khusus barang -->
 <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby9M11mxGfb85t1hODTx0A3QF4J9YICeBaKohXAFOn30MUS5yI19T7X84yBj7xJmuUN/exec';
+/* ===== KONFIGURASI ===== */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwk1rG1AAyZkOQ_pXv0xZVVFqgMQAR7-U6VUVInUhemE_Xa7lOuP2qyhraypp876Ft6/exec';
+const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
+let currentRole = 'viewer'; // default viewer
+let allGedung = [];
+let addFotoBase64 = '';
+let editFotoBase64 = '';
+
+/* ===== UTIL ===== */
+const formatDateDisplay = iso => {
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  return (
+    String(d.getDate()).padStart(2,'0') + '/' +
+    String(d.getMonth()+1).padStart(2,'0') + '/' +
+    d.getFullYear()
+  );
+};
+const badge = st => {
+  const color = st==='Aktif' ? 'success'
+              : st==='Perawatan' ? 'warning'
+              : st==='Rusak' ? 'danger'
+              : 'secondary';
+  return `<span class="badge bg-${color}">${st}</span>`;
+};
+
+/* ===== API WRAPPER ===== */
 function api(action, params = {}) {
   const body = new URLSearchParams({ action });
-
   const token = localStorage.getItem('token');
   if (token) body.append('token', token);
 
@@ -278,458 +604,607 @@ function api(action, params = {}) {
     });
 }
 
+/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
 function cekLogin(){
   const token = localStorage.getItem('token');
   if (!token){
     window.location.href = 'login.html';
-  }
-}
-
-function getQueryParam(name){
-  const url = new URL(window.location.href);
-  return url.searchParams.get(name);
-}
-
-function badgeStatus(s){
-  let cls = 'bg-secondary';
-  if(s==='Aktif') cls = 'bg-success';
-  else if(s==='Perawatan') cls = 'bg-warning text-dark';
-  else if(s==='Rusak') cls = 'bg-danger';
-  else if(s==='Nonaktif') cls = 'bg-secondary';
-  else if(s==='Tersedia') cls = 'bg-primary';
-  return `<span class="badge ${cls}">${s}</span>`;
-}
-
-/* === FORMAT TANGGAL DD/MM/YYYY === */
-function formatDateDMY(dateStr){
-  if(!dateStr) return '-';
-  const d = new Date(dateStr);
-  if (isNaN(d)) return dateStr; // fallback kalau format tidak dikenali
-  const day   = String(d.getDate()).padStart(2,'0');
-  const month = String(d.getMonth()+1).padStart(2,'0');
-  const year  = d.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-let detail = {
-  gedung:null,
-  ruangan:[],
-  barang:[]
-};
-let chartInstance;
-
-function renderHeader(){
-  const g = detail.gedung;
-  if(!g) return;
-  document.getElementById('gdNama').textContent   = g.nama;
-  document.getElementById('gdKode').textContent   = 'Kode: ' + g.kode;
-  document.getElementById('gdFungsi').textContent = g.fungsi || '-';
-  document.getElementById('gdKap').textContent    = g.kapasitas || '-';
-  document.getElementById('gdKet').textContent    = g.deskripsi || '-';
-
-  const jmlRuangan = detail.ruangan.length;
-  const jmlBarang  = detail.barang.length;
-
-  document.getElementById('gdJmlRuangan').textContent = jmlRuangan + ' Ruangan';
-  document.getElementById('gdJmlBarang').textContent  = jmlBarang + ' Barang';
-  document.getElementById('infoRuangan').textContent  = jmlRuangan + ' ruangan';
-  document.getElementById('infoBarang').textContent   = jmlBarang + ' barang';
-}
-
-function renderRuangan(){
-  const tbody = document.getElementById('tbodyRuangan');
-  tbody.innerHTML = '';
-  if(!detail.ruangan.length){
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada ruangan.</td></tr>';
     return;
   }
-  detail.ruangan.forEach((r,idx)=>{
-    tbody.insertAdjacentHTML('beforeend', `
-      <tr>
-        <td>${r.nama}</td>
-        <td>${r.kapasitas || '-'}</td>
-        <td>${r.jmlBarang || 0}</td>
-        <td>${badgeStatus(r.status || 'Aktif')}</td>
-        <td>
-          <button type="button"
-                  class="btn btn-outline-secondary btn-sm btn-rounded"
-                  title="Cetak barang di ruangan ini"
-                  onclick="handlePrintRuanganByIndex(${idx})">
-            <i class="bi bi-printer"></i>
-          </button>
-        </td>
-      </tr>
-    `);
-  });
+
+  api('getCurrentUser')
+    .then(u => {
+      currentRole = u.role || 'viewer';
+
+      const userInfo = document.getElementById('userInfo');
+      if (userInfo){
+        userInfo.textContent = `${u.nama} (${currentRole})`;
+      }
+
+      applyRoleUI(currentRole);
+
+      // setelah tahu role, baru load data
+      loadBarang();
+      fillLokasi();
+
+      const today = new Date().toISOString().split('T')[0];
+      const tglInput = document.querySelector('#addItemForm input[name="tglMasuk"]');
+      if(tglInput) tglInput.value = today;
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
 }
 
-function renderBarang(){
-  const tbody = document.getElementById('tbodyBarang');
-  tbody.innerHTML = '';
-  if(!detail.barang.length){
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada barang di gedung ini.</td></tr>';
+function doLogout(){
+  api('logout')
+    .finally(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+/* ===== ATUR UI BERDASARKAN ROLE ===== */
+function applyRoleUI(role){
+  if (role === 'viewer') {
+    const btnAdd = document.querySelector('button[data-bs-target="#addItemModal"]');
+    if (btnAdd) btnAdd.style.display = 'none';
+
+    const btnExport = document.querySelector('button[onclick="exportData()"]');
+    if (btnExport) btnExport.style.display = 'none';
+
+    const btnCetak = document.getElementById('btnCetakBarcode');
+    if (btnCetak) btnCetak.style.display = 'none';
+  }
+}
+
+/* ===== FOTO (AUTO KOMPRES, tapi tetap pakai cara lama untuk file <= 2MB) ===== */
+function previewFoto(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('File harus berupa gambar (JPG/PNG).');
+    input.value = '';
     return;
   }
-  detail.barang.forEach(b=>{
-    tbody.insertAdjacentHTML('beforeend', `
-      <tr>
-        <td>${b.id}</td>
-        <td>${b.nama}</td>
-        <td>${b.ruangan || '-'}</td>
-        <td>${b.kategori || '-'}</td>
-        <td>${badgeStatus(b.status)}</td>
-      </tr>
-    `);
-  });
-}
 
-function initChart(){
-  const ctx = document.getElementById('chartPerRuangan');
-  const labels = detail.ruangan.map(r=>r.nama);
-  const data   = detail.ruangan.map(r=>r.jmlBarang || 0);
+  // JIKA FILE ASLI SUDAH <= 2MB → PAKAI CARA LAMA (tanpa kompres)
+  if (file.size <= MAX_SIZE) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result; // data:image/xxx;base64,...
 
-  if(chartInstance) chartInstance.destroy();
+      // Tampilkan preview
+      const imgEl = document.getElementById(previewId);
+      imgEl.src = dataUrl;
+      imgEl.classList.remove('d-none');
 
-  chartInstance = new Chart(ctx, {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label:'Jumlah Barang',
-        data
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,precision:0}}
-    }
-  });
-}
-
-function showTab(tab){
-  const tabR = document.getElementById('tabRuangan');
-  const tabB = document.getElementById('tabBarang');
-  const panelR = document.getElementById('panelRuangan');
-  const panelB = document.getElementById('panelBarang');
-
-  if(tab==='ruangan'){
-    tabR.classList.add('active');
-    tabB.classList.remove('active');
-    panelR.classList.remove('d-none');
-    panelB.classList.add('d-none');
-  }else{
-    tabR.classList.remove('active');
-    tabB.classList.add('active');
-    panelR.classList.add('d-none');
-    panelB.classList.remove('d-none');
+      // Simpan ke variabel global
+      if (previewId === 'addPreview') {
+        addFotoBase64 = dataUrl;
+      } else if (previewId === 'editPreview') {
+        editFotoBase64 = dataUrl;
+      }
+    };
+    reader.onerror = () => {
+      alert('Gagal membaca file gambar.');
+      input.value = '';
+    };
+    reader.readAsDataURL(file);
+    return;
   }
-}
 
-async function loadDetail(){
-  try{
-    const kode = getQueryParam('kode');
-    if(!kode){
-      alert('Kode gedung tidak ditemukan di URL.');
-      window.location.href = 'gedung-ruangan.html';
-      return;
-    }
+  // JIKA FILE > 2MB → KITA KOMPRES DULU
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-    // FIX: getGedungByKode & getBarangByGedung TIDAK ADA di backend GAS.
-    // Gunakan getGedung + getRuangan + getBarang, lalu filter di sisi client.
-    const [gedungAll, ruanganAll, barangAll] = await Promise.all([
-      api('getGedung'),
-      api('getRuangan'),
-      api('getBarang')
-    ]);
+      // Batasi resolusi supaya file tidak terlalu besar
+      const maxWidth  = 1600;
+      const maxHeight = 1600;
+      let width  = img.width;
+      let height = img.height;
 
-    // Cari gedung yang kode-nya cocok
-    const gedung = (gedungAll || []).find(g => String(g.kode) === String(kode) || String(g.id) === String(kode));
-    if (!gedung) {
-      alert('Gedung dengan kode "' + kode + '" tidak ditemukan.');
-      window.location.href = 'gedung-ruangan.html';
-      return;
-    }
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width  = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
 
-    // Filter ruangan di gedung ini
-    const ruanganList = (ruanganAll || []).filter(r => {
-      // Cocokkan berdasarkan kodeGedung atau gedungId
-      return String(r.kodeGedung || r.gedungId || '') === String(kode)
-          || String(r.kodeGedung || r.gedungId || '') === String(gedung.id || '');
-    });
+      canvas.width  = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
 
-    // Filter barang di gedung ini
-    const barangList = (barangAll || []).filter(b =>
-      String(b.gedung || '') === String(kode) ||
-      String(b.gedung || '') === String(gedung.id || '') ||
-      String(b.gedung || '') === String(gedung.kode || '')
-    );
+      // Kompres JPEG bertahap sampai <= MAX_SIZE
+      let quality = 0.9;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
 
-    ruanganList.forEach(r=>{
-      r.jmlBarang = barangList.filter(b => {
-        const rNama = (r.nama || '').toString().toLowerCase();
-        const bRuang = (b.ruangan || '').toString().toLowerCase();
-        return rNama === bRuang;
-      }).length;
-    });
+      const getSize = d => Math.round((d.length * 3) / 4); // estimasi bytes dari base64
 
-    detail = {
-      gedung,
-      ruangan:ruanganList,
-      barang:barangList
+      while (getSize(dataUrl) > MAX_SIZE && quality > 0.3) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      if (getSize(dataUrl) > MAX_SIZE) {
+        alert('Foto masih lebih dari 2 MB meskipun sudah dikompres. Coba ambil foto dengan resolusi lebih kecil.');
+        input.value = '';
+        return;
+      }
+
+      // Tampilkan preview
+      const imgEl = document.getElementById(previewId);
+      imgEl.src = dataUrl;
+      imgEl.classList.remove('d-none');
+
+      // Simpan ke variabel global
+      if (previewId === 'addPreview') {
+        addFotoBase64 = dataUrl;
+      } else if (previewId === 'editPreview') {
+        editFotoBase64 = dataUrl;
+      }
     };
 
-    renderHeader();
-    renderRuangan();
-    renderBarang();
-    initChart();
-    buildKIB(); // siapkan layout print gedung
-  }catch(err){
-    console.error(err);
-    alert('Gagal memuat detail gedung: ' + err.message);
-  }
+    img.onerror = () => {
+      alert('Gagal membaca gambar. Coba file lain.');
+      input.value = '';
+    };
+
+    img.src = e.target.result;
+  };
+
+  reader.onerror = () => {
+    alert('Gagal membaca file gambar.');
+    input.value = '';
+  };
+
+  reader.readAsDataURL(file);
 }
 
-/* ====== KARTU INVENTARIS BARANG (PRINT PER GEDUNG) ====== */
-function buildKIB(){
-  if(!detail.gedung) return;
+/* ===== DATA MASTER GEDUNG / RUANGAN ===== */
+function fillLokasi(){
+  api('getGedung')
+    .then(data => {
+      allGedung = data || [];
+      const opt = allGedung
+        .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
+        .join('');
+      document.querySelectorAll('select[name="gedung"]').forEach(s=>{
+        s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+      });
+    })
+    .catch(err => console.error(err));
+}
 
-  const container = document.getElementById('kibPrint');
-  const g = detail.gedung;
-  const today = new Date();
-  const tglStr = formatDateDMY(today.toISOString());
+function fillRuangan(kodeGedung, formType){
+  const ruanganSelect = formType === 'add'
+    ? document.getElementById('addRuangan')
+    : document.getElementById('editRuangan');
 
-  // grup barang per ruangan
-  const grupRuangan = {};
-  (detail.barang || []).forEach(b=>{
-    const key = b.ruangan && b.ruangan.trim() ? b.ruangan : 'Tanpa Ruangan';
-    if(!grupRuangan[key]) grupRuangan[key] = [];
-    grupRuangan[key].push(b);
-  });
+  ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
+  if(!kodeGedung){
+    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
+    return;
+  }
 
-  let html = `
-    <div class="text-center mb-3">
-      <h4 class="mb-0 text-uppercase">Kartu Inventaris Barang</h4>
-    </div>
+  api('getRuanganByGedung', { gedung: kodeGedung })
+    .then(data => {
+      const opt = (data || [])
+        .map(r=>`<option value="${r.nama}">${r.nama}</option>`)
+        .join('');
+      ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+    })
+    .catch(err => {
+      console.error(err);
+      ruanganSelect.innerHTML = '<option value="">Gagal memuat</option>';
+    });
+}
 
-    <div class="mb-3">
-      <table class="table table-sm table-borderless mb-0 kib-header" style="font-size:0.9rem;">
-        <tr>
-          <th style="width:140px;">Nama Gedung</th><td>: ${g.nama}</td>
-        </tr>
-        <tr>
-          <th>Kode Gedung</th><td>: ${g.kode}</td>
-        </tr>
-        <tr>
-          <th>Tanggal Cetak</th><td>: ${tglStr}</td>
-        </tr>
-      </table>
-    </div>
-  `;
+/* ===== LOAD BARANG ===== */
+function loadBarang(){
+  api('getBarang')
+    .then(data => {
+      const items = data || [];
 
-  const ruangNames = Object.keys(grupRuangan);
-  if (ruangNames.length === 0){
-    html += `
-      <p class="text-muted">Belum ada barang yang tercatat di gedung ini.</p>
-    `;
-  } else {
-    ruangNames.forEach(ruangName=>{
-      const list = grupRuangan[ruangName];
+      document.getElementById('totalBrg').textContent  = items.length;
+      document.getElementById('aktifBrg').textContent  = items.filter(x=>x.status==='Aktif').length;
+      document.getElementById('rawatBrg').textContent  = items.filter(x=>x.status==='Perawatan').length;
+      document.getElementById('rusakBrg').textContent  = items.filter(x=>x.status==='Rusak').length;
 
-      html += `
-        <div class="mt-4 mb-1">
-          <strong>${ruangName}</strong>
-        </div>
-        <table class="table table-sm table-bordered kib-body" style="font-size:0.85rem;">
-          <thead class="table-light">
-            <tr>
-              <th style="width:5%;">No</th>
-              <th style="width:18%;">ID Barang</th>
-              <th>Nama Barang</th>
-              <th style="width:18%;">Merk/Model</th>
-              <th style="width:12%;">Jumlah</th>
-              <th style="width:14%;">Tgl Masuk</th>
-              <th style="width:12%;">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
+      const tbody = document.getElementById('barangBody');
+      tbody.innerHTML = '';
+      items.forEach(b=>{
+        // ============================================================
+        // FIX: teruskan gedung & ruangan ke viewItem dan openLabel
+        // agar detail yang ditampilkan sesuai lokasi baris ini
+        // ============================================================
+        const gedungEsc  = (b.gedung  || '').replace(/'/g, "\\'");
+        const ruanganEsc = (b.ruangan || '').replace(/'/g, "\\'");
 
-      list.forEach((b,idx)=>{
-        const jumlahText = (b.jumlah != null && b.jumlah !== '') ? b.jumlah : 1;
-        const satuanText = b.satuan || '';
-        const tglMasuk   = formatDateDMY(b.tglMasuk);
+        const fotoBtn = `
+          <button class="btn btn-light btn-sm" title="Lihat Foto"
+                  onclick="viewItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
+            <i class="bi bi-image"></i>
+          </button>`;
 
-        html += `
+        let actionsHtml = '';
+        if (currentRole === 'viewer') {
+          actionsHtml = `
+            <button type="button" class="btn btn-success btn-sm"
+                    onclick="viewItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
+              <i class="bi bi-eye"></i>
+            </button>
+          `;
+        } else {
+          actionsHtml = `
+            <button type="button" class="btn btn-warning btn-sm"
+                    onclick="editItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-success btn-sm"
+                    onclick="viewItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    onclick="openLabel('${b.id}','${gedungEsc}','${ruanganEsc}')">
+              <i class="bi bi-upc-scan"></i>
+            </button>
+            <button type="button" class="btn btn-danger btn-sm"
+                    onclick="deleteItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          `;
+        }
+
+        tbody.insertAdjacentHTML('beforeend', `
           <tr>
-            <td>${idx+1}</td>
-            <td>${b.id}</td>
-            <td>${b.nama}</td>
-            <td>${b.merk || '-'}</td>
-            <td>${jumlahText} ${satuanText}</td>
-            <td>${tglMasuk}</td>
-            <td>${b.status || '-'}</td>
+            <td data-label="ID">${b.id}</td>
+            <td data-label="Nama Barang">${b.nama}</td>
+            <td data-label="Kategori">${b.kategori}</td>
+            <td data-label="Merk/Model">${b.merk || '-'}</td>
+            <td data-label="Jumlah">${b.jumlah || 1}</td>
+            <td data-label="Satuan">${b.satuan || 'Unit'}</td>
+            <td data-label="Gedung">${b.gedungNama || b.gedung || '-'}</td>
+            <td data-label="Ruangan">${b.ruangan || '-'}</td>
+            <td data-label="Tanggal Masuk">${formatDateDisplay(b.tglMasuk)}</td>
+            <td data-label="Status">${badge(b.status)}</td>
+            <td data-label="Foto" class="text-center">${fotoBtn}</td>
+            <td data-label="Aksi">${actionsHtml}</td>
           </tr>
-        `;
+        `);
       });
 
-      html += `
-          </tbody>
-        </table>
-      `;
+      if ($.fn.DataTable && $.fn.DataTable.isDataTable('#itemsTable')) {
+        $('#itemsTable').DataTable().destroy();
+      }
+      $('#itemsTable').DataTable({
+        pageLength: 25,
+        lengthMenu: [25, 50, 100, 200],
+        scrollX: true,
+        autoWidth: false,
+        columnDefs: [
+          { targets: [10,11], orderable: false, searchable: false }
+        ],
+        language:{
+          search:"Cari:",
+          lengthMenu:"Tampilkan _MENU_ data",
+          info:"Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+          paginate:{
+            first:"Pertama",
+            last:"Terakhir",
+            next:"Selanjutnya",
+            previous:"Sebelumnya"
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal memuat data barang: ' + err.message);
     });
-  }
-
-  /* === BLOK TANDA TANGAN (PER GEDUNG) === */
-  html += `
-    <div class="row mt-5" style="font-size:0.9rem;">
-      <div class="col-6 text-center">
-        <div>Petugas,</div>
-        <br><br><br>
-        <div>(________________________)</div>
-      </div>
-      <div class="col-6 text-center">
-        <div>Mengetahui,</div>
-        <br><br><br>
-        <div>(________________________)</div>
-      </div>
-    </div>
-  `;
-
-  container.innerHTML = html;
 }
 
-function handlePrintKIB(){
-  if(!detail.gedung){
-    alert('Data gedung belum siap. Silakan tunggu sebentar lalu coba lagi.');
-    return;
-  }
-  buildKIB();
-  window.print();
+/* ===== CRUD ===== */
+function saveItem(){
+  const form = document.getElementById('addItemForm');
+  if(!form.checkValidity()){form.reportValidity();return;}
+
+  const btn = document.getElementById('btnSaveItem');
+  btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
+  btn.disabled = true;
+
+  const fd = new FormData(form);
+  const params = {};
+  fd.forEach((v,k)=>{ if(v) params[k] = v; });
+  if(addFotoBase64) params.foto = addFotoBase64;
+
+  api('addBarang', params)
+    .then(() => {
+      alert('Barang berhasil ditambahkan');
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err.message))
+    .finally(() => {
+      btn.innerHTML='Simpan Barang';
+      btn.disabled=false;
+    });
 }
 
-/* ====== PRINT PER RUANGAN ====== */
-function buildKIBRuangan(ruangName){
-  if(!detail.gedung) return;
+function editItem(id, gedung, ruangan){
+  api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
+    .then(b => {
+      const form = document.getElementById('editItemForm');
 
-  const container = document.getElementById('kibPrint');
-  const g = detail.gedung;
-  const today = new Date();
-  const tglStr = formatDateDMY(today.toISOString());
+      form.id.value          = b.id;
+      form.gedungAsal.value  = b.gedung   || '';  // simpan lokasi asal
+      form.ruanganAsal.value = b.ruangan  || '';  // simpan lokasi asal
+      form.nama.value        = b.nama;
+      form.kategori.value    = b.kategori;
+      form.merk.value        = b.merk || '';
+      form.jumlah.value      = b.jumlah || 1;
+      form.satuan.value      = b.satuan || 'Unit';
+      form.gedung.value      = b.gedung || '';
 
-  const list = (detail.barang || []).filter(b =>
-    (b.ruangan || '').trim() === ruangName
+      fillRuangan(b.gedung,'edit');
+      setTimeout(()=>{
+        form.ruangan.value = b.ruangan || '';
+      },500);
+
+      form.tglMasuk.value  = b.tglMasuk || '';
+      form.status.value    = b.status;
+      form.deskripsi.value = b.deskripsi || '';
+
+      editFotoBase64 = '';
+      document.getElementById('editPreview').classList.add('d-none');
+
+      new bootstrap.Modal(document.getElementById('editItemModal')).show();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal mengambil data barang: ' + err.message);
+    });
+}
+
+function updateItem(){
+  const form = document.getElementById('editItemForm');
+  if(!form.checkValidity()){form.reportValidity();return;}
+
+  const btn = document.getElementById('btnUpdateItem');
+  btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
+  btn.disabled = true;
+
+  const fd = new FormData(form);
+  const params = {};
+  fd.forEach((v,k)=>{ if(v) params[k] = v; });
+  if(editFotoBase64) params.foto = editFotoBase64;
+
+  api('updateBarang', params)
+    .then(() => {
+      alert('Barang berhasil diupdate');
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err.message))
+    .finally(() => {
+      btn.innerHTML='Simpan Perubahan';
+      btn.disabled=false;
+    });
+}
+
+function deleteItem(id, gedung, ruangan){
+  if(!confirm('Hapus barang ' + id + ' di lokasi ' + (ruangan||'-') + '?')) return;
+
+  api('deleteBarang', { id, gedung: gedung || '', ruangan: ruangan || '' })
+    .then(() => {
+      alert('Barang berhasil dihapus');
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+
+/* ===== DETAIL / TINJAU ===== */
+// FIX: terima gedung & ruangan agar detail sesuai lokasi baris yang diklik
+function viewItem(id, gedung, ruangan){
+  api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
+    .then(b => {
+      const img   = document.getElementById('viewFoto');
+      const empty = document.getElementById('viewFotoEmpty');
+
+      if (b.foto && String(b.foto).trim() !== '') {
+        const urlFoto = String(b.foto).trim();
+        img.src = urlFoto;
+        img.classList.remove('d-none');
+        empty.classList.add('d-none');
+        img.onclick = function () {
+          window.open(urlFoto, '_blank');
+        };
+      } else {
+        img.src = '';
+        img.classList.add('d-none');
+        empty.classList.remove('d-none');
+        img.onclick = null;
+      }
+
+      var jumlahText = (b.jumlah !== undefined && b.jumlah !== null && b.jumlah !== '')
+        ? b.jumlah
+        : 1;
+      var satuanText = b.satuan ? b.satuan : '';
+
+      const body = document.getElementById('viewDetailBody');
+      body.innerHTML = `
+        <tr><th style="width:35%">ID</th><td>${b.id}</td></tr>
+        <tr><th>Nama Barang</th><td>${b.nama}</td></tr>
+        <tr><th>Kategori</th><td>${b.kategori}</td></tr>
+        <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
+        <tr><th>Jumlah</th><td>${jumlahText} ${satuanText}</td></tr>
+        <tr><th>Gedung</th><td>${b.gedungNama || b.gedung || '-'}</td></tr>
+        <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
+        <tr><th>Tanggal Masuk</th><td>${formatDateDisplay(b.tglMasuk)}</td></tr>
+        <tr><th>Status</th><td>${b.status}</td></tr>
+        <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
+      `;
+
+      new bootstrap.Modal(document.getElementById('viewItemModal')).show();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Gagal mengambil detail: ' + err.message);
+    });
+}
+
+/* ===== EXPORT ===== */
+function exportData(){
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GAS_URL;
+  form.target = '_blank';
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'action';
+  input.value = 'exportBarang';
+
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+
+/* ===== BUKA LABEL QR (per lokasi) ===== */
+// FIX: teruskan gedung & ruangan agar QR encode URL yang spesifik per lokasi
+function openLabel(id, gedung, ruangan){
+  window.open(
+    'label.html?id='      + encodeURIComponent(id) +
+    '&gedung='  + encodeURIComponent(gedung  || '') +
+    '&ruangan=' + encodeURIComponent(ruangan || ''),
+    '_blank'
   );
+}
 
-  let html = `
-    <div class="text-center mb-3">
-      <h4 class="mb-0 text-uppercase">Kartu Inventaris Barang</h4>
-    </div>
-
-    <div class="mb-3">
-      <table class="table table-sm table-borderless mb-0 kib-header" style="font-size:0.9rem;">
-        <tr>
-          <th style="width:140px;">Nama Gedung</th><td>: ${g.nama}</td>
-        </tr>
-        <tr>
-          <th>Kode Gedung</th><td>: ${g.kode}</td>
-        </tr>
-        <tr>
-          <th>Nama Ruangan</th><td>: ${ruangName}</td>
-        </tr>
-        <tr>
-          <th>Tanggal Cetak</th><td>: ${tglStr}</td>
-        </tr>
-      </table>
-    </div>
-  `;
-
-  if (!list.length){
-    html += `<p class="text-muted">Belum ada barang yang tercatat di ruangan ini.</p>`;
+/* INIT */
+window.onload = function(){
+  // FIX: Cek apakah ada token di localStorage.
+  // - Kalau ADA → mode admin/staff (cekLogin, tampilkan sidebar & tombol aksi)
+  // - Kalau TIDAK → mode publik (dari scan QR, pakai getBarangByIdPublic)
+  const token = localStorage.getItem('token');
+  if (token) {
+    cekLogin();  // akan loadBarang + fillLokasi setelah verifikasi
   } else {
-    html += `
-      <table class="table table-sm table-bordered kib-body" style="font-size:0.85rem;">
-        <thead class="table-light">
-          <tr>
-            <th style="width:5%;">No</th>
-            <th style="width:18%;">ID Barang</th>
-            <th>Nama Barang</th>
-            <th style="width:18%;">Merk/Model</th>
-            <th style="width:12%;">Jumlah</th>
-            <th style="width:14%;">Tgl Masuk</th>
-            <th style="width:12%;">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+    // Mode publik: langsung muat data tanpa login
+    applyPublicMode();
+  }
+};
 
-    list.forEach((b,idx)=>{
-      const jumlahText = (b.jumlah != null && b.jumlah !== '') ? b.jumlah : 1;
-      const satuanText = b.satuan || '';
-      const tglMasuk   = formatDateDMY(b.tglMasuk);
+/* ===== MODE PUBLIK (scan QR tanpa login) ===== */
+function applyPublicMode(){
+  // Sembunyikan sidebar & tombol yang butuh login
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) sidebar.style.display = 'none';
 
-      html += `
-        <tr>
-          <td>${idx+1}</td>
-          <td>${b.id}</td>
-          <td>${b.nama}</td>
-          <td>${b.merk || '-'}</td>
-          <td>${jumlahText} ${satuanText}</td>
-          <td>${tglMasuk}</td>
-          <td>${b.status || '-'}</td>
-        </tr>
-      `;
-    });
-
-    html += `
-        </tbody>
-      </table>
-    `;
+  // Tambahkan tombol kembali di header
+  const headerEl = document.querySelector('.page-header .d-flex:first-child div');
+  if (headerEl) {
+    headerEl.insertAdjacentHTML('afterbegin',
+      '<a href="' + window.location.origin + '" class="btn btn-outline-primary btn-sm btn-pill me-2">' +
+      '<i class="bi bi-arrow-left"></i> Kembali</a>'
+    );
   }
 
-  /* === BLOK TANDA TANGAN (PER RUANGAN) === */
-  html += `
-    <div class="row mt-5" style="font-size:0.9rem;">
-      <div class="col-6 text-center">
-        <div>Petugas,</div>
-        <br><br><br>
-        <div>(________________________)</div>
-      </div>
-      <div class="col-6 text-center">
-        <div>Mengetahui,</div>
-        <br><br><br>
-        <div>(________________________)</div>
-      </div>
-    </div>
+  // Sembunyikan tombol yang butuh auth
+  applyRoleUI('viewer');
+
+  // Cek apakah ada id di URL (dari scan QR)
+  const urlParams = new URLSearchParams(window.location.search);
+  const id      = urlParams.get('id');
+  const gedung  = urlParams.get('gedung') || '';
+  const ruangan = urlParams.get('ruangan') || '';
+
+  if (id) {
+    // Muat data barang publik dan langsung tampilkan detail
+    api('getBarangByIdPublic', { id, gedung, ruangan })
+      .then(b => showPublicDetail(b))
+      .catch(err => {
+        document.getElementById('barangBody').innerHTML =
+          '<tr><td colspan="12" class="text-center text-danger">Barang tidak ditemukan: ' +
+          err.message + '</td></tr>';
+      });
+  } else {
+    // Tidak ada ID → tampilkan pesan
+    document.getElementById('barangBody').innerHTML =
+      '<tr><td colspan="12" class="text-center text-muted">Scan QR code untuk melihat detail barang</td></tr>';
+  }
+}
+
+function showPublicDetail(b){
+  // Tampilkan data barang yang di-scan di tabel (baris tunggal)
+  const tbody = document.getElementById('barangBody');
+  tbody.innerHTML = '';
+
+  tbody.insertAdjacentHTML('beforeend', `
+    <tr>
+      <td data-label="ID">${b.id}</td>
+      <td data-label="Nama Barang">${b.nama}</td>
+      <td data-label="Kategori">${b.kategori}</td>
+      <td data-label="Merk/Model">${b.merk || '-'}</td>
+      <td data-label="Jumlah">${b.jumlah || 1}</td>
+      <td data-label="Satuan">${b.satuan || 'Unit'}</td>
+      <td data-label="Gedung">${b.gedung || '-'}</td>
+      <td data-label="Ruangan">${b.ruangan || '-'}</td>
+      <td data-label="Tanggal Masuk">${formatDateDisplay(b.tglMasuk)}</td>
+      <td data-label="Status">${badge(b.status)}</td>
+      <td data-label="Foto" class="text-center">
+        ${b.foto ? '<img src="' + b.foto + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="window.open(this.src,\'_blank\')">' : '-'}
+      </td>
+      <td data-label="Aksi">-</td>
+    </tr>
+  `);
+
+  // Otomatis buka modal detail
+  viewItemDirect(b);
+}
+
+// Fungsi viewItem langsung dari data (tanpa API call)
+function viewItemDirect(b){
+  const img   = document.getElementById('viewFoto');
+  const empty = document.getElementById('viewFotoEmpty');
+
+  if (b.foto && String(b.foto).trim() !== '') {
+    const urlFoto = String(b.foto).trim();
+    img.src = urlFoto;
+    img.classList.remove('d-none');
+    empty.classList.add('d-none');
+    img.onclick = function(){ window.open(urlFoto, '_blank'); };
+  } else {
+    img.src = '';
+    img.classList.add('d-none');
+    empty.classList.remove('d-none');
+    img.onclick = null;
+  }
+
+  var jumlahText = (b.jumlah !== undefined && b.jumlah !== null && b.jumlah !== '')
+    ? b.jumlah : 1;
+  var satuanText = b.satuan ? b.satuan : '';
+
+  const body = document.getElementById('viewDetailBody');
+  body.innerHTML = `
+    <tr><th style="width:35%">ID</th><td>${b.id}</td></tr>
+    <tr><th>Nama Barang</th><td>${b.nama}</td></tr>
+    <tr><th>Kategori</th><td>${b.kategori}</td></tr>
+    <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
+    <tr><th>Jumlah</th><td>${jumlahText} ${satuanText}</td></tr>
+    <tr><th>Gedung</th><td>${b.gedung || '-'}</td></tr>
+    <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
+    <tr><th>Tanggal Masuk</th><td>${formatDateDisplay(b.tglMasuk)}</td></tr>
+    <tr><th>Status</th><td>${b.status}</td></tr>
+    <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
   `;
 
-  container.innerHTML = html;
+  new bootstrap.Modal(document.getElementById('viewItemModal')).show();
 }
-
-function handlePrintRuanganByIndex(idx){
-  const r = detail.ruangan[idx];
-  if(!r){
-    alert('Ruangan tidak ditemukan.');
-    return;
-  }
-  const ruangName = r.nama;
-  const list = (detail.barang || []).filter(b =>
-    (b.ruangan || '').trim() === ruangName
-  );
-  if(!list.length){
-    alert('Belum ada barang di ruangan "' + ruangName + '".');
-    return;
-  }
-  buildKIBRuangan(ruangName);
-  window.print();
-}
-
-/* ====== INIT ====== */
-window.onload = () => {
-  cekLogin();
-  loadDetail();
-};
 </script>
 </body>
 </html>
