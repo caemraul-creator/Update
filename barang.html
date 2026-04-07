@@ -297,7 +297,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
-      <form id="addItemForm" class="modal-body pt-3">
+      <div class="modal-body pt-3">
+        <form id="addItemForm">
         <div class="row g-3">
           <!-- Nama & Kategori -->
           <div class="col-md-6">
@@ -335,7 +336,7 @@
           <!-- Gedung & Ruangan -->
           <div class="col-md-3">
             <label class="form-label mb-1">Gedung</label>
-            <select name="gedung" class="form-select" required
+            <select name="gedung" id="addGedung" class="form-select" required
                     onchange="fillRuangan(this.value,'add')">
               <option value="">Pilih Gedung</option>
             </select>
@@ -385,14 +386,15 @@
             </div>
           </div>
         </div>
+        </form>
+      </div>
 
-        <div class="modal-footer border-0 mt-4 pt-2">
-          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
-          <button class="btn btn-primary" id="btnSaveItem" type="button" onclick="saveItem()">
-            Simpan Barang
-          </button>
-        </div>
-      </form>
+      <div class="modal-footer border-0">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary" id="btnSaveItem" type="button" onclick="saveItem()">
+          Simpan Barang
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -434,7 +436,7 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">Gedung</label>
-              <select name="gedung" class="form-select" required onchange="fillRuangan(this.value,'edit')">
+              <select name="gedung" id="editGedung" class="form-select" required onchange="fillRuangan(this.value,'edit')">
                 <option value="">Pilih Gedung</option>
               </select>
             </div>
@@ -745,11 +747,22 @@ function fillLokasi(){
       const opt = allGedung
         .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
         .join('');
-      document.querySelectorAll('select[name="gedung"]').forEach(s=>{
-        s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+      // Isi semua dropdown gedung (tambah & edit)
+      ['addGedung', 'editGedung'].forEach(selId => {
+        const el = document.getElementById(selId);
+        if (el) el.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+      });
+      // Fallback: querySelectorAll untuk amannya
+      document.querySelectorAll('select[name="gedung"]').forEach(s => {
+        if (!s.id || (s.id !== 'addGedung' && s.id !== 'editGedung')) {
+          s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+        }
       });
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+      console.error(err);
+      alert('Gagal memuat daftar gedung: ' + err.message);
+    });
 }
 
 function fillRuangan(kodeGedung, formType){
@@ -758,21 +771,30 @@ function fillRuangan(kodeGedung, formType){
     : document.getElementById('editRuangan');
 
   ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
+  ruanganSelect.disabled = true;
+
   if(!kodeGedung){
     ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
+    ruanganSelect.disabled = false;
     return Promise.resolve();
   }
 
   return api('getRuangan', { gedung_id: kodeGedung })
     .then(data => {
-      const opt = (data || [])
-        .map(r=>`<option value="${r.nama}">${r.nama}</option>`)
-        .join('');
-      ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+      const list = data || [];
+      if (list.length === 0) {
+        ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
+      } else {
+        const opt = list.map(r=>`<option value="${r.nama}">${r.nama}</option>`).join('');
+        ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+      }
+      ruanganSelect.disabled = false;
     })
     .catch(err => {
       console.error(err);
       ruanganSelect.innerHTML = '<option value="">Gagal memuat</option>';
+      ruanganSelect.disabled = false;
+      alert('Gagal memuat daftar ruangan: ' + err.message);
     });
 }
 
