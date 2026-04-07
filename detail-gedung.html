@@ -564,6 +564,7 @@ const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
 let currentRole = 'viewer'; // default viewer
 let allGedung = [];
+let allRuangan = [];  // cache semua ruangan untuk filter lokal
 let addFotoBase64 = '';
 let editFotoBase64 = '';
 
@@ -768,16 +769,20 @@ function previewFoto(input, previewId) {
 
 /* ===== DATA MASTER GEDUNG / RUANGAN ===== */
 function fillLokasi(){
-  api('getGedung')
-    .then(data => {
-      allGedung = data || [];
-      const opt = allGedung
-        .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
-        .join('');
-      document.querySelectorAll('select[name="gedung"]').forEach(s=>{
-        s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
-      });
-    })
+  // Ambil gedung dan ruangan secara bersamaan
+  Promise.all([
+    api('getGedung'),
+    api('getRuangan')
+  ]).then(([gedungData, ruanganData]) => {
+    allGedung = gedungData || [];
+    allRuangan = ruanganData || [];
+    const opt = allGedung
+      .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
+      .join('');
+    document.querySelectorAll('select[name="gedung"]').forEach(s=>{
+      s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+    });
+  })
     .catch(err => console.error(err));
 }
 
@@ -787,22 +792,23 @@ function fillRuangan(kodeGedung, formType){
     : document.getElementById('editRuangan');
 
   ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
+
   if(!kodeGedung){
     ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
     return;
   }
 
-  api('getRuanganByGedung', { gedung: kodeGedung })
-    .then(data => {
-      const opt = (data || [])
-        .map(r=>`<option value="${r.nama}">${r.nama}</option>`)
-        .join('');
-      ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
-    })
-    .catch(err => {
-      console.error(err);
-      ruanganSelect.innerHTML = '<option value="">Gagal memuat</option>';
-    });
+  // Filter dari cache lokal allRuangan (sama seperti gedung-ruangan.html)
+  const filtered = allRuangan.filter(r =>
+    String(r.kodeGedung) === String(kodeGedung)
+  );
+
+  if (filtered.length === 0) {
+    ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
+  } else {
+    const opt = filtered.map(r=>`<option value="${r.nama}">${r.nama}</option>`).join('');
+    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+  }
 }
 
 /* ===== LOAD BARANG ===== */

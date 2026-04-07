@@ -568,6 +568,7 @@ const MAX_B64_CHARS = 48000;
 
 let currentRole = 'viewer'; // default viewer
 let allGedung = [];
+let allRuangan = [];  // cache semua ruangan untuk filter lokal
 let addFotoBase64 = '';
 let editFotoBase64 = '';
 
@@ -741,24 +742,29 @@ function previewFoto(input, previewId) {
 
 /* ===== DATA MASTER GEDUNG / RUANGAN ===== */
 function fillLokasi(){
-  api('getGedung')
-    .then(data => {
-      allGedung = data || [];
-      const opt = allGedung
-        .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
-        .join('');
-      // Isi semua dropdown gedung (tambah & edit)
-      ['addGedung', 'editGedung'].forEach(selId => {
-        const el = document.getElementById(selId);
-        if (el) el.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
-      });
-      // Fallback: querySelectorAll untuk amannya
-      document.querySelectorAll('select[name="gedung"]').forEach(s => {
-        if (!s.id || (s.id !== 'addGedung' && s.id !== 'editGedung')) {
-          s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
-        }
-      });
-    })
+  // Ambil gedung dan ruangan secara bersamaan
+  Promise.all([
+    api('getGedung'),
+    api('getRuangan')
+  ]).then(([gedungData, ruanganData]) => {
+    allGedung = gedungData || [];
+    allRuangan = ruanganData || [];
+
+    const opt = allGedung
+      .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
+      .join('');
+    // Isi semua dropdown gedung (tambah & edit)
+    ['addGedung', 'editGedung'].forEach(selId => {
+      const el = document.getElementById(selId);
+      if (el) el.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+    });
+    // Fallback: querySelectorAll untuk amannya
+    document.querySelectorAll('select[name="gedung"]').forEach(s => {
+      if (!s.id || (s.id !== 'addGedung' && s.id !== 'editGedung')) {
+        s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+      }
+    });
+  })
     .catch(err => {
       console.error(err);
       alert('Gagal memuat daftar gedung: ' + err.message);
@@ -779,23 +785,19 @@ function fillRuangan(kodeGedung, formType){
     return Promise.resolve();
   }
 
-  return api('getRuangan', { gedung_id: kodeGedung })
-    .then(data => {
-      const list = data || [];
-      if (list.length === 0) {
-        ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
-      } else {
-        const opt = list.map(r=>`<option value="${r.nama}">${r.nama}</option>`).join('');
-        ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
-      }
-      ruanganSelect.disabled = false;
-    })
-    .catch(err => {
-      console.error(err);
-      ruanganSelect.innerHTML = '<option value="">Gagal memuat</option>';
-      ruanganSelect.disabled = false;
-      alert('Gagal memuat daftar ruangan: ' + err.message);
-    });
+  // Filter dari cache lokal allRuangan (sama seperti gedung-ruangan.html)
+  const filtered = allRuangan.filter(r =>
+    String(r.kodeGedung) === String(kodeGedung)
+  );
+
+  if (filtered.length === 0) {
+    ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
+  } else {
+    const opt = filtered.map(r=>`<option value="${r.nama}">${r.nama}</option>`).join('');
+    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+  }
+  ruanganSelect.disabled = false;
+  return Promise.resolve();
 }
 
 /* ===== LOAD BARANG ===== */
