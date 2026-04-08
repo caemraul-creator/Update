@@ -663,13 +663,14 @@ function printRuangan(ruanganNama, barangData) {
           font-size: 10pt;
           color: #64748b;
           margin-top: 5px;
+          margin-bottom: 20px;
           text-align: center;
         }
         table {
           width: 100%;
           border-collapse: collapse;
           font-size: 10pt;
-          margin-top: 20px;
+          margin-bottom: 15px;
         }
         th, td {
           border: 1px solid #ddd;
@@ -681,17 +682,19 @@ function printRuangan(ruanganNama, barangData) {
           font-weight: 600;
         }
         .total-footer {
-          margin-top: 15px;
           text-align: right;
           font-weight: bold;
           padding: 10px;
           background: #f8fafc;
+          border: 1px solid #ddd;
+          border-top: none;
+          margin-bottom: 60px;
         }
         .ttd-container {
-          margin-top: 80px;
           display: flex;
           justify-content: space-between;
           page-break-inside: avoid;
+          margin-top: 0;
         }
         .ttd-box {
           text-align: center;
@@ -796,16 +799,15 @@ function printSemuaRuangan() {
     `).join('');
     
     semuaHtml += `
-      <div style="margin-bottom: 40px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-        <!-- 1. HEADER RUANGAN -->
+      <div style="margin-bottom: 50px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
         <div style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
           <h4 style="margin:0;">${ruang.nama}</h4>
           <div style="margin-top:5px;">
             <span>Total: ${totalQuantity} ${satuan} | Aktif: ${ruang.stats.aktif} | Perawatan: ${ruang.stats.perawatan} | Rusak: ${ruang.stats.rusak}</span>
           </div>
         </div>
-        <div style="display:block;">
-          <!-- 2. TABEL BARANG -->
+        <div style="display:block; padding: 0;">
+          <!-- TABEL BARANG -->
           <table style="width:100%; border-collapse:collapse;">
             <thead>
               <tr>
@@ -824,12 +826,12 @@ function printSemuaRuangan() {
               ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td</tr>'}
             </tbody>
           </table>
-          <!-- 3. TOTAL BARANG -->
+          <!-- TOTAL BARANG -->
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
             Total Barang: ${totalQuantity} ${satuan}
           </div>
-          <!-- 4. TTD DENGAN JARAK CUKUP -->
-          <div style="display:flex; justify-content:space-between; margin-top: 60px; padding:0 15px 20px 15px;">
+          <!-- TTD -->
+          <div style="display:flex; justify-content:space-between; margin-top: 40px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
               <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
               <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
@@ -877,6 +879,7 @@ function printSemuaRuangan() {
           font-size: 10pt;
           color: #64748b;
           margin-top: 5px;
+          margin-bottom: 20px;
           text-align: center;
         }
         table {
