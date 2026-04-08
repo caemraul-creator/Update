@@ -135,14 +135,14 @@
 
     .table-barang th {
       background: #ffffff;
-      padding: 0.75rem 1rem;
+      padding: 0.75rem 0.5rem;
       font-weight: 600;
       border-bottom: 1px solid #eef2ff;
       text-align: left;
     }
 
     .table-barang td {
-      padding: 0.6rem 1rem;
+      padding: 0.6rem 0.5rem;
       border-bottom: 1px solid #f1f5f9;
       vertical-align: middle;
     }
@@ -452,21 +452,28 @@ async function loadData() {
 
     const ruanganData = daftarRuangan.map(ruang => {
       const barang = barangDiGedung.filter(b => (b.ruangan || 'Lainnya') === ruang);
-      const total = barang.length;
-      const aktif = barang.filter(b => b.status === 'Aktif').length;
-      const perawatan = barang.filter(b => b.status === 'Perawatan').length;
-      const rusak = barang.filter(b => b.status === 'Rusak').length;
+      // Hitung total jumlah barang (quantity) bukan jumlah jenis barang
+      const totalQuantity = barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
+      const aktif = barang.filter(b => b.status === 'Aktif').reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
+      const perawatan = barang.filter(b => b.status === 'Perawatan').reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
+      const rusak = barang.filter(b => b.status === 'Rusak').reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
       
       return {
         nama: ruang,
         barang: barang,
-        stats: { total, aktif, perawatan, rusak }
+        stats: { 
+          total: totalQuantity, 
+          aktif: aktif, 
+          perawatan: perawatan, 
+          rusak: rusak,
+          jenis: barang.length  // jumlah jenis barang
+        }
       };
     });
 
     currentGedung.ruanganList = ruanganData;
 
-    const totalBarang = barangDiGedung.length;
+    const totalBarang = barangDiGedung.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
     document.getElementById('gedungNama').textContent = gedung.nama;
     document.getElementById('gedungInfo').innerHTML = `
       <i class="bi bi-building"></i> ${gedung.kode} | 
@@ -506,7 +513,7 @@ function renderRuanganCards(ruanganData) {
     const cardId = `ruangan_${idx}`;
     const showClass = idx === 0 ? 'show' : '';
     
-    const barangRows = ruang.barang.map(b => {
+    const barangRows = ruang.barang.map((b, no) => {
       const fotoHtml = b.foto ? 
         `<button class="btn-foto" onclick="event.stopPropagation(); showFoto('${b.foto.replace(/'/g, "\\'")}')">
            <i class="bi bi-image"></i> Lihat
@@ -514,6 +521,7 @@ function renderRuanganCards(ruanganData) {
       
       return `
         <tr>
+          <td>${no + 1}</td>
           <td>${b.id}</td>
           <td><strong>${b.nama}</strong></td>
           <td>${b.kategori || '-'}</td>
@@ -551,6 +559,7 @@ function renderRuanganCards(ruanganData) {
           <table class="table-barang">
             <thead>
               <tr>
+                <th>No</th>
                 <th>ID</th>
                 <th>Nama Barang</th>
                 <th>Kategori</th>
@@ -563,11 +572,11 @@ function renderRuanganCards(ruanganData) {
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="9" class="text-center text-muted">Belum ada barang</td</tr>'}
+              ${barangRows || '<tr><td colspan="10" class="text-center text-muted">Belum ada barang</td</tr>'}
             </tbody>
           </table>
           <div class="total-footer">
-            Total: ${ruang.stats.total} barang
+            Total Barang: ${ruang.stats.total} ${ruang.barang[0]?.satuan || 'unit'}
           </div>
         </div>
       </div>
@@ -601,10 +610,15 @@ function printRuangan(ruanganNama, barangData) {
     }
   }
   
+  // Hitung total quantity
+  const totalQuantity = barangList.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
+  const satuan = barangList[0]?.satuan || 'unit';
+  
   const dateTime = getCurrentDateTime();
   
-  const barangRows = barangList.map(b => `
+  const barangRows = barangList.map((b, no) => `
     <tr>
+      <td>${no + 1}</td>
       <td>${b.id}</td>
       <td>${b.nama}</td>
       <td>${b.kategori || '-'}</td>
@@ -717,6 +731,7 @@ function printRuangan(ruanganNama, barangData) {
       <table>
         <thead>
           <tr>
+            <th>No</th>
             <th>ID</th>
             <th>Nama Barang</th>
             <th>Kategori</th>
@@ -730,10 +745,10 @@ function printRuangan(ruanganNama, barangData) {
         <tbody>
           ${barangRows}
         </tbody>
-      </table>
+      8d
       
       <div class="total-footer">
-        Total Barang: ${barangList.length}
+        Total Barang: ${totalQuantity} ${satuan}
       </div>
       
       <div class="ttd-container">
@@ -760,8 +775,13 @@ function printSemuaRuangan() {
   const dateTime = getCurrentDateTime();
   
   currentGedung.ruanganList.forEach((ruang, idx) => {
-    const barangRows = ruang.barang.map(b => `
+    // Hitung total quantity untuk ruangan ini
+    const totalQuantity = ruang.barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
+    const satuan = ruang.barang[0]?.satuan || 'unit';
+    
+    const barangRows = ruang.barang.map((b, no) => `
       <tr>
+        <td>${no + 1}</td>
         <td>${b.id}</td>
         <td>${b.nama}</td>
         <td>${b.kategori || '-'}</td>
@@ -778,13 +798,14 @@ function printSemuaRuangan() {
         <div style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
           <h4 style="margin:0;">${ruang.nama}</h4>
           <div style="margin-top:5px;">
-            <span>Total: ${ruang.stats.total} barang | Aktif: ${ruang.stats.aktif} | Perawatan: ${ruang.stats.perawatan} | Rusak: ${ruang.stats.rusak}</span>
+            <span>Total: ${totalQuantity} ${satuan} | Aktif: ${ruang.stats.aktif} | Perawatan: ${ruang.stats.perawatan} | Rusak: ${ruang.stats.rusak}</span>
           </div>
         </div>
         <div style="display:block;">
           <table style="width:100%; border-collapse:collapse;">
             <thead>
               <tr>
+                <th>No</th>
                 <th>ID</th>
                 <th>Nama Barang</th>
                 <th>Kategori</th>
@@ -796,11 +817,11 @@ function printSemuaRuangan() {
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="8" class="text-center">Belum ada barang</td</tr>'}
+              ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td</tr>'}
             </tbody>
           </table>
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
-            Total: ${ruang.barang.length} barang
+            Total Barang: ${totalQuantity} ${satuan}
           </div>
           <div style="display:flex; justify-content:space-between; margin-top: 60px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
