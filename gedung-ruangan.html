@@ -580,17 +580,33 @@ function fillGedungSelect(){
 
 async function loadData(){
   try{
-    const [gedung, ruangan, barang] = await Promise.all([
+    const [gedung, barang] = await Promise.all([
       api('getGedung'),
-      api('getRuangan'),
       api('getBarang')
     ]);
 
-    const ruanganList = ruangan || [];
-    const barangList  = barang   || [];
+    const gedungList = gedung  || [];
+    const barangList  = barang || [];
+
+    // Coba ambil semua ruangan sekaligus (beberapa backend mendukung ini)
+    let ruanganList = await api('getRuangan') || [];
+
+    // Jika getRuangan() tanpa parameter mengembalikan kosong,
+    // ambil ruangan per gedung satu per satu sebagai fallback
+    if (ruanganList.length === 0 && gedungList.length > 0) {
+      console.log('[DEBUG] getRuangan() kosong, mengambil ruangan per gedung...');
+      const perGedung = await Promise.allSettled(
+        gedungList.map(g => api('getRuangan', { gedung_id: g.kode }))
+      );
+      // Gabungkan semua hasil yang berhasil
+      ruanganList = perGedung
+        .filter(r => r.status === 'fulfilled' && Array.isArray(r.value))
+        .flatMap(r => r.value);
+      console.log('[DEBUG] Ruangan per gedung total:', ruanganList.length);
+    }
 
     // hitung ulang jumlah barang per gedung & per ruangan
-    dataGedung = (gedung || []).map(g=>{
+    dataGedung = gedungList.map(g=>{
       // semua ruangan di gedung ini — coba beberapa kemungkinan nama field
       const roomsRaw = ruanganList.filter(r =>
         (r.kodeGedung || r.gedung || r.kode_gedung || r.gedungKode || '') === g.kode

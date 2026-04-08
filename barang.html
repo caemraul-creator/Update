@@ -613,19 +613,14 @@ function cekLogin(){
 /* ===== LOAD MASTER DATA UNTUK MODE LOGIN ===== */
 async function loadMasterData() {
   try {
-    console.log('[DEBUG] Memuat data gedung dan ruangan...');
-    const [gedungData, ruanganData] = await Promise.all([
-      api('getGedung'),
-      api('getRuangan')
-    ]);
+    // NOTE: api('getRuangan') tanpa parameter selalu mengembalikan 0.
+    //       Ruangan diambil on-demand di fillRuangan() saat user memilih gedung.
+    const gedungData = await api('getGedung');
     
     allGedung = gedungData || [];
-    allRuangan = ruanganData || [];
+    allRuangan = [];   // selalu kosong dari API global
     
-    console.log('[DEBUG] Gedung:', allGedung.length, 'Ruangan:', allRuangan.length);
-    if (allRuangan.length > 0) {
-      console.log('[DEBUG] Contoh ruangan:', JSON.stringify(allRuangan[0]));
-    }
+    console.log('[DEBUG] Gedung:', allGedung.length);
     
     updateGedungDropdowns();
     loadBarang();
@@ -639,14 +634,13 @@ async function loadMasterData() {
 /* ===== LOAD MASTER DATA UNTUK MODE PUBLIK ===== */
 async function loadMasterDataPublic() {
   try {
-    const [gedungData, ruanganData, barangData] = await Promise.all([
+    const [gedungData, barangData] = await Promise.all([
       api('getGedung'),
-      api('getRuangan'),
       api('getBarang')
     ]);
     
     allGedung = gedungData || [];
-    allRuangan = ruanganData || [];
+    allRuangan = [];   // selalu kosong dari API global
     
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
@@ -764,28 +758,8 @@ async function fillRuangan(kodeGedung, formType) {
   ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
   ruanganSelect.disabled = true;
   
-  console.log('[DEBUG] fillRuangan - kodeGedung:', kodeGedung);
-  
-  // Coba filter dari data lokal
-  const kodeStr = String(kodeGedung).trim();
-  const filtered = allRuangan.filter(r => {
-    const rKode = r.kodeGedung || r.kode_gedung || r.gedung || r.gedungKode || r.gedung_id || '';
-    return String(rKode).trim() === kodeStr;
-  });
-  
-  console.log('[DEBUG] Ruangan cocok:', filtered.length);
-  
-  if (filtered.length > 0) {
-    const opt = filtered.map(r => {
-      const nama = r.nama || r.nama_ruangan || r.ruangan || 'Tanpa Nama';
-      return `<option value="${nama}">${nama}</option>`;
-    }).join('');
-    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
-    ruanganSelect.disabled = false;
-    return;
-  }
-  
-  // Fallback ke API
+  // Langsung panggil API dengan gedung_id, karena getRuangan()
+  // tanpa parameter selalu mengembalikan 0 dari backend.
   try {
     const data = await api('getRuangan', { gedung_id: kodeGedung });
     if (data && data.length > 0) {
@@ -1026,9 +1000,12 @@ function updateItem() {
     .finally(() => { btn.innerHTML = 'Simpan Perubahan'; btn.disabled = false; });
 }
 
-function deleteItem(id) {
+function deleteItem(id, gedung, ruangan) {
   if (!confirm('Hapus barang ' + id + '?')) return;
-  api('deleteBarang', { id })
+  const params = { id };
+  if (gedung) params.gedung = gedung;
+  if (ruangan) params.ruangan = ruangan;
+  api('deleteBarang', params)
     .then(() => { alert('Barang berhasil dihapus'); location.reload(); })
     .catch(err => alert('Error: ' + err.message));
 }

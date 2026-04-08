@@ -345,7 +345,7 @@ function applyRoleUI(role){
 /* === STATE === */
 let barangList     = [];
 let gedungList     = [];
-let ruanganListAll = [];        // semua ruangan (dipakai untuk cari ruangan tujuan)
+// ruanganListAll tidak lagi dipakai — ruangan diambil on-demand via API
 let selectedBarang = null;
 let gdgAsalKode    = '';
 
@@ -395,22 +395,20 @@ function cekLoginWithLoad(){
  * ============================================================ */
 async function loadMasterData(){
   try {
-    // Muat gedung, ruangan, dan barang secara paralel
-    const [gdgData, ruangData, brgData] = await Promise.all([
+    // Muat gedung dan barang secara paralel.
+    // NOTE: api('getRuangan') tanpa parameter selalu mengembalikan 0.
+    //       Ruangan diambil on-demand lewat fallback API di onGedungTujuanChange()
+    //       saat user memilih gedung.
+    const [gdgData, brgData] = await Promise.all([
       api('getGedung'),
-      api('getRuangan'),
       api('getBarang')
     ]);
 
     gedungList     = gdgData  || [];
-    ruanganListAll = ruangData || [];
+
     barangList     = brgData  || [];
 
-    // Debug: verifikasi data ruangan ter-load
-    console.log('[DEBUG] loadMasterData: gedung=' + gedungList.length + ', ruangan=' + ruanganListAll.length + ', barang=' + barangList.length);
-    if (ruanganListAll.length > 0) {
-      console.log('[DEBUG] Contoh ruangan pertama:', JSON.stringify(ruanganListAll[0]));
-    }
+    console.log('[DEBUG] loadMasterData: gedung=' + gedungList.length + ', barang=' + barangList.length);
 
     // 1) Isi dropdown barang
     const selBarang = document.getElementById('barangSelect');
@@ -464,9 +462,8 @@ function fillGedungTujuanDropdown(){
 /* ============================================================
  *  onGedungTujuanChange
  *  Ketika user pilih gedung tujuan, muat ruangan di gedung itu.
- *  FIX: Pakai ruanganListAll (sudah dimuat saat init) untuk
- *       filter lokal, TIDAK perlu panggil API lagi.
- *       Fallback ke API kalau filter lokal kosong.
+ *  FIX: Langsung panggil API getRuangan dengan gedung_id.
+ *       getRuangan() tanpa parameter selalu mengembalikan 0 dari backend.
  * ============================================================ */
 function onGedungTujuanChange(){
   const kode  = document.getElementById('gdgTujuan').value;
@@ -483,76 +480,22 @@ function onGedungTujuanChange(){
   selR.innerHTML  = '<option value="">Memuat ruangan...</option>';
   selR.disabled   = true;
 
-  // Cari dulu di data lokal (ruanganListAll) supaya cepat
-  // Coba beberapa kemungkinan nama field untuk kode gedung
-  const kodeStr = String(kode).trim().toLowerCase();
-
-  // Debug: tampilkan semua field di data ruangan
-  if (ruanganListAll.length > 0) {
-    console.log('[DEBUG] Contoh ruangan pertama:', JSON.stringify(ruanganListAll[0]));
-  } else {
-    console.log('[DEBUG] ruanganListAll KOSONG!');
-  }
-  console.log('[DEBUG] Mencari ruangan untuk gedung kode:', JSON.stringify(kode), '→ kodeStr:', JSON.stringify(kodeStr));
-
-  const fieldCandidates = ['kodeGedung', 'kode_gedung', 'gedung', 'gedungKode', 'kode_gd', 'gedung_id', 'kode_gedung_id', 'idGedung', 'id_gedung'];
-
-  let ruanganDiGedung = [];
-  for (const field of fieldCandidates) {
-    const test = ruanganListAll
-      .filter(r => {
-        const val = String(r[field] || '').trim().toLowerCase();
-        return val === kodeStr;
-      })
-      .map(r => r.nama || r.nama_ruangan || '')
-      .filter(n => n && n.trim() !== '');
-    if (test.length > 0) {
-      ruanganDiGedung = test;
-      console.log('[DEBUG] onGedungTujuanChange: field used:', field, 'found:', test.length);
-      break;
-    }
-  }
-
-  // Kalau lokal kosong, coba panggil API (fallback)
-  if (ruanganDiGedung.length === 0){
-    console.log('[DEBUG] Lokal kosong, fallback ke API getRuangan gedung_id:', kode);
-    api('getRuangan', { gedung_id: kode })
-      .then(data => {
-        const items = data || [];
-        if (items.length > 0) {
-          console.log('[DEBUG] API getRuangan response pertama:', JSON.stringify(items[0]));
-        }
-
-        // Coba filter dari data API dengan berbagai field
-        let apiNames = [];
-        for (const field of fieldCandidates) {
-          const test = items.filter(r =>
-            String(r[field] || '').trim().toLowerCase() === kodeStr
-          ).map(r => r.nama || r.nama_ruangan || '').filter(n => n && n.trim() !== '');
-          if (test.length > 0) {
-            apiNames = test;
-            break;
-          }
-        }
-
-        // Kalau masih kosong, pakai semua data dari API
-        if (apiNames.length === 0 && items.length > 0) {
-          apiNames = items.map(r => r.nama || r.nama_ruangan || '').filter(n => n && n.trim() !== '');
-        }
-
-        renderRuanganTujuan(selR, hintR, apiNames);
-      })
-      .catch(err => {
-        console.error('getRuanganByGedung error:', err);
-        selR.innerHTML = '<option value="">Gagal memuat ruangan</option>';
-        selR.disabled = false;
-        setHint(hintR, 'Gagal memuat: ' + err.message, 'danger');
-      });
-    return;
-  }
-
-  // Data lokal ada → langsung render
-  renderRuanganTujuan(selR, hintR, ruanganDiGedung);
+  // Langsung panggil API dengan gedung_id, karena getRuangan()
+  // tanpa parameter selalu mengembalikan 0 dari backend.
+  api('getRuangan', { gedung_id: kode })
+    .then(data => {
+      const items = data || [];
+      // Ambil nama ruangan dari response — coba beberapa kemungkinan field
+      const names = items.map(r => r.nama || r.nama_ruangan || r.ruangan || '')
+                        .filter(n => n && n.trim() !== '');
+      renderRuanganTujuan(selR, hintR, names);
+    })
+    .catch(err => {
+      console.error('getRuanganByGedung error:', err);
+      selR.innerHTML = '<option value="">Gagal memuat ruangan</option>';
+      selR.disabled = false;
+      setHint(hintR, 'Gagal memuat: ' + err.message, 'danger');
+    });
 }
 
 /* ============================================================
