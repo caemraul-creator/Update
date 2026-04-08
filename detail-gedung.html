@@ -253,13 +253,13 @@
       }
       .ttd-section {
         display: flex !important;
-        margin-top: 50px;
+        margin-top: 60px;
       }
     }
 
     .ttd-section {
       display: none;
-      margin-top: 50px;
+      margin-top: 60px;
       justify-content: space-between;
       page-break-inside: avoid;
       padding: 0 1.5rem 1.5rem 1.5rem;
@@ -270,7 +270,7 @@
     }
     .ttd-label-top {
       font-size: 11px;
-      margin-bottom: 40px;
+      margin-bottom: 50px;
       font-weight: 500;
     }
     .ttd-line {
@@ -280,7 +280,7 @@
       margin-right: auto;
     }
     .ttd-name {
-      margin-top: 10px;
+      margin-top: 12px;
       font-size: 12px;
       font-weight: 600;
     }
@@ -297,12 +297,6 @@
       text-align: right;
       font-weight: 600;
       border-top: 1px solid #eef2ff;
-    }
-
-    .date-info {
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 5px;
     }
   </style>
 </head>
@@ -654,16 +648,18 @@ function printRuangan(ruanganNama, barangData) {
   const dateTime = getCurrentDateTime();
   
   const ttdHtml = `
-    <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:60px;">
-      <div class="ttd-box" style="text-align:center; width:45%;">
-        <div style="font-size:11px; margin-bottom:50px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
-        <div style="border-top:2px solid #000; width:220px; margin-left:auto; margin-right:auto;"></div>
-        <div style="margin-top:12px; font-size:12px; font-weight:600;">_________________</div>
-      </div>
-      <div class="ttd-box" style="text-align:center; width:45%;">
-        <div style="font-size:11px; margin-bottom:50px; font-weight:500;">Petugas</div>
-        <div style="border-top:2px solid #000; width:220px; margin-left:auto; margin-right:auto;"></div>
-        <div style="margin-top:12px; font-size:12px; font-weight:600;">${currentUser.nama || '_________________'}</div>
+    <div style="margin-top: 60px;">
+      <div style="display: flex; justify-content: space-between; page-break-inside: avoid;">
+        <div style="text-align: center; width: 45%;">
+          <div style="font-size: 11px; margin-bottom: 50px; font-weight: 500;">Mengetahui,<br>Penanggungjawab</div>
+          <div style="border-top: 2px solid #000; width: 220px; margin-left: auto; margin-right: auto;"></div>
+          <div style="margin-top: 12px; font-size: 12px; font-weight: 600;">_________________</div>
+        </div>
+        <div style="text-align: center; width: 45%;">
+          <div style="font-size: 11px; margin-bottom: 50px; font-weight: 500;">Petugas</div>
+          <div style="border-top: 2px solid #000; width: 220px; margin-left: auto; margin-right: auto;"></div>
+          <div style="margin-top: 12px; font-size: 12px; font-weight: 600;">${currentUser.nama || '_________________'}</div>
+        </div>
       </div>
     </div>
   `;
@@ -723,6 +719,7 @@ function printRuangan(ruanganNama, barangData) {
           width: 100%;
           border-collapse: collapse;
           font-size: 10pt;
+          margin-top: 20px;
         }
         th, td {
           border: 1px solid #ddd;
@@ -739,16 +736,6 @@ function printRuangan(ruanganNama, barangData) {
           font-weight: bold;
           padding: 10px;
           background: #f8fafc;
-        }
-        .ttd-section {
-          display: flex !important;
-          justify-content: space-between;
-          margin-top: 60px;
-          page-break-inside: avoid;
-        }
-        .ttd-box {
-          text-align: center;
-          width: 45%;
         }
         @media print {
           body { padding: 0; }
@@ -808,14 +795,14 @@ function printSemuaRuangan() {
     `).join('');
     
     semuaHtml += `
-      <div class="ruangan-card" style="margin-bottom: 30px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-        <div class="ruangan-header" style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
+      <div style="margin-bottom: 40px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+        <div style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
           <h4 style="margin:0;">${ruang.nama}</h4>
           <div style="margin-top:5px;">
             <span>Total: ${ruang.stats.total} barang | Aktif: ${ruang.stats.aktif} | Perawatan: ${ruang.stats.perawatan} | Rusak: ${ruang.stats.rusak}</span>
           </div>
         </div>
-        <div class="ruangan-body" style="display:block;">
+        <div style="display:block;">
           <table style="width:100%; border-collapse:collapse;">
             <thead>
               <tr>
@@ -836,14 +823,14 @@ function printSemuaRuangan() {
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
             Total: ${ruang.barang.length} barang
           </div>
-          <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:50px; padding:0 15px 20px 15px;">
+          <div style="display:flex; justify-content:space-between; margin-top: 50px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
-              <div style="font-size:10px; margin-bottom:40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
+              <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
               <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
               <div style="margin-top:10px; font-size:11px; font-weight:600;">_________________</div>
             </div>
             <div style="text-align:center; width:45%;">
-              <div style="font-size:10px; margin-bottom:40px; font-weight:500;">Petugas</div>
+              <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Petugas</div>
               <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
               <div style="margin-top:10px; font-size:11px; font-weight:600;">${currentUser.nama || '_________________'}</div>
             </div>
@@ -899,12 +886,8 @@ function printSemuaRuangan() {
         th {
           background: #f1f5f9;
         }
-        .ruangan-card {
-          break-inside: avoid;
-          page-break-inside: avoid;
-        }
-        .ttd-section {
-          break-inside: avoid;
+        @media print {
+          body { padding: 0; }
         }
       </style>
     </head>
