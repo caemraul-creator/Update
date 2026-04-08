@@ -268,16 +268,21 @@
       text-align: center;
       width: 45%;
     }
+    .ttd-label-top {
+      font-size: 11px;
+      margin-bottom: 30px;
+      font-weight: 500;
+    }
     .ttd-line {
-      margin-top: 50px;
       border-top: 1px solid #000;
       width: 200px;
       margin-left: auto;
       margin-right: auto;
     }
-    .ttd-label {
+    .ttd-name {
       margin-top: 8px;
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .loading-state, .empty-state {
@@ -555,7 +560,7 @@ function renderRuanganCards(ruanganData) {
               <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${ruang.stats.perawatan}</span>
               <span class="text-danger"><i class="bi bi-x-circle"></i> ${ruang.stats.rusak}</span>
             </div>
-            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${cardId}', '${ruang.nama}', ${JSON.stringify(ruang.barang).replace(/"/g, '&quot;')})">
+            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${ruang.nama}', ${JSON.stringify(ruang.barang).replace(/"/g, '&quot;')})">
               <i class="bi bi-printer"></i> Cetak
             </button>
           </div>
@@ -584,12 +589,14 @@ function renderRuanganCards(ruanganData) {
           </div>
           <div class="ttd-section" id="ttd_${cardId}">
             <div class="ttd-box">
+              <div class="ttd-label-top">Mengetahui,<br>Penanggungjawab</div>
               <div class="ttd-line"></div>
-              <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
+              <div class="ttd-name">_________________</div>
             </div>
             <div class="ttd-box">
+              <div class="ttd-label-top">Petugas</div>
               <div class="ttd-line"></div>
-              <div class="ttd-label">Petugas,<br>${currentUser.nama || '_________________'}</div>
+              <div class="ttd-name">${currentUser.nama || '_________________'}</div>
             </div>
           </div>
         </div>
@@ -613,8 +620,7 @@ function toggleRuangan(cardId) {
   }
 }
 
-function printRuangan(cardId, ruanganNama, barangData) {
-  // Parse barangData jika berupa string
+function printRuangan(ruanganNama, barangData) {
   let barangList = barangData;
   if (typeof barangData === 'string') {
     try {
@@ -628,12 +634,14 @@ function printRuangan(cardId, ruanganNama, barangData) {
   const ttdHtml = `
     <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:40px;">
       <div class="ttd-box" style="text-align:center; width:45%;">
-        <div style="margin-top:50px; border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
-        <div style="margin-top:8px; font-size:11px;">Mengetahui,<br>Penanggungjawab</div>
+        <div style="font-size:11px; margin-bottom:30px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
+        <div style="border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
+        <div style="margin-top:8px; font-size:12px; font-weight:600;">_________________</div>
       </div>
       <div class="ttd-box" style="text-align:center; width:45%;">
-        <div style="margin-top:50px; border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
-        <div style="margin-top:8px; font-size:11px;">Petugas,<br>${currentUser.nama || '_________________'}</div>
+        <div style="font-size:11px; margin-bottom:30px; font-weight:500;">Petugas</div>
+        <div style="border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
+        <div style="margin-top:8px; font-size:12px; font-weight:600;">${currentUser.nama || '_________________'}</div>
       </div>
     </div>
   `;
@@ -656,7 +664,7 @@ function printRuangan(cardId, ruanganNama, barangData) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris - ${currentGedung.nama} - ${ruanganNama}</title>
+      <title>Laporan Inventaris</title>
       <style>
         @page {
           size: A4 landscape;
@@ -714,17 +722,6 @@ function printRuangan(cardId, ruanganNama, barangData) {
           text-align: center;
           width: 45%;
         }
-        .ttd-line {
-          margin-top: 50px;
-          border-top: 1px solid #000;
-          width: 200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-        .ttd-label {
-          margin-top: 8px;
-          font-size: 10pt;
-        }
         @media print {
           body { padding: 0; }
         }
@@ -733,7 +730,7 @@ function printRuangan(cardId, ruanganNama, barangData) {
     <body>
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
-        <p><strong>Ruangan:</strong> ${ruanganNama} | <strong>Tanggal Cetak:</strong> ${new Date().toLocaleString('id-ID')}</p>
+        <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
       <table>
         <thead>
@@ -751,7 +748,7 @@ function printRuangan(cardId, ruanganNama, barangData) {
         <tbody>
           ${barangRows}
         </tbody>
-       </table>
+      </table>
       <div class="total-footer">
         Total Barang: ${barangList.length}
       </div>
@@ -811,12 +808,14 @@ function printSemuaRuangan() {
           </div>
           <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:30px; padding:0 15px 15px 15px;">
             <div style="text-align:center; width:45%;">
-              <div style="margin-top:40px; border-top:1px solid #000; width:180px; margin-left:auto; margin-right:auto;"></div>
-              <div style="margin-top:8px; font-size:10px;">Mengetahui,<br>Penanggungjawab</div>
+              <div style="font-size:10px; margin-bottom:30px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
+              <div style="border-top:1px solid #000; width:180px; margin-left:auto; margin-right:auto;"></div>
+              <div style="margin-top:8px; font-size:11px; font-weight:600;">_________________</div>
             </div>
             <div style="text-align:center; width:45%;">
-              <div style="margin-top:40px; border-top:1px solid #000; width:180px; margin-left:auto; margin-right:auto;"></div>
-              <div style="margin-top:8px; font-size:10px;">Petugas,<br>${currentUser.nama || '_________________'}</div>
+              <div style="font-size:10px; margin-bottom:30px; font-weight:500;">Petugas</div>
+              <div style="border-top:1px solid #000; width:180px; margin-left:auto; margin-right:auto;"></div>
+              <div style="margin-top:8px; font-size:11px; font-weight:600;">${currentUser.nama || '_________________'}</div>
             </div>
           </div>
         </div>
@@ -829,7 +828,7 @@ function printSemuaRuangan() {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris - ${currentGedung.nama}</title>
+      <title>Laporan Inventaris</title>
       <style>
         @page {
           size: A4 landscape;
@@ -850,11 +849,6 @@ function printSemuaRuangan() {
           margin: 0 0 5px 0;
           color: #1e293b;
           font-size: 18pt;
-        }
-        .print-header p {
-          margin: 0;
-          color: #64748b;
-          font-size: 11pt;
         }
         table {
           width: 100%;
@@ -881,7 +875,7 @@ function printSemuaRuangan() {
     <body>
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
-        <p>Laporan Inventaris Barang | Tanggal Cetak: ${new Date().toLocaleString('id-ID')}</p>
+        <p>Laporan Inventaris Barang</p>
       </div>
       ${semuaHtml}
     </body>
