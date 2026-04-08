@@ -596,7 +596,7 @@ function cekLogin(){
     .then(u => {
       currentRole = u.role || 'viewer';
       const userInfo = document.getElementById('userInfo');
-      if (userInfo) userInfo.textContent = `${u.nama} (${currentRole)}`;
+      if (userInfo) userInfo.textContent = `${u.nama} (${currentRole})`;
       applyRoleUI(currentRole);
       loadMasterData();
       
@@ -702,7 +702,7 @@ function showPublicDetail(b) {
         ${b.foto ? '<img src="' + b.foto + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="window.open(this.src,\'_blank\')">' : '-'}
       </td>
       <td data-label="Aksi">-</td>
-    </table>
+    </tr>
   `);
   
   viewItemDirect(b);
@@ -769,7 +769,7 @@ async function fillRuangan(kodeGedung, formType) {
   // Coba filter dari data lokal
   const kodeStr = String(kodeGedung).trim();
   const filtered = allRuangan.filter(r => {
-    const rKode = r.kodeGedung || r.kode_gedung || r.gedungKode || r.gedung_id || '';
+    const rKode = r.kodeGedung || r.kode_gedung || r.gedung || r.gedungKode || r.gedung_id || '';
     return String(rKode).trim() === kodeStr;
   });
   
@@ -851,7 +851,7 @@ function loadBarang() {
                     onclick="openLabel('${b.id}','${gedungEsc}','${ruanganEsc}')">
               <i class="bi bi-upc-scan"></i>
             </button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="deleteItem('${b.id}')">
+            <button type="button" class="btn btn-danger btn-sm" onclick="deleteItem('${b.id}','${gedungEsc}','${ruanganEsc}')">
               <i class="bi bi-trash"></i>
             </button>
           `;

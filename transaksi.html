@@ -351,18 +351,41 @@ let gdgAsalKode    = '';
 
 /* === INIT === */
 window.onload = () => {
-  cekLogin();
-
-  // Muat semua data master secara paralel
-  loadMasterData();
-
+  // Event listeners pasang dulu (tidak perlu tunggu auth)
   document.getElementById('barangSelect').addEventListener('change', onBarangChange);
   document.getElementById('jenis').addEventListener('change', updateLokasiFields);
   document.getElementById('gdgTujuan').addEventListener('change', onGedungTujuanChange);
   document.getElementById('jumlah').addEventListener('input', onJumlahInput);
 
   updateLokasiFields();
+
+  // loadMasterData dipanggil dari dalam cekLogin().then()
+  // agar API tidak dipanggil sebelum autentikasi selesai
+  cekLoginWithLoad();
 };
+
+/* ===== AUTH + LOAD DATA ===== */
+function cekLoginWithLoad(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+  api('getCurrentUser')
+    .then(u => {
+      currentRole = u.role || 'viewer';
+      document.getElementById('userInfo').textContent =
+        u.nama + ' (' + currentRole + ')';
+      applyRoleUI(currentRole);
+
+      // Baru muat data setelah auth berhasil
+      loadMasterData();
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
 
 /* ============================================================
  *  loadMasterData
@@ -382,6 +405,12 @@ async function loadMasterData(){
     gedungList     = gdgData  || [];
     ruanganListAll = ruangData || [];
     barangList     = brgData  || [];
+
+    // Debug: verifikasi data ruangan ter-load
+    console.log('[DEBUG] loadMasterData: gedung=' + gedungList.length + ', ruangan=' + ruanganListAll.length + ', barang=' + barangList.length);
+    if (ruanganListAll.length > 0) {
+      console.log('[DEBUG] Contoh ruangan pertama:', JSON.stringify(ruanganListAll[0]));
+    }
 
     // 1) Isi dropdown barang
     const selBarang = document.getElementById('barangSelect');
@@ -457,12 +486,24 @@ function onGedungTujuanChange(){
   // Cari dulu di data lokal (ruanganListAll) supaya cepat
   // Coba beberapa kemungkinan nama field untuk kode gedung
   const kodeStr = String(kode).trim().toLowerCase();
-  const fieldCandidates = ['kodeGedung', 'kode_gedung', 'gedungKode', 'kode_gd', 'gedung_id'];
+
+  // Debug: tampilkan semua field di data ruangan
+  if (ruanganListAll.length > 0) {
+    console.log('[DEBUG] Contoh ruangan pertama:', JSON.stringify(ruanganListAll[0]));
+  } else {
+    console.log('[DEBUG] ruanganListAll KOSONG!');
+  }
+  console.log('[DEBUG] Mencari ruangan untuk gedung kode:', JSON.stringify(kode), '→ kodeStr:', JSON.stringify(kodeStr));
+
+  const fieldCandidates = ['kodeGedung', 'kode_gedung', 'gedung', 'gedungKode', 'kode_gd', 'gedung_id', 'kode_gedung_id', 'idGedung', 'id_gedung'];
 
   let ruanganDiGedung = [];
   for (const field of fieldCandidates) {
     const test = ruanganListAll
-      .filter(r => String(r[field] || '').trim().toLowerCase() === kodeStr)
+      .filter(r => {
+        const val = String(r[field] || '').trim().toLowerCase();
+        return val === kodeStr;
+      })
       .map(r => r.nama || r.nama_ruangan || '')
       .filter(n => n && n.trim() !== '');
     if (test.length > 0) {

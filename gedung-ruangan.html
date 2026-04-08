@@ -718,9 +718,33 @@ function initSearch(){
 
 /* INIT */
 window.onload = function(){
-  cekLogin();
-  loadData();
+  // cekLogin akan memanggil loadData di dalam .then()
+  // agar data tidak dimuat sebelum autentikasi selesai
+  cekLoginAndLoad();
 };
+
+/* ===== AUTH + LOAD ===== */
+function cekLoginAndLoad(){
+  const token = localStorage.getItem('token');
+  if (!token){
+    window.location.href = 'login.html';
+    return;
+  }
+
+  api('getCurrentUser')
+    .then(u => {
+      const userInfo = document.getElementById('userInfo');
+      if (userInfo){
+        userInfo.textContent = `${u.nama} (${u.role})`;
+      }
+      // Baru muat data setelah auth berhasil
+      loadData();
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
 </script>
 </body>
 </html>
