@@ -14,16 +14,13 @@
   <!-- Layout global -->
   <link rel="stylesheet" href="layout.css">
 
-  <!-- CSS khusus halaman barang -->
   <style>
-  /* Kartu statistik memakai .stats-grid & .stats-card dari layout.css */
-  .stats-card.primary  .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
-  .stats-card.success  .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
-  .stats-card.warning  .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
-  .stats-card.danger   .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
+  .stats-card.primary .stats-icon{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+  .stats-card.success .stats-icon{background:linear-gradient(135deg,#22c55e,#16a34a);}
+  .stats-card.warning .stats-icon{background:linear-gradient(135deg,#f59e0b,#d97706);}
+  .stats-card.danger .stats-icon{background:linear-gradient(135deg,#ef4444,#b91c1c);}
   .stats-card:hover{transform:translateY(-4px);transition:.25s;}
 
-  /* Section tabel */
   .table-section{
     background:rgba(255,255,255,.95);
     backdrop-filter:blur(20px);
@@ -57,7 +54,6 @@
   #itemsTable td{vertical-align:middle;}
   .badge{white-space:nowrap;}
 
-  /* Kunci kolom Foto & Aksi supaya tidak melar */
   #itemsTable th:nth-child(11),
   #itemsTable th:nth-child(12),
   #itemsTable td[data-label="Foto"],
@@ -66,7 +62,6 @@
     width:1%;
   }
 
-  /* Kolom Merk/Model: jangan wrap, potong dengan ... */
   #itemsTable th:nth-child(4),
   #itemsTable td:nth-child(4),
   #itemsTable td[data-label="Merk/Model"]{
@@ -76,7 +71,6 @@
     max-width: 220px;
   }
 
-  /* TOMBOL BESAR DI HEADER / PAGE HEADER */
   .btn-pill{
     border-radius:999px;
     padding:.45rem 1.1rem !important;
@@ -99,7 +93,6 @@
     border:none;
   }
 
-  /* Spinner mini */
   .loading-spinner{
     display:inline-block;
     width:1rem;height:1rem;
@@ -108,9 +101,8 @@
     border-radius:50%;
     animation:spin 1s linear infinite;
   }
-  @keyframes spin{to{transform:rotate(360deg);} }
+  @keyframes spin{to{transform:rotate(360deg);}}
 
-  /* Preview gambar */
   .img-preview{
     width:120px;
     height:120px;
@@ -119,7 +111,6 @@
     border:1px solid #ced4da;
   }
 
-  /* === TOMBOL KECIL DI DALAM TABEL (Foto & Aksi) === */
   #itemsTable td .btn{
     padding:.15rem .35rem !important;
     font-size:.70rem !important;
@@ -136,16 +127,10 @@
     font-size:.8rem !important;
   }
 
-  /* SEMBUNYIKAN hanya control length DataTables saat layar sempit,
-     search tetap tampil */
   @media (max-width: 992px){
     div.dataTables_length{
       display:none !important;
     }
-  }
-
-  /* Tambahan agar 12 kolom tetap full, teks panjang tidak wrap */
-  @media (max-width: 992px) {
     .table-responsive {
       display: block;
       width: 100%;
@@ -153,19 +138,24 @@
       -webkit-overflow-scrolling: touch;
     }
   }
-  #itemsTable th:nth-child(4),
-  #itemsTable td:nth-child(4) {
-    white-space: nowrap !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 260px;
+
+  @media (max-width: 768px) {
+    .table-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .table-header .d-flex {
+      justify-content: center;
+    }
   }
-  #itemsTable th:nth-child(11),
-  #itemsTable th:nth-child(12),
-  #itemsTable td[data-label="Foto"],
-  #itemsTable td[data-label="Aksi"] {
-    width: 1%;
-    white-space: nowrap;
+
+  /* Mode publik - sembunyikan sidebar */
+  body.public-mode .sidebar {
+    display: none;
+  }
+  body.public-mode .main-content {
+    margin-left: 0;
+    width: 100%;
   }
   </style>
 </head>
@@ -190,7 +180,6 @@
     <!-- HEADER + USER + LOGOUT -->
     <div class="page-header d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-2">
-        <!-- Toggle sidebar untuk HP/Tablet -->
         <button type="button"
                 id="btnToggleSidebar"
                 class="btn btn-outline-primary btn-sm btn-pill d-lg-none">
@@ -263,7 +252,7 @@
       </div>
       <div class="table-content">
         <div class="table-responsive">
-          <table id="itemsTable" class="table table-hover w-100 align-middle table-mobile-cards">
+          <table id="itemsTable" class="table table-hover w-100 align-middle">
             <thead>
               <tr>
                 <th>ID</th>
@@ -300,13 +289,12 @@
       <div class="modal-body pt-3">
         <form id="addItemForm">
         <div class="row g-3">
-          <!-- Nama & Kategori -->
           <div class="col-md-6">
-            <label class="form-label mb-1">Nama Barang</label>
+            <label class="form-label mb-1">Nama Barang <span class="text-danger">*</span></label>
             <input type="text" name="nama" class="form-control" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label mb-1">Kategori</label>
+            <label class="form-label mb-1">Kategori <span class="text-danger">*</span></label>
             <select name="kategori" class="form-select" required>
               <option value="">Pilih</option>
               <option>Elektronik</option>
@@ -317,44 +305,39 @@
             </select>
           </div>
 
-          <!-- Merk -->
           <div class="col-md-12">
             <label class="form-label mb-1">Merk/Model</label>
             <input type="text" name="merk" class="form-control">
           </div>
 
-          <!-- Jumlah & Satuan -->
           <div class="col-md-3">
-            <label class="form-label mb-1">Jumlah</label>
+            <label class="form-label mb-1">Jumlah <span class="text-danger">*</span></label>
             <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label mb-1">Satuan</label>
+            <label class="form-label mb-1">Satuan <span class="text-danger">*</span></label>
             <input type="text" name="satuan" class="form-control" value="Unit" required>
           </div>
 
-          <!-- Gedung & Ruangan -->
           <div class="col-md-3">
-            <label class="form-label mb-1">Gedung</label>
-            <select name="gedung" id="addGedung" class="form-select" required
-                    onchange="fillRuangan(this.value,'add')">
+            <label class="form-label mb-1">Gedung <span class="text-danger">*</span></label>
+            <select name="gedung" id="addGedung" class="form-select" required>
               <option value="">Pilih Gedung</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label mb-1">Ruangan</label>
-            <select name="ruangan" id="addRuangan" class="form-select" required>
-              <option value="">Pilih Ruangan</option>
+            <label class="form-label mb-1">Ruangan <span class="text-danger">*</span></label>
+            <select name="ruangan" id="addRuangan" class="form-select" required disabled>
+              <option value="">Pilih Gedung dulu</option>
             </select>
           </div>
 
-          <!-- Tanggal Masuk & Status -->
           <div class="col-md-3">
-            <label class="form-label mb-1">Tanggal Masuk</label>
+            <label class="form-label mb-1">Tanggal Masuk <span class="text-danger">*</span></label>
             <input type="date" name="tglMasuk" class="form-control" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label mb-1">Status</label>
+            <label class="form-label mb-1">Status <span class="text-danger">*</span></label>
             <select name="status" class="form-select" required>
               <option value="">Pilih</option>
               <option>Aktif</option>
@@ -365,13 +348,11 @@
             </select>
           </div>
 
-          <!-- Deskripsi -->
           <div class="col-md-12">
             <label class="form-label mb-1">Deskripsi</label>
-            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+            <textarea name="deskripsi" class="form-control" rows="2"></textarea>
           </div>
 
-          <!-- Foto -->
           <div class="col-md-12">
             <label class="form-label mb-1">Foto Barang</label>
             <input type="file"
@@ -379,10 +360,9 @@
                    class="form-control"
                    accept="image/*"
                    capture="environment"
-                   aria-label="Pilih foto barang"
                    onchange="previewFoto(this,'addPreview')">
             <div class="mt-2">
-              <img id="addPreview" class="img-preview d-none" alt="Preview foto yang dipilih">
+              <img id="addPreview" class="img-preview d-none" alt="Preview foto">
             </div>
           </div>
         </div>
@@ -436,20 +416,19 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">Gedung</label>
-              <select name="gedung" id="editGedung" class="form-select" required onchange="fillRuangan(this.value,'edit')">
+              <select name="gedung" id="editGedung" class="form-select" required>
                 <option value="">Pilih Gedung</option>
               </select>
             </div>
           </div>
 
-          <!-- Jumlah & Satuan (EDIT) -->
           <div class="row mt-3">
             <div class="col-md-3">
-              <label class="form-label mb-1">Jumlah</label>
+              <label class="form-label">Jumlah</label>
               <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
             </div>
             <div class="col-md-3">
-              <label class="form-label mb-1">Satuan</label>
+              <label class="form-label">Satuan</label>
               <input type="text" name="satuan" class="form-control" value="Unit" required>
             </div>
           </div>
@@ -457,8 +436,8 @@
           <div class="row mt-3">
             <div class="col-md-6">
               <label class="form-label">Ruangan</label>
-              <select name="ruangan" id="editRuangan" class="form-select" required>
-                <option value="">Pilih Ruangan</option>
+              <select name="ruangan" id="editRuangan" class="form-select" required disabled>
+                <option value="">Pilih Gedung dulu</option>
               </select>
             </div>
             <div class="col-md-6">
@@ -483,7 +462,7 @@
 
           <div class="mt-3">
             <label class="form-label">Deskripsi</label>
-            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+            <textarea name="deskripsi" class="form-control" rows="2"></textarea>
           </div>
 
           <div class="mt-3">
@@ -493,10 +472,9 @@
                    class="form-control"
                    accept="image/*"
                    capture="environment"
-                   aria-label="Pilih foto barang"
                    onchange="previewFoto(this,'editPreview')">
             <div class="mt-2">
-              <img id="editPreview" class="img-preview d-none" alt="Preview foto yang dipilih">
+              <img id="editPreview" class="img-preview d-none" alt="Preview foto">
             </div>
           </div>
         </form>
@@ -509,7 +487,7 @@
   </div>
 </div>
 
-<!-- Modal Detail / Tinjau Barang -->
+<!-- Modal Detail Barang -->
 <div class="modal fade" id="viewItemModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -518,16 +496,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-
         <div class="row g-3 align-items-start">
-          <!-- Keterangan di kiri -->
           <div class="col-md-7">
             <table class="table table-sm table-bordered mb-0">
               <tbody id="viewDetailBody"></tbody>
-            </table>
+             </table>
           </div>
-
-          <!-- Gambar di kanan -->
           <div class="col-md-5 text-center">
             <div class="border rounded p-2 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height:260px;">
               <img id="viewFoto"
@@ -539,12 +513,9 @@
                 <div>Tidak ada foto</div>
               </div>
             </div>
-            <small class="text-muted d-block mt-2">
-              Klik gambar untuk membuka ukuran penuh
-            </small>
+            <small class="text-muted d-block mt-2">Klik gambar untuk membuka ukuran penuh</small>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -559,16 +530,14 @@
 <!-- Layout global -->
 <script src="layout.js"></script>
 
-<!-- Script khusus barang -->
 <script>
 /* ===== KONFIGURASI ===== */
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxxDmu6TqknJafqXa-fqhi4njiOmJ6pG3Dc-2fiOJ6V7Wfl-1SpbZP5-v-n4sHYUwAz/exec';
-// Google Sheets maks 50.000 karakter per sel → base64 dibatasi 48.000 karakter
 const MAX_B64_CHARS = 48000;
 
-let currentRole = 'viewer'; // default viewer
+let currentRole = 'viewer';
 let allGedung = [];
-let allRuangan = [];  // cache semua ruangan untuk filter lokal
+let allRuangan = [];
 let addFotoBase64 = '';
 let editFotoBase64 = '';
 
@@ -577,12 +546,11 @@ const formatDateDisplay = iso => {
   if(!iso) return '';
   const d = new Date(iso);
   if(isNaN(d)) return iso;
-  return (
-    String(d.getDate()).padStart(2,'0') + '/' +
-    String(d.getMonth()+1).padStart(2,'0') + '/' +
-    d.getFullYear()
-  );
+  return String(d.getDate()).padStart(2,'0') + '/' +
+         String(d.getMonth()+1).padStart(2,'0') + '/' +
+         d.getFullYear();
 };
+
 const badge = st => {
   const color = st==='Aktif' ? 'success'
               : st==='Perawatan' ? 'warning'
@@ -609,29 +577,29 @@ function api(action, params = {}) {
     });
 }
 
-/* ===== AUTH: CEK LOGIN & LOGOUT ===== */
+/* ===== AUTH ===== */
 function cekLogin(){
   const token = localStorage.getItem('token');
   if (!token){
-    window.location.href = 'login.html';
+    // Mode publik
+    document.body.classList.add('public-mode');
+    const logoutBtn = document.querySelector('.btn-outline-danger');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    const userInfoDiv = document.getElementById('userInfo');
+    if (userInfoDiv) userInfoDiv.textContent = 'Mode Publik';
+    
+    loadMasterDataPublic();
     return;
   }
 
   api('getCurrentUser')
     .then(u => {
       currentRole = u.role || 'viewer';
-
       const userInfo = document.getElementById('userInfo');
-      if (userInfo){
-        userInfo.textContent = `${u.nama} (${currentRole})`;
-      }
-
+      if (userInfo) userInfo.textContent = `${u.nama} (${currentRole)}`;
       applyRoleUI(currentRole);
-
-      // setelah tahu role, baru load data
-      loadBarang();
-      fillLokasi();
-
+      loadMasterData();
+      
       const today = new Date().toISOString().split('T')[0];
       const tglInput = document.querySelector('#addItemForm input[name="tglMasuk"]');
       if(tglInput) tglInput.value = today;
@@ -642,249 +610,217 @@ function cekLogin(){
     });
 }
 
-function doLogout(){
-  api('logout')
-    .finally(() => {
-      localStorage.clear();
-      window.location.href = 'login.html';
-    });
-}
-
-/* ===== ATUR UI BERDASARKAN ROLE ===== */
-function applyRoleUI(role){
-  if (role === 'viewer') {
-    const btnAdd = document.querySelector('button[data-bs-target="#addItemModal"]');
-    if (btnAdd) btnAdd.style.display = 'none';
-
-    const btnExport = document.querySelector('button[onclick="exportData()"]');
-    if (btnExport) btnExport.style.display = 'none';
-
-    const btnCetak = document.getElementById('btnCetakBarcode');
-    if (btnCetak) btnCetak.style.display = 'none';
-  }
-}
-
-/* ===== FOTO (SELALU KOMPRES → maks ~48 KB string base64 agar muat di sel Sheets) ===== */
-function previewFoto(input, previewId) {
-  const file = input.files[0];
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    alert('File harus berupa gambar (JPG/PNG).');
-    input.value = '';
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx    = canvas.getContext('2d');
-
-      // Batasi resolusi maksimal 800×800 agar hasil base64 kecil
-      const maxSide = 800;
-      let width  = img.width;
-      let height = img.height;
-
-      if (width > maxSide || height > maxSide) {
-        const ratio = Math.min(maxSide / width, maxSide / height);
-        width  = Math.round(width  * ratio);
-        height = Math.round(height * ratio);
-      }
-
-      canvas.width  = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      // Kompres JPEG bertahap sampai string base64 < MAX_B64_CHARS
-      let quality = 0.85;
-      let dataUrl = canvas.toDataURL('image/jpeg', quality);
-
-      while (dataUrl.length > MAX_B64_CHARS && quality > 0.2) {
-        quality -= 0.1;
-        dataUrl  = canvas.toDataURL('image/jpeg', quality);
-      }
-
-      if (dataUrl.length > MAX_B64_CHARS) {
-        alert('Foto terlalu besar untuk disimpan (melebihi batas Google Sheets).\nCoba gunakan foto dengan resolusi lebih kecil.');
-        input.value = '';
-        return;
-      }
-
-      // Tampilkan preview
-      const imgEl = document.getElementById(previewId);
-      imgEl.src = dataUrl;
-      imgEl.classList.remove('d-none');
-
-      // Simpan ke variabel global
-      if (previewId === 'addPreview') {
-        addFotoBase64 = dataUrl;
-      } else if (previewId === 'editPreview') {
-        editFotoBase64 = dataUrl;
-      }
-    };
-
-    img.onerror = () => {
-      alert('Gagal membaca gambar. Coba file lain.');
-      input.value = '';
-    };
-    img.src = e.target.result;
-  };
-
-  reader.onerror = () => {
-    alert('Gagal membaca file gambar.');
-    input.value = '';
-  };
-
-  reader.readAsDataURL(file);
-}
-
-/* ===== DATA MASTER GEDUNG / RUANGAN ===== */
-function fillLokasi(){
-  // Ambil gedung dan ruangan secara bersamaan
-  Promise.all([
-    api('getGedung'),
-    api('getRuangan')
-  ]).then(([gedungData, ruanganData]) => {
+/* ===== LOAD MASTER DATA UNTUK MODE LOGIN ===== */
+async function loadMasterData() {
+  try {
+    console.log('[DEBUG] Memuat data gedung dan ruangan...');
+    const [gedungData, ruanganData] = await Promise.all([
+      api('getGedung'),
+      api('getRuangan')
+    ]);
+    
     allGedung = gedungData || [];
     allRuangan = ruanganData || [];
-
-    // Debug: log struktur data ruangan untuk cek field nama
+    
+    console.log('[DEBUG] Gedung:', allGedung.length, 'Ruangan:', allRuangan.length);
     if (allRuangan.length > 0) {
-      console.log('[DEBUG] Contoh data ruangan pertama:', JSON.stringify(allRuangan[0]));
+      console.log('[DEBUG] Contoh ruangan:', JSON.stringify(allRuangan[0]));
     }
-
-    const opt = allGedung
-      .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
-      .join('');
-    // Isi semua dropdown gedung (tambah & edit)
-    ['addGedung', 'editGedung'].forEach(selId => {
-      const el = document.getElementById(selId);
-      if (el) el.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
-    });
-    // Fallback: querySelectorAll untuk amannya
-    document.querySelectorAll('select[name="gedung"]').forEach(s => {
-      if (!s.id || (s.id !== 'addGedung' && s.id !== 'editGedung')) {
-        s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
-      }
-    });
-  })
-    .catch(err => {
-      console.error(err);
-      alert('Gagal memuat daftar gedung/ruangan: ' + err.message);
-    });
+    
+    updateGedungDropdowns();
+    loadBarang();
+    
+  } catch(err) {
+    console.error('[ERROR] loadMasterData:', err);
+    alert('Gagal memuat data gedung/ruangan: ' + err.message);
+  }
 }
 
-function fillRuangan(kodeGedung, formType){
-  const ruanganSelect = formType === 'add'
-    ? document.getElementById('addRuangan')
-    : document.getElementById('editRuangan');
+/* ===== LOAD MASTER DATA UNTUK MODE PUBLIK ===== */
+async function loadMasterDataPublic() {
+  try {
+    const [gedungData, ruanganData, barangData] = await Promise.all([
+      api('getGedung'),
+      api('getRuangan'),
+      api('getBarang')
+    ]);
+    
+    allGedung = gedungData || [];
+    allRuangan = ruanganData || [];
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const gedung = urlParams.get('gedung') || '';
+    const ruangan = urlParams.get('ruangan') || '';
+    
+    if (id) {
+      const barang = barangData.find(b => b.id === id);
+      if (barang) {
+        showPublicDetail(barang);
+      } else {
+        document.getElementById('barangBody').innerHTML = 
+          '<tr><td colspan="12" class="text-center text-danger">Barang tidak ditemukan</td></tr>';
+      }
+    } else {
+      document.getElementById('barangBody').innerHTML = 
+        '<tr><td colspan="12" class="text-center text-muted">Scan QR code untuk melihat detail barang</td></tr>';
+    }
+    
+    updateStatistik(barangData);
+    
+  } catch(err) {
+    console.error(err);
+    document.getElementById('barangBody').innerHTML = 
+      '<tr><td colspan="12" class="text-center text-danger">Gagal memuat data: ' + err.message + '</td></tr>';
+  }
+}
 
-  if (!ruanganSelect) return Promise.resolve();
+function updateStatistik(items) {
+  document.getElementById('totalBrg').textContent = items?.length || 0;
+  document.getElementById('aktifBrg').textContent = items?.filter(x => x.status === 'Aktif').length || 0;
+  document.getElementById('rawatBrg').textContent = items?.filter(x => x.status === 'Perawatan').length || 0;
+  document.getElementById('rusakBrg').textContent = items?.filter(x => x.status === 'Rusak').length || 0;
+}
+
+function showPublicDetail(b) {
+  const tbody = document.getElementById('barangBody');
+  tbody.innerHTML = '';
+  
+  tbody.insertAdjacentHTML('beforeend', `
+    <tr>
+      <td data-label="ID">${b.id}</td>
+      <td data-label="Nama Barang">${b.nama}</td>
+      <td data-label="Kategori">${b.kategori}</td>
+      <td data-label="Merk/Model">${b.merk || '-'}</td>
+      <td data-label="Jumlah">${b.jumlah || 1}</td>
+      <td data-label="Satuan">${b.satuan || 'Unit'}</td>
+      <td data-label="Gedung">${b.gedungNama || b.gedung || '-'}</td>
+      <td data-label="Ruangan">${b.ruangan || '-'}</td>
+      <td data-label="Tanggal Masuk">${formatDateDisplay(b.tglMasuk)}</td>
+      <td data-label="Status">${badge(b.status)}</td>
+      <td data-label="Foto" class="text-center">
+        ${b.foto ? '<img src="' + b.foto + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="window.open(this.src,\'_blank\')">' : '-'}
+      </td>
+      <td data-label="Aksi">-</td>
+    </table>
+  `);
+  
+  viewItemDirect(b);
+}
+
+function viewItemDirect(b) {
+  const img = document.getElementById('viewFoto');
+  const empty = document.getElementById('viewFotoEmpty');
+  
+  if (b.foto && String(b.foto).trim() !== '') {
+    img.src = b.foto;
+    img.classList.remove('d-none');
+    empty.classList.add('d-none');
+    img.onclick = function(){ window.open(b.foto, '_blank'); };
+  } else {
+    img.classList.add('d-none');
+    empty.classList.remove('d-none');
+  }
+  
+  document.getElementById('viewDetailBody').innerHTML = `
+    <tr><th style="width:35%">ID</th><td>${b.id}</td></tr>
+    <tr><th>Nama Barang</th><td>${b.nama}</td></tr>
+    <tr><th>Kategori</th><td>${b.kategori}</td></tr>
+    <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
+    <tr><th>Jumlah</th><td>${b.jumlah || 1} ${b.satuan || 'Unit'}</td></tr>
+    <tr><th>Gedung</th><td>${b.gedungNama || b.gedung || '-'}</td></tr>
+    <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
+    <tr><th>Tanggal Masuk</th><td>${formatDateDisplay(b.tglMasuk)}</td></tr>
+    <tr><th>Status</th><td>${b.status}</td></tr>
+    <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
+  `;
+  
+  new bootstrap.Modal(document.getElementById('viewItemModal')).show();
+}
+
+function updateGedungDropdowns() {
+  const opt = allGedung.map(g => `<option value="${g.kode}">${g.nama}</option>`).join('');
+  const gedungSelects = ['addGedung', 'editGedung'];
+  gedungSelects.forEach(selId => {
+    const el = document.getElementById(selId);
+    if (el) el.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
+  });
+}
+
+/* ===== FILL RUANGAN ===== */
+async function fillRuangan(kodeGedung, formType) {
+  const ruanganSelect = formType === 'add' 
+    ? document.getElementById('addRuangan') 
+    : document.getElementById('editRuangan');
+  
+  if (!ruanganSelect) return;
+  
+  if (!kodeGedung) {
+    ruanganSelect.innerHTML = '<option value="">Pilih Gedung dulu</option>';
+    ruanganSelect.disabled = true;
+    return;
+  }
+  
   ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
   ruanganSelect.disabled = true;
-
-  if(!kodeGedung){
-    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
-    ruanganSelect.disabled = false;
-    return Promise.resolve();
-  }
-
-  // Coba beberapa kemungkinan nama field untuk kode gedung
-  const kodeGedungStr = String(kodeGedung).trim().toLowerCase();
-  const fieldCandidates = ['kodeGedung', 'kode_gedung', 'gedungKode', 'kode_gd', 'gedung_id'];
-  let filtered = [];
-  let usedField = '';
-
-  for (const field of fieldCandidates) {
-    const test = allRuangan.filter(r =>
-      String(r[field] || '').trim().toLowerCase() === kodeGedungStr
-    );
-    if (test.length > 0) {
-      filtered = test;
-      usedField = field;
-      break;
-    }
-  }
-
-  console.log('[DEBUG] fillRuangan:', {
-    kodeGedung, kodeGedungStr,
-    allRuanganCount: allRuangan.length,
-    filteredCount: filtered.length,
-    usedField
+  
+  console.log('[DEBUG] fillRuangan - kodeGedung:', kodeGedung);
+  
+  // Coba filter dari data lokal
+  const kodeStr = String(kodeGedung).trim();
+  const filtered = allRuangan.filter(r => {
+    const rKode = r.kodeGedung || r.kode_gedung || r.gedungKode || r.gedung_id || '';
+    return String(rKode).trim() === kodeStr;
   });
-
+  
+  console.log('[DEBUG] Ruangan cocok:', filtered.length);
+  
   if (filtered.length > 0) {
-    // Data lokal ditemukan → langsung render
-    const namaField = ('nama' in filtered[0]) ? 'nama' : ('nama_ruangan' in filtered[0]) ? 'nama_ruangan' : 'nama';
-    const opt = filtered.map(r=>`<option value="${r[namaField]}">${r[namaField]}</option>`).join('');
+    const opt = filtered.map(r => {
+      const nama = r.nama || r.nama_ruangan || r.ruangan || 'Tanpa Nama';
+      return `<option value="${nama}">${nama}</option>`;
+    }).join('');
     ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
     ruanganSelect.disabled = false;
-    return Promise.resolve();
+    return;
   }
-
-  // Lokal kosong → fallback ke API
-  console.log('[DEBUG] Lokal kosong, fallback ke API getRuangan...');
-  return api('getRuangan', { gedung_id: kodeGedung })
-    .then(data => {
-      const items = data || [];
-      if (items.length > 0) {
-        console.log('[DEBUG] API getRuangan response pertama:', JSON.stringify(items[0]));
-      }
-
-      // Coba filter dari data API dengan berbagai field
-      let apiFiltered = [];
-      for (const field of fieldCandidates) {
-        const test = items.filter(r =>
-          String(r[field] || '').trim().toLowerCase() === kodeGedungStr
-        );
-        if (test.length > 0) {
-          apiFiltered = test;
-          break;
-        }
-      }
-
-      // Kalau masih kosong, pakai semua data dari API (API mungkin sudah filter by gedung)
-      if (apiFiltered.length === 0 && items.length > 0) {
-        apiFiltered = items;
-      }
-
-      if (apiFiltered.length === 0) {
-        ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
-      } else {
-        const namaField = ('nama' in apiFiltered[0]) ? 'nama' : ('nama_ruangan' in apiFiltered[0]) ? 'nama_ruangan' : 'nama';
-        const opt = apiFiltered.map(r=>`<option value="${r[namaField]}">${r[namaField]}</option>`).join('');
-        ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
-      }
-      ruanganSelect.disabled = false;
-    })
-    .catch(err => {
-      console.error('[DEBUG] getRuangan fallback error:', err);
-      ruanganSelect.innerHTML = '<option value="">Gagal memuat ruangan</option>';
-      ruanganSelect.disabled = false;
-    });
+  
+  // Fallback ke API
+  try {
+    const data = await api('getRuangan', { gedung_id: kodeGedung });
+    if (data && data.length > 0) {
+      const opt = data.map(r => {
+        const nama = r.nama || r.nama_ruangan || r.ruangan || 'Tanpa Nama';
+        return `<option value="${nama}">${nama}</option>`;
+      }).join('');
+      ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+    } else {
+      ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
+    }
+    ruanganSelect.disabled = false;
+  } catch(err) {
+    console.error(err);
+    ruanganSelect.innerHTML = '<option value="">Gagal memuat ruangan</option>';
+    ruanganSelect.disabled = false;
+  }
 }
 
 /* ===== LOAD BARANG ===== */
-function loadBarang(){
+function loadBarang() {
   api('getBarang')
-    .then(data => {
-      const items = data || [];
-
-      document.getElementById('totalBrg').textContent  = items.length;
-      document.getElementById('aktifBrg').textContent  = items.filter(x=>x.status==='Aktif').length;
-      document.getElementById('rawatBrg').textContent  = items.filter(x=>x.status==='Perawatan').length;
-      document.getElementById('rusakBrg').textContent  = items.filter(x=>x.status==='Rusak').length;
+    .then(items => {
+      items = items || [];
+      
+      document.getElementById('totalBrg').textContent = items.length;
+      document.getElementById('aktifBrg').textContent = items.filter(x => x.status === 'Aktif').length;
+      document.getElementById('rawatBrg').textContent = items.filter(x => x.status === 'Perawatan').length;
+      document.getElementById('rusakBrg').textContent = items.filter(x => x.status === 'Rusak').length;
 
       const tbody = document.getElementById('barangBody');
       tbody.innerHTML = '';
-      items.forEach(b=>{
-        // ============================================================
-        // FIX: teruskan gedung & ruangan ke viewItem dan openLabel
-        // agar detail yang ditampilkan sesuai lokasi baris ini
-        // ============================================================
-        const gedungEsc  = (b.gedung  || '').replace(/'/g, "\\'");
+      
+      items.forEach(b => {
+        const gedungEsc = (b.gedung || '').replace(/'/g, "\\'");
         const ruanganEsc = (b.ruangan || '').replace(/'/g, "\\'");
 
         const fotoBtn = `
@@ -947,18 +883,16 @@ function loadBarang(){
         lengthMenu: [25, 50, 100, 200],
         scrollX: true,
         autoWidth: false,
-        columnDefs: [
-          { targets: [10,11], orderable: false, searchable: false }
-        ],
-        language:{
-          search:"Cari:",
-          lengthMenu:"Tampilkan _MENU_ data",
-          info:"Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-          paginate:{
-            first:"Pertama",
-            last:"Terakhir",
-            next:"Selanjutnya",
-            previous:"Sebelumnya"
+        columnDefs: [{ targets: [10, 11], orderable: false, searchable: false }],
+        language: {
+          search: "Cari:",
+          lengthMenu: "Tampilkan _MENU_ data",
+          info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+          paginate: {
+            first: "Pertama",
+            last: "Terakhir",
+            next: "Selanjutnya",
+            previous: "Sebelumnya"
           }
         }
       });
@@ -969,178 +903,223 @@ function loadBarang(){
     });
 }
 
-/* ===== CRUD ===== */
-function saveItem(){
-  const form = document.getElementById('addItemForm');
-  if(!form.checkValidity()){form.reportValidity();return;}
+/* ===== CRUD OPERATIONS ===== */
+function previewFoto(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    alert('File harus berupa gambar (JPG/PNG).');
+    input.value = '';
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const maxSide = 800;
+      let width = img.width, height = img.height;
+      
+      if (width > maxSide || height > maxSide) {
+        const ratio = Math.min(maxSide / width, maxSide / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      let quality = 0.85;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      
+      while (dataUrl.length > MAX_B64_CHARS && quality > 0.2) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+      
+      if (dataUrl.length > MAX_B64_CHARS) {
+        alert('Foto terlalu besar untuk disimpan.');
+        input.value = '';
+        return;
+      }
+      
+      const imgEl = document.getElementById(previewId);
+      imgEl.src = dataUrl;
+      imgEl.classList.remove('d-none');
+      
+      if (previewId === 'addPreview') addFotoBase64 = dataUrl;
+      else if (previewId === 'editPreview') editFotoBase64 = dataUrl;
+    };
+    img.onerror = () => { alert('Gagal membaca gambar.'); input.value = ''; };
+    img.src = e.target.result;
+  };
+  reader.onerror = () => { alert('Gagal membaca file.'); input.value = ''; };
+  reader.readAsDataURL(file);
+}
 
+function saveItem() {
+  const form = document.getElementById('addItemForm');
+  if (!form.checkValidity()) { form.reportValidity(); return; }
+  
   const btn = document.getElementById('btnSaveItem');
   btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
   btn.disabled = true;
-
+  
   const fd = new FormData(form);
   const params = {};
-  fd.forEach((v,k)=>{ if(v) params[k] = v; });
-  if(addFotoBase64) params.foto = addFotoBase64;
-
+  fd.forEach((v, k) => { if (v) params[k] = v; });
+  if (addFotoBase64) params.foto = addFotoBase64;
+  
   api('addBarang', params)
-    .then(() => {
-      alert('Barang berhasil ditambahkan');
-      location.reload();
-    })
+    .then(() => { alert('Barang berhasil ditambahkan'); location.reload(); })
     .catch(err => alert('Error: ' + err.message))
-    .finally(() => {
-      btn.innerHTML='Simpan Barang';
-      btn.disabled=false;
-    });
+    .finally(() => { btn.innerHTML = 'Simpan Barang'; btn.disabled = false; });
 }
 
-function editItem(id, gedung, ruangan){
+function editItem(id, gedung, ruangan) {
   api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
     .then(b => {
       const form = document.getElementById('editItemForm');
-
-      form.id.value       = b.id;
-      form.nama.value     = b.nama;
+      form.id.value = b.id;
+      form.nama.value = b.nama;
       form.kategori.value = b.kategori;
-      form.merk.value     = b.merk || '';
-      form.jumlah.value   = b.jumlah || 1;
-      form.satuan.value   = b.satuan || 'Unit';
-      form.gedung.value   = b.gedung || '';
-
-      fillRuangan(b.gedung,'edit').then(()=>{
-        form.ruangan.value = b.ruangan || '';
+      form.merk.value = b.merk || '';
+      form.jumlah.value = b.jumlah || 1;
+      form.satuan.value = b.satuan || 'Unit';
+      form.gedung.value = b.gedung || '';
+      
+      fillRuangan(b.gedung, 'edit').then(() => {
+        setTimeout(() => { form.ruangan.value = b.ruangan || ''; }, 200);
       });
-
+      
       form.tglMasuk.value = b.tglMasuk || '';
-      form.status.value   = b.status;
-      form.deskripsi.value= b.deskripsi || '';
-
+      form.status.value = b.status;
+      form.deskripsi.value = b.deskripsi || '';
+      
       editFotoBase64 = '';
       document.getElementById('editPreview').classList.add('d-none');
-
+      
       new bootstrap.Modal(document.getElementById('editItemModal')).show();
     })
-    .catch(err => {
-      console.error(err);
-      alert('Gagal mengambil data barang: ' + err.message);
-    });
+    .catch(err => { console.error(err); alert('Gagal mengambil data: ' + err.message); });
 }
 
-function updateItem(){
+function updateItem() {
   const form = document.getElementById('editItemForm');
-  if(!form.checkValidity()){form.reportValidity();return;}
-
+  if (!form.checkValidity()) { form.reportValidity(); return; }
+  
   const btn = document.getElementById('btnUpdateItem');
   btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
   btn.disabled = true;
-
+  
   const fd = new FormData(form);
   const params = {};
-  fd.forEach((v,k)=>{ if(v) params[k] = v; });
-  if(editFotoBase64) params.foto = editFotoBase64;
-
+  fd.forEach((v, k) => { if (v) params[k] = v; });
+  if (editFotoBase64) params.foto = editFotoBase64;
+  
   api('updateBarang', params)
-    .then(() => {
-      alert('Barang berhasil diupdate');
-      location.reload();
-    })
+    .then(() => { alert('Barang berhasil diupdate'); location.reload(); })
     .catch(err => alert('Error: ' + err.message))
-    .finally(() => {
-      btn.innerHTML='Simpan Perubahan';
-      btn.disabled=false;
-    });
+    .finally(() => { btn.innerHTML = 'Simpan Perubahan'; btn.disabled = false; });
 }
 
-function deleteItem(id){
-  if(!confirm('Hapus barang '+id+'?')) return;
-
+function deleteItem(id) {
+  if (!confirm('Hapus barang ' + id + '?')) return;
   api('deleteBarang', { id })
-    .then(() => {
-      alert('Barang berhasil dihapus');
-      location.reload();
-    })
+    .then(() => { alert('Barang berhasil dihapus'); location.reload(); })
     .catch(err => alert('Error: ' + err.message));
 }
 
-/* ===== DETAIL / TINJAU ===== */
-// FIX: terima gedung & ruangan agar detail sesuai lokasi baris yang diklik
-function viewItem(id, gedung, ruangan){
+function viewItem(id, gedung, ruangan) {
   api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
     .then(b => {
-      const img   = document.getElementById('viewFoto');
+      const img = document.getElementById('viewFoto');
       const empty = document.getElementById('viewFotoEmpty');
-
+      
       if (b.foto && String(b.foto).trim() !== '') {
-        const urlFoto = String(b.foto).trim();
-        img.src = urlFoto;
+        img.src = b.foto;
         img.classList.remove('d-none');
         empty.classList.add('d-none');
-        img.onclick = function () {
-          window.open(urlFoto, '_blank');
-        };
+        img.onclick = function() { window.open(b.foto, '_blank'); };
       } else {
-        img.src = '';
         img.classList.add('d-none');
         empty.classList.remove('d-none');
         img.onclick = null;
       }
-
-      const jumlahText = (b.jumlah !== undefined && b.jumlah !== null && b.jumlah !== '')
-        ? b.jumlah
-        : 1;
-      const satuanText = b.satuan ? b.satuan : '';
-
-      const body = document.getElementById('viewDetailBody');
-      body.innerHTML = `
+      
+      document.getElementById('viewDetailBody').innerHTML = `
         <tr><th style="width:35%">ID</th><td>${b.id}</td></tr>
         <tr><th>Nama Barang</th><td>${b.nama}</td></tr>
         <tr><th>Kategori</th><td>${b.kategori}</td></tr>
         <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
-        <tr><th>Jumlah</th><td>${jumlahText} ${satuanText}</td></tr>
-        <tr><th>Gedung</th><td>${b.gedungNama || b.gedung}</td></tr>
+        <tr><th>Jumlah</th><td>${b.jumlah || 1} ${b.satuan || 'Unit'}</td></tr>
+        <tr><th>Gedung</th><td>${b.gedungNama || b.gedung || '-'}</td></tr>
         <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
         <tr><th>Tanggal Masuk</th><td>${formatDateDisplay(b.tglMasuk)}</td></tr>
         <tr><th>Status</th><td>${b.status}</td></tr>
         <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
       `;
-
+      
       new bootstrap.Modal(document.getElementById('viewItemModal')).show();
     })
-    .catch(err => {
-      console.error(err);
-      alert('Gagal mengambil detail: ' + err.message);
-    });
+    .catch(err => { console.error(err); alert('Gagal mengambil detail: ' + err.message); });
 }
 
-/* ===== EXPORT ===== */
-function exportData(){
+function exportData() {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = GAS_URL;
   form.target = '_blank';
-
   const input = document.createElement('input');
   input.type = 'hidden';
   input.name = 'action';
   input.value = 'exportBarang';
-
   form.appendChild(input);
   document.body.appendChild(form);
   form.submit();
   document.body.removeChild(form);
 }
 
-/* ===== BUKA LABEL QR (per lokasi) ===== */
-// FIX: teruskan gedung & ruangan agar QR encode URL yang spesifik per lokasi
-function openLabel(id, gedung, ruangan){
+function openLabel(id, gedung, ruangan) {
   window.open(
-    'label.html?id='      + encodeURIComponent(id) +
-    '&gedung='  + encodeURIComponent(gedung  || '') +
+    'label.html?id=' + encodeURIComponent(id) +
+    '&gedung=' + encodeURIComponent(gedung || '') +
     '&ruangan=' + encodeURIComponent(ruangan || ''),
     '_blank'
   );
 }
+
+function doLogout() {
+  api('logout')
+    .finally(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+}
+
+function applyRoleUI(role) {
+  if (role === 'viewer') {
+    const btnAdd = document.querySelector('button[data-bs-target="#addItemModal"]');
+    if (btnAdd) btnAdd.style.display = 'none';
+    const btnExport = document.querySelector('button[onclick="exportData()"]');
+    if (btnExport) btnExport.style.display = 'none';
+    const btnCetak = document.getElementById('btnCetakBarcode');
+    if (btnCetak) btnCetak.style.display = 'none';
+  }
+}
+
+// Event listeners untuk dropdown gedung
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('addGedung')?.addEventListener('change', function(e) {
+    fillRuangan(e.target.value, 'add');
+  });
+  document.getElementById('editGedung')?.addEventListener('change', function(e) {
+    fillRuangan(e.target.value, 'edit');
+  });
+});
 
 /* INIT */
 window.onload = cekLogin;
