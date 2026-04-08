@@ -452,7 +452,6 @@ async function loadData() {
 
     const ruanganData = daftarRuangan.map(ruang => {
       const barang = barangDiGedung.filter(b => (b.ruangan || 'Lainnya') === ruang);
-      // Hitung total jumlah barang (quantity) bukan jumlah jenis barang
       const totalQuantity = barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
       const aktif = barang.filter(b => b.status === 'Aktif').reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
       const perawatan = barang.filter(b => b.status === 'Perawatan').reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
@@ -466,7 +465,7 @@ async function loadData() {
           aktif: aktif, 
           perawatan: perawatan, 
           rusak: rusak,
-          jenis: barang.length  // jumlah jenis barang
+          jenis: barang.length
         }
       };
     });
@@ -610,10 +609,8 @@ function printRuangan(ruanganNama, barangData) {
     }
   }
   
-  // Hitung total quantity
   const totalQuantity = barangList.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
   const satuan = barangList[0]?.satuan || 'unit';
-  
   const dateTime = getCurrentDateTime();
   
   const barangRows = barangList.map((b, no) => `
@@ -722,12 +719,16 @@ function printRuangan(ruanganNama, barangData) {
       </style>
     </head>
     <body>
+      <!-- 1. HEADER (nama gedung, ruangan) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
-        <div class="date-info">Dicetak: ${dateTime}</div>
       </div>
       
+      <!-- 2. TANGGAL CETAK -->
+      <div class="date-info">Dicetak: ${dateTime}</div>
+      
+      <!-- 3. TABEL BARANG -->
       <table>
         <thead>
           <tr>
@@ -747,10 +748,12 @@ function printRuangan(ruanganNama, barangData) {
         </tbody>
       8d
       
+      <!-- 4. TOTAL BARANG -->
       <div class="total-footer">
         Total Barang: ${totalQuantity} ${satuan}
       </div>
       
+      <!-- 5. TTD DENGAN JARAK CUKUP -->
       <div class="ttd-container">
         <div class="ttd-box">
           <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
@@ -775,7 +778,6 @@ function printSemuaRuangan() {
   const dateTime = getCurrentDateTime();
   
   currentGedung.ruanganList.forEach((ruang, idx) => {
-    // Hitung total quantity untuk ruangan ini
     const totalQuantity = ruang.barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
     const satuan = ruang.barang[0]?.satuan || 'unit';
     
@@ -795,6 +797,7 @@ function printSemuaRuangan() {
     
     semuaHtml += `
       <div style="margin-bottom: 40px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+        <!-- 1. HEADER RUANGAN -->
         <div style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
           <h4 style="margin:0;">${ruang.nama}</h4>
           <div style="margin-top:5px;">
@@ -802,6 +805,7 @@ function printSemuaRuangan() {
           </div>
         </div>
         <div style="display:block;">
+          <!-- 2. TABEL BARANG -->
           <table style="width:100%; border-collapse:collapse;">
             <thead>
               <tr>
@@ -820,9 +824,11 @@ function printSemuaRuangan() {
               ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td</tr>'}
             </tbody>
           </table>
+          <!-- 3. TOTAL BARANG -->
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
             Total Barang: ${totalQuantity} ${satuan}
           </div>
+          <!-- 4. TTD DENGAN JARAK CUKUP -->
           <div style="display:flex; justify-content:space-between; margin-top: 60px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
               <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
@@ -892,11 +898,16 @@ function printSemuaRuangan() {
       </style>
     </head>
     <body>
+      <!-- 1. HEADER (nama gedung) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p>Laporan Inventaris Barang</p>
-        <div class="date-info">Dicetak: ${dateTime}</div>
       </div>
+      
+      <!-- 2. TANGGAL CETAK -->
+      <div class="date-info">Dicetak: ${dateTime}</div>
+      
+      <!-- 3. TABEL BARANG PER RUANGAN + TOTAL + TTD -->
       ${semuaHtml}
     </body>
     </html>
