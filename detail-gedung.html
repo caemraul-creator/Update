@@ -253,13 +253,13 @@
       }
       .ttd-section {
         display: flex !important;
-        margin-top: 30px;
+        margin-top: 50px;
       }
     }
 
     .ttd-section {
       display: none;
-      margin-top: 30px;
+      margin-top: 50px;
       justify-content: space-between;
       page-break-inside: avoid;
       padding: 0 1.5rem 1.5rem 1.5rem;
@@ -270,17 +270,17 @@
     }
     .ttd-label-top {
       font-size: 11px;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
       font-weight: 500;
     }
     .ttd-line {
-      border-top: 1px solid #000;
-      width: 200px;
+      border-top: 2px solid #000;
+      width: 220px;
       margin-left: auto;
       margin-right: auto;
     }
     .ttd-name {
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 12px;
       font-weight: 600;
     }
@@ -297,6 +297,12 @@
       text-align: right;
       font-weight: 600;
       border-top: 1px solid #eef2ff;
+    }
+
+    .date-info {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -373,6 +379,20 @@ let currentUser = {
   nama: '',
   role: ''
 };
+
+function getCurrentDateTime() {
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const now = new Date();
+  const dayName = days[now.getDay()];
+  const date = now.getDate().toString().padStart(2, '0');
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const year = now.getFullYear();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  
+  return `${dayName}, ${date}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
 
 function api(action, params = {}) {
   const body = new URLSearchParams({ action });
@@ -581,7 +601,7 @@ function renderRuanganCards(ruanganData) {
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="9" class="text-center text-muted">Belum ada barang</td></tr>'}
+              ${barangRows || '<tr><td colspan="9" class="text-center text-muted">Belum ada barang</td</tr>'}
             </tbody>
           </table>
           <div class="total-footer">
@@ -631,17 +651,19 @@ function printRuangan(ruanganNama, barangData) {
     }
   }
   
+  const dateTime = getCurrentDateTime();
+  
   const ttdHtml = `
-    <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:40px;">
+    <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:60px;">
       <div class="ttd-box" style="text-align:center; width:45%;">
-        <div style="font-size:11px; margin-bottom:30px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
-        <div style="border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
-        <div style="margin-top:8px; font-size:12px; font-weight:600;">_________________</div>
+        <div style="font-size:11px; margin-bottom:50px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
+        <div style="border-top:2px solid #000; width:220px; margin-left:auto; margin-right:auto;"></div>
+        <div style="margin-top:12px; font-size:12px; font-weight:600;">_________________</div>
       </div>
       <div class="ttd-box" style="text-align:center; width:45%;">
-        <div style="font-size:11px; margin-bottom:30px; font-weight:500;">Petugas</div>
-        <div style="border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
-        <div style="margin-top:8px; font-size:12px; font-weight:600;">${currentUser.nama || '_________________'}</div>
+        <div style="font-size:11px; margin-bottom:50px; font-weight:500;">Petugas</div>
+        <div style="border-top:2px solid #000; width:220px; margin-left:auto; margin-right:auto;"></div>
+        <div style="margin-top:12px; font-size:12px; font-weight:600;">${currentUser.nama || '_________________'}</div>
       </div>
     </div>
   `;
@@ -691,6 +713,12 @@ function printRuangan(ruanganNama, barangData) {
           color: #64748b;
           font-size: 11pt;
         }
+        .date-info {
+          font-size: 10pt;
+          color: #64748b;
+          margin-top: 5px;
+          text-align: center;
+        }
         table {
           width: 100%;
           border-collapse: collapse;
@@ -715,7 +743,7 @@ function printRuangan(ruanganNama, barangData) {
         .ttd-section {
           display: flex !important;
           justify-content: space-between;
-          margin-top: 40px;
+          margin-top: 60px;
           page-break-inside: avoid;
         }
         .ttd-box {
@@ -731,6 +759,7 @@ function printRuangan(ruanganNama, barangData) {
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
+        <div class="date-info">Dicetak: ${dateTime}</div>
       </div>
       <table>
         <thead>
@@ -748,7 +777,7 @@ function printRuangan(ruanganNama, barangData) {
         <tbody>
           ${barangRows}
         </tbody>
-      </table>
+      8d
       <div class="total-footer">
         Total Barang: ${barangList.length}
       </div>
@@ -762,6 +791,7 @@ function printRuangan(ruanganNama, barangData) {
 
 function printSemuaRuangan() {
   let semuaHtml = '';
+  const dateTime = getCurrentDateTime();
   
   currentGedung.ruanganList.forEach((ruang, idx) => {
     const barangRows = ruang.barang.map(b => `
@@ -800,22 +830,22 @@ function printSemuaRuangan() {
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="8" class="text-center">Belum ada barang</td></tr>'}
+              ${barangRows || '<tr><td colspan="8" class="text-center">Belum ada barang</td</tr>'}
             </tbody>
           </table>
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
             Total: ${ruang.barang.length} barang
           </div>
-          <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:30px; padding:0 15px 15px 15px;">
+          <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:50px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
-              <div style="font-size:10px; margin-bottom:30px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
-              <div style="border-top:1px solid #000; width:180px; margin-left:auto; margin-right:auto;"></div>
-              <div style="margin-top:8px; font-size:11px; font-weight:600;">_________________</div>
+              <div style="font-size:10px; margin-bottom:40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
+              <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
+              <div style="margin-top:10px; font-size:11px; font-weight:600;">_________________</div>
             </div>
             <div style="text-align:center; width:45%;">
-              <div style="font-size:10px; margin-bottom:30px; font-weight:500;">Petugas</div>
-              <div style="border-top:1px solid #000; width:180px; margin-left:auto; margin-right:auto;"></div>
-              <div style="margin-top:8px; font-size:11px; font-weight:600;">${currentUser.nama || '_________________'}</div>
+              <div style="font-size:10px; margin-bottom:40px; font-weight:500;">Petugas</div>
+              <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
+              <div style="margin-top:10px; font-size:11px; font-weight:600;">${currentUser.nama || '_________________'}</div>
             </div>
           </div>
         </div>
@@ -850,6 +880,12 @@ function printSemuaRuangan() {
           color: #1e293b;
           font-size: 18pt;
         }
+        .date-info {
+          font-size: 10pt;
+          color: #64748b;
+          margin-top: 5px;
+          text-align: center;
+        }
         table {
           width: 100%;
           border-collapse: collapse;
@@ -876,6 +912,7 @@ function printSemuaRuangan() {
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p>Laporan Inventaris Barang</p>
+        <div class="date-info">Dicetak: ${dateTime}</div>
       </div>
       ${semuaHtml}
     </body>
