@@ -455,21 +455,56 @@ function onGedungTujuanChange(){
   selR.disabled   = true;
 
   // Cari dulu di data lokal (ruanganListAll) supaya cepat
-  let ruanganDiGedung = ruanganListAll
-    .filter(r => String(r.kodeGedung) === String(kode))
-    .map(r => r.nama)
-    .filter(n => n && n.trim() !== '');
+  // Coba beberapa kemungkinan nama field untuk kode gedung
+  const kodeStr = String(kode).trim().toLowerCase();
+  const fieldCandidates = ['kodeGedung', 'kode_gedung', 'gedungKode', 'kode_gd', 'gedung_id'];
+
+  let ruanganDiGedung = [];
+  for (const field of fieldCandidates) {
+    const test = ruanganListAll
+      .filter(r => String(r[field] || '').trim().toLowerCase() === kodeStr)
+      .map(r => r.nama || r.nama_ruangan || '')
+      .filter(n => n && n.trim() !== '');
+    if (test.length > 0) {
+      ruanganDiGedung = test;
+      console.log('[DEBUG] onGedungTujuanChange: field used:', field, 'found:', test.length);
+      break;
+    }
+  }
 
   // Kalau lokal kosong, coba panggil API (fallback)
   if (ruanganDiGedung.length === 0){
+    console.log('[DEBUG] Lokal kosong, fallback ke API getRuangan gedung_id:', kode);
     api('getRuangan', { gedung_id: kode })
       .then(data => {
-        const names = (data || []).map(r => r.nama).filter(n => n && n.trim() !== '');
-        renderRuanganTujuan(selR, hintR, names);
+        const items = data || [];
+        if (items.length > 0) {
+          console.log('[DEBUG] API getRuangan response pertama:', JSON.stringify(items[0]));
+        }
+
+        // Coba filter dari data API dengan berbagai field
+        let apiNames = [];
+        for (const field of fieldCandidates) {
+          const test = items.filter(r =>
+            String(r[field] || '').trim().toLowerCase() === kodeStr
+          ).map(r => r.nama || r.nama_ruangan || '').filter(n => n && n.trim() !== '');
+          if (test.length > 0) {
+            apiNames = test;
+            break;
+          }
+        }
+
+        // Kalau masih kosong, pakai semua data dari API
+        if (apiNames.length === 0 && items.length > 0) {
+          apiNames = items.map(r => r.nama || r.nama_ruangan || '').filter(n => n && n.trim() !== '');
+        }
+
+        renderRuanganTujuan(selR, hintR, apiNames);
       })
       .catch(err => {
         console.error('getRuanganByGedung error:', err);
         selR.innerHTML = '<option value="">Gagal memuat ruangan</option>';
+        selR.disabled = false;
         setHint(hintR, 'Gagal memuat: ' + err.message, 'danger');
       });
     return;
@@ -484,6 +519,9 @@ function onGedungTujuanChange(){
  *  Render daftar ruangan ke dropdown + tampilkan hint info
  * ============================================================ */
 function renderRuanganTujuan(selR, hintR, ruanganNames){
+  // SELALU enable select agar user bisa melihat isi dropdown
+  selR.disabled = false;
+
   if (!ruanganNames.length){
     selR.innerHTML = '<option value="">Tidak ada ruangan</option>';
     setHint(hintR,

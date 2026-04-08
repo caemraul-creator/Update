@@ -774,6 +774,12 @@ function fillLokasi(){
   ]).then(([gedungData, ruanganData]) => {
     allGedung = gedungData || [];
     allRuangan = ruanganData || [];
+
+    // Debug: log struktur data ruangan untuk cek field nama
+    if (allRuangan.length > 0) {
+      console.log('[DEBUG] Contoh data ruangan pertama:', JSON.stringify(allRuangan[0]));
+    }
+
     const opt = allGedung
       .map(g=>`<option value="${g.kode}">${g.nama}</option>`)
       .join('');
@@ -781,7 +787,10 @@ function fillLokasi(){
       s.innerHTML = '<option value="">Pilih Gedung</option>' + opt;
     });
   })
-    .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    alert('Gagal memuat daftar gedung/ruangan: ' + err.message);
+  });
 }
 
 function fillRuangan(kodeGedung, formType){
@@ -789,24 +798,86 @@ function fillRuangan(kodeGedung, formType){
     ? document.getElementById('addRuangan')
     : document.getElementById('editRuangan');
 
+  if (!ruanganSelect) return;
   ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
+  ruanganSelect.disabled = true;
 
   if(!kodeGedung){
     ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
+    ruanganSelect.disabled = false;
     return;
   }
 
-  // Filter dari cache lokal allRuangan (sama seperti gedung-ruangan.html)
-  const filtered = allRuangan.filter(r =>
-    String(r.kodeGedung) === String(kodeGedung)
-  );
+  // Coba beberapa kemungkinan nama field untuk kode gedung
+  const kodeGedungStr = String(kodeGedung).trim().toLowerCase();
+  const fieldCandidates = ['kodeGedung', 'kode_gedung', 'gedungKode', 'kode_gd', 'gedung_id'];
+  let filtered = [];
+  let usedField = '';
 
-  if (filtered.length === 0) {
-    ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
-  } else {
-    const opt = filtered.map(r=>`<option value="${r.nama}">${r.nama}</option>`).join('');
-    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+  for (const field of fieldCandidates) {
+    const test = allRuangan.filter(r =>
+      String(r[field] || '').trim().toLowerCase() === kodeGedungStr
+    );
+    if (test.length > 0) {
+      filtered = test;
+      usedField = field;
+      break;
+    }
   }
+
+  console.log('[DEBUG] fillRuangan:', {
+    kodeGedung, kodeGedungStr,
+    allRuanganCount: allRuangan.length,
+    filteredCount: filtered.length,
+    usedField
+  });
+
+  if (filtered.length > 0) {
+    const namaField = ('nama' in filtered[0]) ? 'nama' : ('nama_ruangan' in filtered[0]) ? 'nama_ruangan' : 'nama';
+    const opt = filtered.map(r=>`<option value="${r[namaField]}">${r[namaField]}</option>`).join('');
+    ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+    ruanganSelect.disabled = false;
+    return;
+  }
+
+  // Lokal kosong → fallback ke API
+  console.log('[DEBUG] Lokal kosong, fallback ke API getRuangan...');
+  api('getRuangan', { gedung_id: kodeGedung })
+    .then(data => {
+      const items = data || [];
+      if (items.length > 0) {
+        console.log('[DEBUG] API getRuangan response pertama:', JSON.stringify(items[0]));
+      }
+
+      let apiFiltered = [];
+      for (const field of fieldCandidates) {
+        const test = items.filter(r =>
+          String(r[field] || '').trim().toLowerCase() === kodeGedungStr
+        );
+        if (test.length > 0) {
+          apiFiltered = test;
+          break;
+        }
+      }
+
+      if (apiFiltered.length === 0 && items.length > 0) {
+        apiFiltered = items;
+      }
+
+      if (apiFiltered.length === 0) {
+        ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
+      } else {
+        const namaField = ('nama' in apiFiltered[0]) ? 'nama' : ('nama_ruangan' in apiFiltered[0]) ? 'nama_ruangan' : 'nama';
+        const opt = apiFiltered.map(r=>`<option value="${r[namaField]}">${r[namaField]}</option>`).join('');
+        ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
+      }
+      ruanganSelect.disabled = false;
+    })
+    .catch(err => {
+      console.error('[DEBUG] getRuangan fallback error:', err);
+      ruanganSelect.innerHTML = '<option value="">Gagal memuat ruangan</option>';
+      ruanganSelect.disabled = false;
+    });
 }
 
 /* ===== LOAD BARANG ===== */
