@@ -555,7 +555,7 @@ function renderRuanganCards(ruanganData) {
               <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${ruang.stats.perawatan}</span>
               <span class="text-danger"><i class="bi bi-x-circle"></i> ${ruang.stats.rusak}</span>
             </div>
-            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${ruang.nama}', ${JSON.stringify(ruang.barang).replace(/"/g, '&quot;')})">
+            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${cardId}', '${ruang.nama}', ${JSON.stringify(ruang.barang).replace(/"/g, '&quot;')})">
               <i class="bi bi-printer"></i> Cetak
             </button>
           </div>
@@ -613,7 +613,7 @@ function toggleRuangan(cardId) {
   }
 }
 
-function printRuangan(ruanganNama, barangData) {
+function printRuangan(cardId, ruanganNama, barangData) {
   // Parse barangData jika berupa string
   let barangList = barangData;
   if (typeof barangData === 'string') {
@@ -656,7 +656,7 @@ function printRuangan(ruanganNama, barangData) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris</title>
+      <title>Laporan Inventaris - ${currentGedung.nama} - ${ruanganNama}</title>
       <style>
         @page {
           size: A4 landscape;
@@ -733,7 +733,7 @@ function printRuangan(ruanganNama, barangData) {
     <body>
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
-        <p><strong>Ruangan:</strong> ${ruanganNama}</p>
+        <p><strong>Ruangan:</strong> ${ruanganNama} | <strong>Tanggal Cetak:</strong> ${new Date().toLocaleString('id-ID')}</p>
       </div>
       <table>
         <thead>
@@ -751,7 +751,7 @@ function printRuangan(ruanganNama, barangData) {
         <tbody>
           ${barangRows}
         </tbody>
-      8d
+       </table>
       <div class="total-footer">
         Total Barang: ${barangList.length}
       </div>
@@ -829,7 +829,7 @@ function printSemuaRuangan() {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris</title>
+      <title>Laporan Inventaris - ${currentGedung.nama}</title>
       <style>
         @page {
           size: A4 landscape;
@@ -850,6 +850,11 @@ function printSemuaRuangan() {
           margin: 0 0 5px 0;
           color: #1e293b;
           font-size: 18pt;
+        }
+        .print-header p {
+          margin: 0;
+          color: #64748b;
+          font-size: 11pt;
         }
         table {
           width: 100%;
@@ -876,7 +881,7 @@ function printSemuaRuangan() {
     <body>
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
-        <p>Laporan Inventaris Barang</p>
+        <p>Laporan Inventaris Barang | Tanggal Cetak: ${new Date().toLocaleString('id-ID')}</p>
       </div>
       ${semuaHtml}
     </body>
