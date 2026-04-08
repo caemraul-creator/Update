@@ -480,14 +480,28 @@ function onGedungTujuanChange(){
   selR.innerHTML  = '<option value="">Memuat ruangan...</option>';
   selR.disabled   = true;
 
-  // Langsung panggil API dengan gedung_id, karena getRuangan()
-  // tanpa parameter selalu mengembalikan 0 dari backend.
-  api('getRuangan', { gedung_id: kode })
+  const kodeStr = kode.trim();
+
+  // 1) Coba API dulu
+  api('getRuangan', { gedung_id: kodeStr })
     .then(data => {
       const items = data || [];
-      // Ambil nama ruangan dari response — coba beberapa kemungkinan field
-      const names = items.map(r => r.nama || r.nama_ruangan || r.ruangan || '')
-                        .filter(n => n && n.trim() !== '');
+      let names = items.map(r => r.nama || r.nama_ruangan || r.ruangan || '')
+                       .filter(n => n && n.trim() !== '');
+
+      // 2) Jika API kosong, ambil ruangan unik dari data BARANG
+      if (names.length === 0) {
+        const ruanganSet = new Set();
+        barangList.forEach(b => {
+          if ((b.gedung || '').trim() === kodeStr) {
+            const r = (b.ruangan || '').trim();
+            if (r) ruanganSet.add(r);
+          }
+        });
+        names = Array.from(ruanganSet);
+        console.log('[DEBUG] Ruangan dari data BARANG:', names.length, names);
+      }
+
       renderRuanganTujuan(selR, hintR, names);
     })
     .catch(err => {

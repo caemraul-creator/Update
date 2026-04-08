@@ -538,6 +538,7 @@ const MAX_B64_CHARS = 48000;
 let currentRole = 'viewer';
 let allGedung = [];
 let allRuangan = [];
+let barangListAll = [];   // semua barang (dipakai untuk derive ruangan)
 let addFotoBase64 = '';
 let editFotoBase64 = '';
 
@@ -758,15 +759,31 @@ async function fillRuangan(kodeGedung, formType) {
   ruanganSelect.innerHTML = '<option value="">Memuat...</option>';
   ruanganSelect.disabled = true;
   
-  // Langsung panggil API dengan gedung_id, karena getRuangan()
-  // tanpa parameter selalu mengembalikan 0 dari backend.
+  const kodeStr = kodeGedung.trim();
   try {
-    const data = await api('getRuangan', { gedung_id: kodeGedung });
+    const data = await api('getRuangan', { gedung_id: kodeStr });
+    let ruanganNames = [];
+
     if (data && data.length > 0) {
-      const opt = data.map(r => {
-        const nama = r.nama || r.nama_ruangan || r.ruangan || 'Tanpa Nama';
-        return `<option value="${nama}">${nama}</option>`;
-      }).join('');
+      ruanganNames = data.map(r => r.nama || r.nama_ruangan || r.ruangan || 'Tanpa Nama')
+                            .filter(n => n && n.trim() !== '');
+    }
+
+    // Jika API kosong, ambil ruangan unik dari data BARANG
+    if (ruanganNames.length === 0 && barangListAll.length > 0) {
+      const ruanganSet = new Set();
+      barangListAll.forEach(b => {
+        if ((b.gedung || '').trim() === kodeStr) {
+          const r = (b.ruangan || '').trim();
+          if (r) ruanganSet.add(r);
+        }
+      });
+      ruanganNames = Array.from(ruanganSet);
+      console.log('[DEBUG] Ruangan dari BARANG:', ruanganNames.length);
+    }
+
+    if (ruanganNames.length > 0) {
+      const opt = ruanganNames.map(n => `<option value="${n}">${n}</option>`).join('');
       ruanganSelect.innerHTML = '<option value="">Pilih Ruangan</option>' + opt;
     } else {
       ruanganSelect.innerHTML = '<option value="">Tidak ada ruangan</option>';
@@ -784,6 +801,7 @@ function loadBarang() {
   api('getBarang')
     .then(items => {
       items = items || [];
+      barangListAll = items;   // simpan ke global untuk dipakai fillRuangan()
       
       document.getElementById('totalBrg').textContent = items.length;
       document.getElementById('aktifBrg').textContent = items.filter(x => x.status === 'Aktif').length;

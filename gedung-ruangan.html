@@ -588,31 +588,50 @@ async function loadData(){
     const gedungList = gedung  || [];
     const barangList  = barang || [];
 
-    // Coba ambil semua ruangan sekaligus (beberapa backend mendukung ini)
+    // Coba ambil semua ruangan dari Sheet RUANGAN
     let ruanganList = await api('getRuangan') || [];
 
-    // Jika getRuangan() tanpa parameter mengembalikan kosong,
-    // ambil ruangan per gedung satu per satu sebagai fallback
+    // Jika Sheet RUANGAN kosong, ambil ruangan per gedung dari API
     if (ruanganList.length === 0 && gedungList.length > 0) {
-      console.log('[DEBUG] getRuangan() kosong, mengambil ruangan per gedung...');
+      console.log('[DEBUG] getRuangan() kosong, coba per gedung...');
       const perGedung = await Promise.allSettled(
         gedungList.map(g => api('getRuangan', { gedung_id: g.kode }))
       );
-      // Gabungkan semua hasil yang berhasil
       ruanganList = perGedung
         .filter(r => r.status === 'fulfilled' && Array.isArray(r.value))
         .flatMap(r => r.value);
-      console.log('[DEBUG] Ruangan per gedung total:', ruanganList.length);
+    }
+
+    // JIKA MASIH KOSONG — turunkan daftar ruangan dari data BARANG.
+    // Setiap barang punya field GEDUNG & RUANGAN, jadi kita bisa
+    // membuat "ruangan virtual" dari data barang yang ada.
+    if (ruanganList.length === 0 && barangList.length > 0) {
+      console.log('[DEBUG] Sheet RUANGAN kosong, membuat ruangan dari data BARANG...');
+      // Ambil kombinasi unik (gedung, ruangan) dari semua barang
+      const seen = new Set();
+      for (const b of barangList) {
+        const gdg = (b.gedung || '').trim();
+        const rng = (b.ruangan || '').trim();
+        if (gdg && rng && !seen.has(gdg + '||' + rng)) {
+          seen.add(gdg + '||' + rng);
+          ruanganList.push({
+            kode:       'AUTO-' + ruanganList.length,
+            nama:       rng,
+            kodeGedung: gdg,
+            kapasitas:  0,
+            status:     'Aktif'
+          });
+        }
+      }
+      console.log('[DEBUG] Ruangan dari BARANG total:', ruanganList.length);
     }
 
     // hitung ulang jumlah barang per gedung & per ruangan
     dataGedung = gedungList.map(g=>{
-      // semua ruangan di gedung ini — coba beberapa kemungkinan nama field
       const roomsRaw = ruanganList.filter(r =>
         (r.kodeGedung || r.gedung || r.kode_gedung || r.gedungKode || '') === g.kode
       );
 
-      // tambahkan jmlBarang ke setiap ruangan berdasarkan data barang
       const rooms = roomsRaw.map(r => {
         const namaRuang = (r.nama || '').toString().toLowerCase();
         const jmlBarangRuang = barangList.filter(b =>
@@ -626,7 +645,6 @@ async function loadData(){
         };
       });
 
-      // total barang di gedung (semua ruangan)
       const totalBarangGedung = barangList.filter(b => (b.gedung || '').toString() === g.kode).length;
 
       return {
