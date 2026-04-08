@@ -486,8 +486,12 @@ function renderGedung(list){
     let roomHtml = '';
     if (rooms.length){
       roomHtml = rooms.map(r=>{
-        const kap = r.kapasitas ? `${r.kapasitas} orang` : 'Kapasitas tidak diketahui';
+        let kapText = '';
+        if (r.kapasitas && r.kapasitas > 0) {
+          kapText = r.kapasitas + ' orang';
+        }
         const jml = (r.jmlBarang || 0) + ' barang';
+        const subText = kapText ? kapText + ' · ' + jml : jml;
 
         let rStatus = (r.status || 'Aktif').toUpperCase();
         let rClass = 'room-status-badge room-status-aktif';
@@ -500,7 +504,7 @@ function renderGedung(list){
              title="Lihat isi ruangan ${r.nama}">
             <div class="room-main">
               <div class="room-name">${r.nama}</div>
-              <div class="room-sub">${kap} · ${jml}</div>
+              <div class="room-sub">${subText}</div>
             </div>
             <span class="${rClass}">${rStatus} &rsaquo;</span>
           </a>
