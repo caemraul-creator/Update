@@ -16,7 +16,6 @@
       font-family: 'Inter', sans-serif;
     }
 
-    /* Header Gedung */
     .hero-gedung {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 24px;
@@ -48,6 +47,8 @@
       color: white;
       border-radius: 12px;
       padding: 0.5rem 1rem;
+      text-decoration: none;
+      display: inline-block;
     }
 
     .btn-back:hover {
@@ -55,7 +56,6 @@
       color: white;
     }
 
-    /* Kartu Ruangan */
     .ruangan-card {
       background: white;
       border-radius: 20px;
@@ -118,7 +118,6 @@
       color: white;
     }
 
-    /* Tabel dalam ruangan */
     .ruangan-body {
       padding: 0;
       display: none;
@@ -131,6 +130,7 @@
     .table-barang {
       width: 100%;
       font-size: 0.8rem;
+      border-collapse: collapse;
     }
 
     .table-barang th {
@@ -138,6 +138,7 @@
       padding: 0.75rem 1rem;
       font-weight: 600;
       border-bottom: 1px solid #eef2ff;
+      text-align: left;
     }
 
     .table-barang td {
@@ -173,7 +174,6 @@
       color: white;
     }
 
-    /* Tombol umum */
     .btn-print-all {
       background: #1e293b;
       color: white;
@@ -188,7 +188,6 @@
       color: white;
     }
 
-    /* Modal Foto */
     .modal-foto {
       display: none;
       position: fixed;
@@ -211,7 +210,6 @@
       display: flex;
     }
 
-    /* Mode Cetak - Landscape A4 */
     @media print {
       @page {
         size: A4 landscape;
@@ -259,12 +257,12 @@
       }
     }
 
-    /* TTD Section untuk print */
     .ttd-section {
       display: none;
       margin-top: 30px;
       justify-content: space-between;
       page-break-inside: avoid;
+      padding: 0 1.5rem 1.5rem 1.5rem;
     }
     .ttd-box {
       text-align: center;
@@ -299,7 +297,6 @@
 </head>
 <body>
 <div class="main-wrapper">
-  <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="brand">
       <i class="bi bi-box-seam"></i>
@@ -314,7 +311,6 @@
   </nav>
 
   <main class="main-content">
-    <!-- Header User -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="d-flex align-items-center gap-2">
         <button type="button" id="btnToggleSidebar" class="btn btn-outline-secondary btn-sm d-md-none">
@@ -329,7 +325,6 @@
       </div>
     </div>
 
-    <!-- Hero Gedung -->
     <div class="hero-gedung">
       <div>
         <a href="gedung-ruangan.html" class="btn-back btn-sm">
@@ -343,7 +338,6 @@
       </button>
     </div>
 
-    <!-- Kontainer Ruangan -->
     <div id="ruanganContainer">
       <div class="loading-state">
         <div class="spinner-border text-primary" role="status"></div>
@@ -353,7 +347,6 @@
   </main>
 </div>
 
-<!-- Modal Foto -->
 <div id="modalFoto" class="modal-foto" onclick="closeModalFoto()">
   <img id="modalFotoImg" src="" alt="Foto Barang">
 </div>
@@ -371,7 +364,6 @@ let currentGedung = {
   ruanganList: []
 };
 
-// Data untuk TTD (bisa diisi dari user yang login)
 let currentUser = {
   nama: '',
   role: ''
@@ -434,7 +426,6 @@ async function loadData() {
   }
 
   try {
-    // Ambil data gedung, barang, dan ruangan
     const [gedungList, barangList, ruanganList] = await Promise.all([
       api('getGedung'),
       api('getBarang'),
@@ -450,10 +441,8 @@ async function loadData() {
     currentGedung.kode = gedung.kode;
     currentGedung.nama = gedung.nama;
 
-    // Filter barang berdasarkan gedung
     const barangDiGedung = barangList.filter(b => (b.gedung || '') === kodeGedung);
 
-    // Dapatkan daftar ruangan unik dari barang di gedung ini
     const ruanganSet = new Set();
     barangDiGedung.forEach(b => {
       if (b.ruangan && b.ruangan.trim()) {
@@ -461,7 +450,6 @@ async function loadData() {
       }
     });
     
-    // Juga ambil ruangan dari data master ruangan
     const ruanganDariMaster = (ruanganList || [])
       .filter(r => (r.kodeGedung || r.gedungKode || r.kode_gedung || '') === kodeGedung)
       .map(r => r.nama || r.nama_ruangan || '')
@@ -475,7 +463,6 @@ async function loadData() {
       daftarRuangan = ['Lainnya'];
     }
 
-    // Kelompokkan barang per ruangan
     const ruanganData = daftarRuangan.map(ruang => {
       const barang = barangDiGedung.filter(b => (b.ruangan || 'Lainnya') === ruang);
       const total = barang.length;
@@ -492,7 +479,6 @@ async function loadData() {
 
     currentGedung.ruanganList = ruanganData;
 
-    // Update hero
     const totalBarang = barangDiGedung.length;
     document.getElementById('gedungNama').textContent = gedung.nama;
     document.getElementById('gedungInfo').innerHTML = `
@@ -535,7 +521,7 @@ function renderRuanganCards(ruanganData) {
     
     const barangRows = ruang.barang.map(b => {
       const fotoHtml = b.foto ? 
-        `<button class="btn-foto" onclick="event.stopPropagation(); showFoto('${b.foto}')">
+        `<button class="btn-foto" onclick="event.stopPropagation(); showFoto('${b.foto.replace(/'/g, "\\'")}')">
            <i class="bi bi-image"></i> Lihat
          </button>` : '-';
       
@@ -569,7 +555,7 @@ function renderRuanganCards(ruanganData) {
               <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${ruang.stats.perawatan}</span>
               <span class="text-danger"><i class="bi bi-x-circle"></i> ${ruang.stats.rusak}</span>
             </div>
-            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${cardId}', '${ruang.nama}')">
+            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${cardId}', '${ruang.nama}', ${JSON.stringify(ruang.barang).replace(/"/g, '&quot;')})">
               <i class="bi bi-printer"></i> Cetak
             </button>
           </div>
@@ -596,7 +582,6 @@ function renderRuanganCards(ruanganData) {
           <div class="total-footer">
             Total: ${ruang.stats.total} barang
           </div>
-          <!-- TTD Section untuk print -->
           <div class="ttd-section" id="ttd_${cardId}">
             <div class="ttd-box">
               <div class="ttd-line"></div>
@@ -621,21 +606,27 @@ function toggleRuangan(cardId) {
   
   if (body.classList.contains('show')) {
     body.classList.remove('show');
-    icon.style.transform = 'rotate(0deg)';
+    if (icon) icon.style.transform = 'rotate(0deg)';
   } else {
     body.classList.add('show');
-    icon.style.transform = 'rotate(180deg)';
+    if (icon) icon.style.transform = 'rotate(180deg)';
   }
 }
 
-function printRuangan(cardId, ruanganNama) {
-  const bodyElement = document.getElementById(`body_${cardId}`);
-  const originalContent = bodyElement.innerHTML;
+function printRuangan(cardId, ruanganNama, barangData) {
+  // Parse barangData jika berupa string
+  let barangList = barangData;
+  if (typeof barangData === 'string') {
+    try {
+      barangList = JSON.parse(barangData);
+    } catch(e) {
+      console.error('Gagal parse barang data', e);
+      barangList = [];
+    }
+  }
   
-  // Ambil data TTD dari elemen yang sudah ada
-  const ttdSection = bodyElement.querySelector('.ttd-section');
-  const ttdHtml = ttdSection ? ttdSection.outerHTML : `
-    <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:30px;">
+  const ttdHtml = `
+    <div class="ttd-section" style="display:flex; justify-content:space-between; margin-top:40px;">
       <div class="ttd-box" style="text-align:center; width:45%;">
         <div style="margin-top:50px; border-top:1px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
         <div style="margin-top:8px; font-size:11px;">Mengetahui,<br>Penanggungjawab</div>
@@ -646,6 +637,19 @@ function printRuangan(cardId, ruanganNama) {
       </div>
     </div>
   `;
+  
+  const barangRows = barangList.map(b => `
+    <tr>
+      <td>${b.id}</td>
+      <td>${b.nama}</td>
+      <td>${b.kategori || '-'}</td>
+      <td>${b.merk || '-'}</td>
+      <td>${b.jumlah || 1}</td>
+      <td>${b.satuan || 'Unit'}</td>
+      <td>${b.status || '-'}</td>
+      <td>${formatDate(b.tglMasuk)}</td>
+    </tr>
+  `).join('');
   
   const printWindow = window.open('', '_blank');
   printWindow.document.write(`
@@ -700,15 +704,6 @@ function printRuangan(cardId, ruanganNama) {
           padding: 10px;
           background: #f8fafc;
         }
-        .badge-status {
-          padding: 2px 8px;
-          border-radius: 12px;
-          font-size: 9pt;
-          color: white;
-        }
-        .badge-aktif { background: #10b981; }
-        .badge-perawatan { background: #f59e0b; }
-        .badge-rusak { background: #ef4444; }
         .ttd-section {
           display: flex !important;
           justify-content: space-between;
@@ -754,22 +749,11 @@ function printRuangan(cardId, ruanganNama) {
           </tr>
         </thead>
         <tbody>
-          ${ruang.barang.map(b => `
-            <tr>
-              <td>${b.id}</td>
-              <td>${b.nama}</td>
-              <td>${b.kategori || '-'}</td>
-              <td>${b.merk || '-'}</td>
-              <td>${b.jumlah || 1}</td>
-              <td>${b.satuan || 'Unit'}</td>
-              <td>${b.status}</td>
-              <td>${formatDate(b.tglMasuk)}</td>
-            </tr>
-          `).join('')}
+          ${barangRows}
         </tbody>
        </table>
       <div class="total-footer">
-        Total Barang: ${ruang.barang.length}
+        Total Barang: ${barangList.length}
       </div>
       ${ttdHtml}
     </body>
@@ -780,11 +764,8 @@ function printRuangan(cardId, ruanganNama) {
 }
 
 function printSemuaRuangan() {
-  const container = document.getElementById('ruanganContainer');
-  const originalHtml = container.innerHTML;
-  
-  // Kumpulkan data semua ruangan
   let semuaHtml = '';
+  
   currentGedung.ruanganList.forEach((ruang, idx) => {
     const barangRows = ruang.barang.map(b => `
       <tr>
@@ -794,7 +775,7 @@ function printSemuaRuangan() {
         <td>${b.merk || '-'}</td>
         <td>${b.jumlah || 1}</td>
         <td>${b.satuan || 'Unit'}</td>
-        <td>${b.status}</td>
+        <td>${b.status || '-'}</td>
         <td>${formatDate(b.tglMasuk)}</td>
       </tr>
     `).join('');
@@ -824,7 +805,7 @@ function printSemuaRuangan() {
             <tbody>
               ${barangRows || '<tr><td colspan="8" class="text-center">Belum ada barang</td></tr>'}
             </tbody>
-           </table>
+          </table>
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
             Total: ${ruang.barang.length} barang
           </div>
@@ -910,7 +891,6 @@ function printSemuaRuangan() {
   printWindow.print();
 }
 
-// Cek login
 function cekLogin() {
   const token = localStorage.getItem('token');
   if (!token) {
