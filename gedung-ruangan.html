@@ -143,6 +143,14 @@
       align-items:center;
       gap:.75rem;
       background:#fff;
+      cursor:pointer;
+      transition:background .15s, border-color .15s;
+      text-decoration:none;
+      color:inherit;
+    }
+    .room-card:hover{
+      background:#f0f4ff;
+      border-color:#a5b4fc;
     }
     .room-card + .room-card{
       margin-top:4px;
@@ -487,13 +495,15 @@ function renderGedung(list){
         else if (rStatus === 'NONAKTIF') rClass = 'room-status-badge room-status-nonaktif';
 
         return `
-          <div class="room-card">
+          <a class="room-card"
+             href="detail-gedung.html?kode=${encodeURIComponent(g.kode)}&ruangan=${encodeURIComponent(r.nama)}"
+             title="Lihat isi ruangan ${r.nama}">
             <div class="room-main">
               <div class="room-name">${r.nama}</div>
               <div class="room-sub">${kap} · ${jml}</div>
             </div>
-            <span class="${rClass}">${rStatus}</span>
-          </div>
+            <span class="${rClass}">${rStatus} &rsaquo;</span>
+          </a>
         `;
       }).join('');
     } else {
@@ -581,8 +591,10 @@ async function loadData(){
 
     // hitung ulang jumlah barang per gedung & per ruangan
     dataGedung = (gedung || []).map(g=>{
-      // semua ruangan di gedung ini
-      const roomsRaw = ruanganList.filter(r => r.kodeGedung === g.kode);
+      // semua ruangan di gedung ini — coba beberapa kemungkinan nama field
+      const roomsRaw = ruanganList.filter(r =>
+        (r.kodeGedung || r.gedung || r.kode_gedung || r.gedungKode || '') === g.kode
+      );
 
       // tambahkan jmlBarang ke setiap ruangan berdasarkan data barang
       const rooms = roomsRaw.map(r => {
