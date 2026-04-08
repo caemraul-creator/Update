@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detail Lokasi - Inventaris</title>
+  <title>Detail Gedung - Inventaris</title>
 
   <!-- CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="layout.css">
 
@@ -17,14 +16,13 @@
       font-family: 'Inter', sans-serif;
     }
 
-    /* Header lokasi yang simpel */
-    .lokasi-header {
-      background: white;
-      border-radius: 20px;
-      padding: 1.25rem 1.5rem;
+    /* Header Gedung */
+    .hero-gedung {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      padding: 1.5rem 2rem;
       margin-bottom: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #eef2ff;
+      color: white;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -32,129 +30,119 @@
       gap: 1rem;
     }
 
-    .lokasi-info h3 {
+    .hero-gedung h2 {
       margin: 0 0 0.25rem 0;
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       font-weight: 600;
     }
 
-    .lokasi-info p {
+    .hero-gedung p {
       margin: 0;
-      color: #6b7280;
+      opacity: 0.85;
       font-size: 0.85rem;
     }
 
-    .badge-lokasi {
-      background: #eef2ff;
-      color: #4f46e5;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-
-    /* Tombol download */
-    .btn-download {
-      background: #10b981;
-      color: white;
+    .btn-back {
+      background: rgba(255,255,255,0.2);
       border: none;
+      color: white;
       border-radius: 12px;
       padding: 0.5rem 1rem;
-      font-size: 0.85rem;
-      font-weight: 500;
+    }
+
+    .btn-back:hover {
+      background: rgba(255,255,255,0.3);
+      color: white;
+    }
+
+    /* Kartu Ruangan */
+    .ruangan-card {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #eef2ff;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
       transition: all 0.2s;
     }
 
-    .btn-download:hover {
-      background: #059669;
-      color: white;
-    }
-
-    .btn-outline-download {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 0.5rem 1rem;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #374151;
-    }
-
-    .btn-outline-download:hover {
-      background: #f9fafb;
-      border-color: #10b981;
-      color: #10b981;
-    }
-
-    /* Kartu statistik mini */
-    .stats-mini {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.5rem;
-    }
-
-    .stat-item {
-      background: white;
-      border-radius: 16px;
-      padding: 0.75rem 1.25rem;
-      border: 1px solid #eef2ff;
-      min-width: 100px;
-    }
-
-    .stat-number {
-      font-size: 1.5rem;
-      font-weight: 700;
-      line-height: 1.2;
-    }
-
-    .stat-label {
-      font-size: 0.7rem;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Tabel simpel */
-    .table-wrapper {
-      background: white;
-      border-radius: 20px;
-      border: 1px solid #eef2ff;
-      overflow: hidden;
-    }
-
-    .table-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid #f0f2f5;
+    .ruangan-header {
+      background: #f8fafc;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #eef2ff;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 0.75rem;
+      cursor: pointer;
     }
 
-    .table-header h5 {
+    .ruangan-header h4 {
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .btn-sm-custom {
-      border-radius: 10px;
-      padding: 0.35rem 0.85rem;
+    .ruangan-header h4 i {
+      color: #667eea;
+    }
+
+    .ruangan-stats {
+      display: flex;
+      gap: 1rem;
       font-size: 0.75rem;
-      font-weight: 500;
     }
 
-    .table {
-      margin: 0;
-      font-size: 0.85rem;
+    .ruangan-stats span {
+      background: #eef2ff;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      color: #4f46e5;
     }
 
-    .table th {
-      background: #f8fafc;
+    .btn-print-ruangan {
+      background: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.7rem;
+      transition: all 0.2s;
+    }
+
+    .btn-print-ruangan:hover {
+      background: #10b981;
+      border-color: #10b981;
+      color: white;
+    }
+
+    /* Tabel dalam ruangan */
+    .ruangan-body {
+      padding: 0;
+      display: none;
+    }
+
+    .ruangan-body.show {
+      display: block;
+    }
+
+    .table-barang {
+      width: 100%;
+      font-size: 0.8rem;
+    }
+
+    .table-barang th {
+      background: #ffffff;
+      padding: 0.75rem 1rem;
       font-weight: 600;
       border-bottom: 1px solid #eef2ff;
+    }
+
+    .table-barang td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
     }
 
     .badge-status {
@@ -164,22 +152,77 @@
       font-weight: 500;
     }
 
-    /* Loading & empty */
+    .badge-aktif { background: #10b981; color: white; }
+    .badge-perawatan { background: #f59e0b; color: white; }
+    .badge-rusak { background: #ef4444; color: white; }
+
+    /* Tombol umum */
+    .btn-print-all {
+      background: #1e293b;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.85rem;
+    }
+
+    .btn-print-all:hover {
+      background: #0f172a;
+      color: white;
+    }
+
+    /* Mode Cetak */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar, .btn-back, .btn-print-all, .btn-print-ruangan, .ruangan-header .bi-chevron-down, 
+      #userInfo, .btn-outline-danger, .btnToggleSidebar {
+        display: none !important;
+      }
+      .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+      }
+      .hero-gedung {
+        background: #4f46e5;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .ruangan-body {
+        display: block !important;
+      }
+      .ruangan-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #ddd;
+        margin-bottom: 1rem;
+      }
+      .ruangan-header {
+        background: #f0f0f0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .table-barang {
+        font-size: 9pt;
+      }
+    }
+
+    /* Loading & Empty */
     .loading-state, .empty-state {
       padding: 3rem;
       text-align: center;
       color: #9ca3af;
     }
 
-    @media (max-width: 768px) {
-      .lokasi-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .stat-item {
-        flex: 1;
-        text-align: center;
-      }
+    .total-footer {
+      background: #f8fafc;
+      padding: 0.75rem 1.5rem;
+      text-align: right;
+      font-weight: 600;
+      border-top: 1px solid #eef2ff;
     }
   </style>
 </head>
@@ -206,9 +249,6 @@
         <button type="button" id="btnToggleSidebar" class="btn btn-outline-secondary btn-sm d-md-none">
           <i class="bi bi-list"></i>
         </button>
-        <a href="gedung-ruangan.html" class="text-decoration-none text-secondary">
-          <i class="bi bi-arrow-left"></i> Kembali
-        </a>
       </div>
       <div class="d-flex align-items-center gap-2">
         <span id="userInfo" class="small text-muted"></span>
@@ -218,101 +258,41 @@
       </div>
     </div>
 
-    <!-- Header Lokasi Simpel -->
-    <div class="lokasi-header">
-      <div class="lokasi-info">
-        <h3 id="lokasiNama">Memuat...</h3>
-        <p id="lokasiDetail"></p>
+    <!-- Hero Gedung -->
+    <div class="hero-gedung">
+      <div>
+        <a href="gedung-ruangan.html" class="btn-back btn-sm">
+          <i class="bi bi-arrow-left"></i> Kembali
+        </a>
+        <h2 id="gedungNama" class="mt-2">Memuat...</h2>
+        <p id="gedungInfo"></p>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn-outline-download" id="btnDownloadCSV" onclick="downloadCSV()">
-          <i class="bi bi-filetype-csv"></i> CSV
-        </button>
-        <button class="btn-download" id="btnDownloadExcel" onclick="downloadExcel()">
-          <i class="bi bi-file-earmark-spreadsheet"></i> Excel
-        </button>
-      </div>
+      <button class="btn-print-all" onclick="printSemuaRuangan()">
+        <i class="bi bi-printer"></i> Cetak Semua Ruangan
+      </button>
     </div>
 
-    <!-- Statistik Mini -->
-    <div class="stats-mini" id="statsContainer">
-      <div class="stat-item">
-        <div class="stat-number" id="statTotal">-</div>
-        <div class="stat-label">Total Barang</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" id="statAktif">-</div>
-        <div class="stat-label">Aktif</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" id="statPerawatan">-</div>
-        <div class="stat-label">Perawatan</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" id="statRusak">-</div>
-        <div class="stat-label">Rusak</div>
-      </div>
-    </div>
-
-    <!-- Tabel Barang -->
-    <div class="table-wrapper">
-      <div class="table-header">
-        <h5><i class="bi bi-box me-2"></i>Daftar Barang</h5>
-        <div class="d-flex gap-2">
-          <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cari barang..." style="width: 200px;">
-        </div>
-      </div>
-      <div style="overflow-x: auto;">
-        <table class="table table-hover" id="barangTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nama Barang</th>
-              <th>Kategori</th>
-              <th>Merk</th>
-              <th>Jumlah</th>
-              <th>Satuan</th>
-              <th>Status</th>
-              <th>Tgl Masuk</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <tr><td colspan="8" class="loading-state"><i class="bi bi-hourglass-split me-2"></i>Memuat data...</td></tr>
-          </tbody>
-        </table>
+    <!-- Kontainer Ruangan -->
+    <div id="ruanganContainer">
+      <div class="loading-state">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">Memuat data ruangan...</p>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Modal Detail -->
-<div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h6 class="modal-title">Detail Barang</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Isi dinamis -->
-      </div>
-    </div>
-  </div>
-</div>
-
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="layout.js"></script>
 
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxxDmu6TqknJafqXa-fqhi4njiOmJ6pG3Dc-2fiOJ6V7Wfl-1SpbZP5-v-n4sHYUwAz/exec';
 
-let currentData = {
-  kodeGedung: '',
-  namaGedung: '',
-  ruangan: '',
-  barangList: []
+let currentGedung = {
+  kode: '',
+  nama: '',
+  ruanganList: []
 };
 
 function api(action, params = {}) {
@@ -337,257 +317,385 @@ function formatDate(iso) {
   return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
 }
 
-function getBadgeStatus(status) {
-  const map = {
-    'Aktif': 'bg-success',
-    'Perawatan': 'bg-warning text-dark',
-    'Rusak': 'bg-danger',
-    'Tersedia': 'bg-info text-dark'
-  };
-  const cls = map[status] || 'bg-secondary';
-  return `<span class="badge-status ${cls}">${status}</span>`;
+function getBadge(status) {
+  if (status === 'Aktif') return '<span class="badge-status badge-aktif">Aktif</span>';
+  if (status === 'Perawatan') return '<span class="badge-status badge-perawatan">Perawatan</span>';
+  if (status === 'Rusak') return '<span class="badge-status badge-rusak">Rusak</span>';
+  return `<span class="badge-status" style="background:#94a3b8;color:white">${status}</span>`;
 }
 
 async function loadData() {
   const urlParams = new URLSearchParams(window.location.search);
   const kodeGedung = urlParams.get('kode') || '';
-  const ruangan = urlParams.get('ruangan') || '';
 
   if (!kodeGedung) {
-    document.getElementById('lokasiNama').innerHTML = '<span class="text-danger">Error: Parameter tidak valid</span>';
+    document.getElementById('gedungNama').innerHTML = '<span class="text-danger">Error: Parameter tidak valid</span>';
+    document.getElementById('ruanganContainer').innerHTML = '<div class="empty-state">Kode gedung tidak ditemukan</div>';
     return;
   }
 
   try {
-    // Ambil data gedung dan barang
-    const [gedungList, barangList] = await Promise.all([
+    // Ambil data gedung, barang, dan ruangan
+    const [gedungList, barangList, ruanganList] = await Promise.all([
       api('getGedung'),
-      api('getBarang')
+      api('getBarang'),
+      api('getRuangan')
     ]);
 
     const gedung = gedungList.find(g => g.kode === kodeGedung);
-    const namaGedung = gedung ? gedung.nama : kodeGedung;
-
-    // Filter barang
-    let filtered = barangList.filter(b => (b.gedung || '') === kodeGedung);
-    
-    let judul = namaGedung;
-    let subtitle = `${filtered.length} barang`;
-
-    if (ruangan) {
-      filtered = filtered.filter(b => (b.ruangan || '') === ruangan);
-      judul = `${namaGedung} · ${ruangan}`;
-      subtitle = `${filtered.length} barang di ruangan ini`;
+    if (!gedung) {
+      document.getElementById('gedungNama').innerHTML = '<span class="text-danger">Gedung tidak ditemukan</span>';
+      return;
     }
 
-    currentData = {
-      kodeGedung,
-      namaGedung,
-      ruangan,
-      barangList: filtered
-    };
+    currentGedung.kode = gedung.kode;
+    currentGedung.nama = gedung.nama;
 
-    // Update UI
-    document.getElementById('lokasiNama').textContent = judul;
-    document.getElementById('lokasiDetail').innerHTML = `<span class="badge-lokasi">${subtitle}</span>`;
+    // Filter barang berdasarkan gedung
+    const barangDiGedung = barangList.filter(b => (b.gedung || '') === kodeGedung);
 
-    // Update statistik
-    const total = filtered.length;
-    const aktif = filtered.filter(b => b.status === 'Aktif').length;
-    const perawatan = filtered.filter(b => b.status === 'Perawatan').length;
-    const rusak = filtered.filter(b => b.status === 'Rusak').length;
+    // Dapatkan daftar ruangan unik dari barang di gedung ini
+    const ruanganSet = new Set();
+    barangDiGedung.forEach(b => {
+      if (b.ruangan && b.ruangan.trim()) {
+        ruanganSet.add(b.ruangan);
+      }
+    });
+    
+    // Juga ambil ruangan dari data master ruangan
+    const ruanganDariMaster = (ruanganList || [])
+      .filter(r => (r.kodeGedung || r.gedungKode || r.kode_gedung || '') === kodeGedung)
+      .map(r => r.nama || r.nama_ruangan || '')
+      .filter(n => n.trim());
+    
+    ruanganDariMaster.forEach(r => ruanganSet.add(r));
 
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statAktif').textContent = aktif;
-    document.getElementById('statPerawatan').textContent = perawatan;
-    document.getElementById('statRusak').textContent = rusak;
+    let daftarRuangan = Array.from(ruanganSet).sort();
+    
+    // Jika tidak ada ruangan, buat default "Lainnya"
+    if (daftarRuangan.length === 0 && barangDiGedung.length > 0) {
+      daftarRuangan = ['Lainnya'];
+    }
 
-    // Render tabel
-    renderTable(filtered);
+    // Kelompokkan barang per ruangan
+    const ruanganData = daftarRuangan.map(ruang => {
+      const barang = barangDiGedung.filter(b => (b.ruangan || 'Lainnya') === ruang);
+      const total = barang.length;
+      const aktif = barang.filter(b => b.status === 'Aktif').length;
+      const perawatan = barang.filter(b => b.status === 'Perawatan').length;
+      const rusak = barang.filter(b => b.status === 'Rusak').length;
+      
+      return {
+        nama: ruang,
+        barang: barang,
+        stats: { total, aktif, perawatan, rusak }
+      };
+    });
+
+    // Tambahkan ruangan yang tidak punya barang? skip saja
+
+    currentGedung.ruanganList = ruanganData;
+
+    // Update hero
+    const totalBarang = barangDiGedung.length;
+    document.getElementById('gedungNama').textContent = gedung.nama;
+    document.getElementById('gedungInfo').innerHTML = `
+      <i class="bi bi-building"></i> ${gedung.kode} | 
+      <i class="bi bi-box"></i> ${totalBarang} barang | 
+      <i class="bi bi-door-open"></i> ${ruanganData.length} ruangan
+    `;
+
+    // Render kartu ruangan
+    renderRuanganCards(ruanganData);
 
   } catch (err) {
     console.error(err);
-    document.getElementById('tableBody').innerHTML = `<tr><td colspan="8" class="empty-state text-danger">Gagal memuat: ${err.message}</td></tr>`;
+    document.getElementById('ruanganContainer').innerHTML = `
+      <div class="empty-state text-danger">
+        <i class="bi bi-exclamation-triangle fs-3"></i>
+        <p class="mt-2">Gagal memuat data: ${err.message}</p>
+      </div>
+    `;
   }
 }
 
-function renderTable(data) {
-  const tbody = document.getElementById('tableBody');
+function renderRuanganCards(ruanganData) {
+  const container = document.getElementById('ruanganContainer');
   
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="bi bi-inbox me-2"></i>Tidak ada barang di lokasi ini</td></tr>';
+  if (ruanganData.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="bi bi-inbox fs-2"></i>
+        <p class="mt-2">Belum ada barang di gedung ini</p>
+      </div>
+    `;
     return;
   }
 
-  tbody.innerHTML = data.map(item => `
-    <tr style="cursor: pointer;" onclick="showDetail('${item.id}', '${item.gedung || ''}', '${item.ruangan || ''}')">
-      <td><code>${item.id}</code></td>
-      <td><strong>${item.nama}</strong></td>
-      <td>${item.kategori || '-'}</td>
-      <td>${item.merk || '-'}</td>
-      <td>${item.jumlah || 1}</td>
-      <td>${item.satuan || 'Unit'}</td>
-      <td>${getBadgeStatus(item.status)}</td>
-      <td>${formatDate(item.tglMasuk)}</td>
-    </tr>
-  `).join('');
-}
-
-function showDetail(id, gedung, ruangan) {
-  api('getBarangById', { id, gedung: gedung || '', ruangan: ruangan || '' })
-    .then(b => {
-      const modalBody = document.getElementById('modalBody');
-      modalBody.innerHTML = `
-        <table class="table table-sm table-borderless">
-          <tr><th width="35%">ID</th><td><code>${b.id}</code></td></tr>
-          <tr><th>Nama Barang</th><td><strong>${b.nama}</strong></td></tr>
-          <tr><th>Kategori</th><td>${b.kategori || '-'}</td></tr>
-          <tr><th>Merk/Model</th><td>${b.merk || '-'}</td></tr>
-          <tr><th>Jumlah</th><td>${b.jumlah || 1} ${b.satuan || 'Unit'}</td></tr>
-          <tr><th>Gedung</th><td>${b.gedungNama || b.gedung || '-'}</td></tr>
-          <tr><th>Ruangan</th><td>${b.ruangan || '-'}</td></tr>
-          <tr><th>Tanggal Masuk</th><td>${formatDate(b.tglMasuk)}</td></tr>
-          <tr><th>Status</th><td>${getBadgeStatus(b.status)}</td></tr>
-          <tr><th>Deskripsi</th><td>${b.deskripsi || '-'}</td></tr>
-        </table>
-        ${b.foto ? `<div class="text-center mt-2"><img src="${b.foto}" style="max-width:100%; max-height:200px; border-radius:12px;" onclick="window.open(this.src)"></div>` : ''}
-      `;
-      new bootstrap.Modal(document.getElementById('detailModal')).show();
-    })
-    .catch(err => alert('Gagal ambil detail: ' + err.message));
-}
-
-// Download CSV
-function downloadCSV() {
-  if (!currentData.barangList.length) {
-    alert('Tidak ada data untuk di download');
-    return;
-  }
-
-  const headers = ['ID', 'Nama Barang', 'Kategori', 'Merk/Model', 'Jumlah', 'Satuan', 'Status', 'Tanggal Masuk', 'Gedung', 'Ruangan', 'Deskripsi'];
-  const rows = currentData.barangList.map(b => [
-    b.id,
-    b.nama,
-    b.kategori || '',
-    b.merk || '',
-    b.jumlah || 1,
-    b.satuan || 'Unit',
-    b.status || '',
-    b.tglMasuk || '',
-    currentData.namaGedung,
-    currentData.ruangan || b.ruangan || '',
-    b.deskripsi || ''
-  ]);
-
-  const csvContent = [headers, ...rows].map(row => 
-    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-  ).join('\n');
-
-  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
+  container.innerHTML = '';
   
-  let filename = `${currentData.namaGedung}`;
-  if (currentData.ruangan) filename += `_${currentData.ruangan}`;
-  filename += `.csv`;
-  
-  link.href = url;
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-// Download Excel (XLS format - simpel)
-function downloadExcel() {
-  if (!currentData.barangList.length) {
-    alert('Tidak ada data untuk di download');
-    return;
-  }
-
-  // Buat HTML table untuk export ke Excel
-  let html = `
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Data Barang</title>
-    </head>
-    <body>
-      <h3>Laporan Barang - ${currentData.namaGedung}${currentData.ruangan ? ' / ' + currentData.ruangan : ''}</h3>
-      <p>Tanggal Export: ${new Date().toLocaleString('id-ID')}</p>
-      <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-          <tr bgcolor="#f0f0f0">
-            <th>ID</th>
-            <th>Nama Barang</th>
-            <th>Kategori</th>
-            <th>Merk/Model</th>
-            <th>Jumlah</th>
-            <th>Satuan</th>
-            <th>Status</th>
-            <th>Tanggal Masuk</th>
-            <th>Gedung</th>
-            <th>Ruangan</th>
-            <th>Deskripsi</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
-
-  currentData.barangList.forEach(b => {
-    html += `
+  ruanganData.forEach((ruang, idx) => {
+    const cardId = `ruangan_${idx}`;
+    const showClass = idx === 0 ? 'show' : ''; // Ruangan pertama terbuka
+    
+    const barangRows = ruang.barang.map(b => `
       <tr>
         <td>${b.id}</td>
-        <td>${b.nama}</td>
-        <td>${b.kategori || ''}</td>
-        <td>${b.merk || ''}</td>
+        <td><strong>${b.nama}</strong></td>
+        <td>${b.kategori || '-'}</td>
+        <td>${b.merk || '-'}</td>
         <td>${b.jumlah || 1}</td>
         <td>${b.satuan || 'Unit'}</td>
-        <td>${b.status || ''}</td>
-        <td>${b.tglMasuk || ''}</td>
-        <td>${currentData.namaGedung}</td>
-        <td>${currentData.ruangan || b.ruangan || ''}</td>
-        <td>${b.deskripsi || ''}</td>
+        <td>${getBadge(b.status)}</td>
+        <td>${formatDate(b.tglMasuk)}</td>
       </tr>
+    `).join('');
+    
+    const cardHtml = `
+      <div class="ruangan-card" id="card_${cardId}">
+        <div class="ruangan-header" onclick="toggleRuangan('${cardId}')">
+          <h4>
+            <i class="bi bi-door-open"></i>
+            ${ruang.nama}
+            <i class="bi bi-chevron-down" id="icon_${cardId}" style="font-size:0.8rem;"></i>
+          </h4>
+          <div class="d-flex align-items-center gap-3">
+            <div class="ruangan-stats">
+              <span><i class="bi bi-box"></i> ${ruang.stats.total}</span>
+              <span class="text-success"><i class="bi bi-check-circle"></i> ${ruang.stats.aktif}</span>
+              <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${ruang.stats.perawatan}</span>
+              <span class="text-danger"><i class="bi bi-x-circle"></i> ${ruang.stats.rusak}</span>
+            </div>
+            <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${cardId}', '${ruang.nama}')">
+              <i class="bi bi-printer"></i> Cetak
+            </button>
+          </div>
+        </div>
+        <div class="ruangan-body ${showClass}" id="body_${cardId}">
+          <table class="table-barang">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Merk</th>
+                <th>Jumlah</th>
+                <th>Satuan</th>
+                <th>Status</th>
+                <th>Tgl Masuk</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${barangRows || '<tr><td colspan="8" class="text-center text-muted">Belum ada barang</td></tr>'}
+            </tbody>
+          </table>
+          <div class="total-footer">
+            Total: ${ruang.stats.total} barang
+          </div>
+        </div>
+      </div>
     `;
+    
+    container.insertAdjacentHTML('beforeend', cardHtml);
   });
-
-  html += `
-        </tbody>
-      </table>
-      <p><small>Generated by Sistem Inventaris</small></p>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  
-  let filename = `${currentData.namaGedung}`;
-  if (currentData.ruangan) filename += `_${currentData.ruangan}`;
-  filename += `.xls`;
-  
-  link.href = url;
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 }
 
-// Search filter
-document.getElementById('searchInput')?.addEventListener('keyup', function(e) {
-  const keyword = e.target.value.toLowerCase();
-  const filtered = currentData.barangList.filter(item => 
-    item.id.toLowerCase().includes(keyword) ||
-    item.nama.toLowerCase().includes(keyword) ||
-    (item.kategori || '').toLowerCase().includes(keyword) ||
-    (item.merk || '').toLowerCase().includes(keyword)
-  );
-  renderTable(filtered);
-});
+function toggleRuangan(cardId) {
+  const body = document.getElementById(`body_${cardId}`);
+  const icon = document.getElementById(`icon_${cardId}`);
+  
+  if (body.classList.contains('show')) {
+    body.classList.remove('show');
+    icon.style.transform = 'rotate(0deg)';
+  } else {
+    body.classList.add('show');
+    icon.style.transform = 'rotate(180deg)';
+  }
+}
+
+function printRuangan(cardId, ruanganNama) {
+  const bodyElement = document.getElementById(`body_${cardId}`);
+  const originalContent = bodyElement.innerHTML;
+  const headerContent = document.querySelector('.hero-gedung').cloneNode(true);
+  
+  // Sembunyikan tombol print di clone header
+  const printBtn = headerContent.querySelector('.btn-print-all');
+  if (printBtn) printBtn.style.display = 'none';
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Cetak - ${currentGedung.nama} - ${ruanganNama}</title>
+      <style>
+        body {
+          font-family: 'Inter', system-ui, sans-serif;
+          padding: 20px;
+          margin: 0;
+        }
+        .print-header {
+          margin-bottom: 20px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid #667eea;
+        }
+        .print-header h2 {
+          margin: 0 0 5px 0;
+          color: #1e293b;
+        }
+        .print-header p {
+          margin: 0;
+          color: #64748b;
+          font-size: 14px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 12px;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+        }
+        th {
+          background: #f1f5f9;
+          font-weight: 600;
+        }
+        .total-footer {
+          margin-top: 15px;
+          text-align: right;
+          font-weight: bold;
+          padding: 10px;
+          background: #f8fafc;
+        }
+        .badge-status {
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 11px;
+          color: white;
+        }
+        .badge-aktif { background: #10b981; }
+        .badge-perawatan { background: #f59e0b; }
+        .badge-rusak { background: #ef4444; }
+        @media print {
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <h2>${currentGedung.nama}</h2>
+        <p><strong>Ruangan:</strong> ${ruanganNama} | <strong>Tanggal Cetak:</strong> ${new Date().toLocaleString('id-ID')}</p>
+      </div>
+      ${bodyElement.outerHTML}
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
+
+function printSemuaRuangan() {
+  const container = document.getElementById('ruanganContainer');
+  const originalHtml = container.innerHTML;
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Cetak Semua - ${currentGedung.nama}</title>
+      <style>
+        body {
+          font-family: 'Inter', system-ui, sans-serif;
+          padding: 20px;
+          margin: 0;
+        }
+        .print-header {
+          margin-bottom: 20px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid #667eea;
+          text-align: center;
+        }
+        .print-header h2 {
+          margin: 0 0 5px 0;
+          color: #1e293b;
+        }
+        .print-header p {
+          margin: 0;
+          color: #64748b;
+        }
+        .ruangan-card {
+          margin-bottom: 30px;
+          break-inside: avoid;
+          page-break-inside: avoid;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .ruangan-header {
+          background: #f1f5f9;
+          padding: 10px 15px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .ruangan-header h4 {
+          margin: 0;
+          font-size: 16px;
+        }
+        .ruangan-body {
+          display: block !important;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 11px;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 6px 8px;
+          text-align: left;
+        }
+        th {
+          background: #f8fafc;
+          font-weight: 600;
+        }
+        .total-footer {
+          padding: 8px 15px;
+          text-align: right;
+          font-weight: bold;
+          background: #f8fafc;
+          border-top: 1px solid #e2e8f0;
+        }
+        .badge-status {
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 10px;
+          color: white;
+        }
+        .badge-aktif { background: #10b981; }
+        .badge-perawatan { background: #f59e0b; }
+        .badge-rusak { background: #ef4444; }
+        @media print {
+          body { padding: 0; }
+          .ruangan-card {
+            break-inside: avoid;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <h2>${currentGedung.nama}</h2>
+        <p>Laporan Inventaris Barang | Tanggal Cetak: ${new Date().toLocaleString('id-ID')}</p>
+      </div>
+      ${originalHtml}
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
 
 // Cek login
 function cekLogin() {
