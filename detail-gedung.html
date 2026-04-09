@@ -9,11 +9,38 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Asumsi layout.css ada, tapi kita timpa style penting di bawah -->
   <link rel="stylesheet" href="layout.css">
 
   <style>
     * {
       font-family: 'Inter', sans-serif;
+    }
+
+    /* Toast Notification Style */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1060;
+    }
+    .custom-toast {
+      background: white;
+      border-left: 4px solid #667eea;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+      min-width: 300px;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
 
     .hero-gedung {
@@ -49,6 +76,7 @@
       padding: 0.5rem 1rem;
       text-decoration: none;
       display: inline-block;
+      transition: background 0.2s;
     }
 
     .btn-back:hover {
@@ -63,6 +91,7 @@
       margin-bottom: 1.5rem;
       overflow: hidden;
       transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
 
     .ruangan-header {
@@ -92,24 +121,26 @@
 
     .ruangan-stats {
       display: flex;
-      gap: 1rem;
+      gap: 0.5rem;
       font-size: 0.75rem;
     }
 
     .ruangan-stats span {
       background: #eef2ff;
-      padding: 0.2rem 0.6rem;
+      padding: 0.25rem 0.75rem;
       border-radius: 20px;
       color: #4f46e5;
+      font-weight: 500;
     }
 
     .btn-print-ruangan {
-      background: none;
+      background: white;
       border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 0.3rem 0.8rem;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       transition: all 0.2s;
+      color: #475569;
     }
 
     .btn-print-ruangan:hover {
@@ -129,80 +160,46 @@
 
     .table-barang {
       width: 100%;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       border-collapse: collapse;
     }
 
     .table-barang th {
-      background: #ffffff;
-      padding: 0.75rem 0.5rem;
+      background: #f8fafc;
+      padding: 0.75rem 1rem;
       font-weight: 600;
-      border-bottom: 1px solid #eef2ff;
+      border-bottom: 2px solid #eef2ff;
       text-align: left;
+      color: #475569;
     }
 
     .table-barang td {
-      padding: 0.6rem 0.5rem;
+      padding: 0.75rem 1rem;
       border-bottom: 1px solid #f1f5f9;
       vertical-align: middle;
-    }
-
-    /* Footer tabel yang lebih rapi: flex row dengan posisi kiri dan kanan */
-    .table-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-      padding: 0.75rem 1.5rem;
-      border-top: 1px solid #eef2ff;
-      font-size: 0.8rem;
-      font-weight: 500;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .total-left {
-      color: #1e293b;
-      font-weight: 600;
-      background: #eef2ff;
-      padding: 0.25rem 1rem;
-      border-radius: 30px;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .total-left i {
-      font-size: 0.85rem;
-      color: #4f46e5;
-    }
-
-    .info-right {
-      color: #64748b;
-      font-size: 0.7rem;
-      display: flex;
-      gap: 1rem;
+      color: #334155;
     }
 
     .badge-status {
-      padding: 0.2rem 0.6rem;
+      padding: 0.25rem 0.75rem;
       border-radius: 20px;
       font-size: 0.7rem;
-      font-weight: 500;
+      font-weight: 600;
     }
 
-    .badge-aktif { background: #10b981; color: white; }
-    .badge-perawatan { background: #f59e0b; color: white; }
-    .badge-rusak { background: #ef4444; color: white; }
+    .badge-aktif { background: #dcfce7; color: #166534; }
+    .badge-perawatan { background: #fef3c7; color: #92400e; }
+    .badge-rusak { background: #fee2e2; color: #991b1b; }
 
     .btn-foto {
-      background: none;
+      background: white;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 0.2rem 0.5rem;
-      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: all 0.2s;
+      color: #64748b;
     }
 
     .btn-foto:hover {
@@ -212,17 +209,19 @@
     }
 
     .btn-print-all {
-      background: #1e293b;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(5px);
       color: white;
-      border: none;
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 12px;
       padding: 0.5rem 1.2rem;
       font-size: 0.85rem;
+      transition: all 0.2s;
     }
 
     .btn-print-all:hover {
-      background: #0f172a;
-      color: white;
+      background: white;
+      color: #667eea;
     }
 
     .modal-foto {
@@ -232,7 +231,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
       z-index: 9999;
       cursor: pointer;
       justify-content: center;
@@ -241,10 +241,56 @@
     .modal-foto img {
       max-width: 90%;
       max-height: 90%;
-      border-radius: 8px;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
     .modal-foto.show {
       display: flex;
+    }
+
+    /* --- PERUBAHAN STYLE TOTAL FOOTER (Rapi & Kiri Bawah) --- */
+    .total-footer {
+      background: #f8fafc;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #eef2ff;
+      
+      /* Flexbox Layout untuk rapi */
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* Pindah ke kiri */
+      gap: 1rem;
+      
+      /* Sudut membulat di bawah */
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+
+    .total-footer i.icon-box {
+      font-size: 1.25rem;
+      color: #667eea;
+      background: #eef2ff;
+      padding: 0.5rem;
+      border-radius: 8px;
+    }
+
+    .total-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .total-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .total-number {
+      font-size: 1.1rem;
+      color: #1e293b;
+      font-weight: 700;
     }
 
     /* STYLE UNTUK CETAK */
@@ -259,7 +305,7 @@
         margin: 0;
       }
       .sidebar, .btn-back, .btn-print-all, .btn-print-ruangan, .ruangan-header .bi-chevron-down, 
-      #userInfo, .btn-outline-danger, #btnToggleSidebar, .btn-foto, .hero-gedung .btn-back {
+      #userInfo, .btn-outline-danger, #btnToggleSidebar, .btn-foto, .hero-gedung .btn-back, .toast-container {
         display: none !important;
       }
       .main-content {
@@ -271,6 +317,8 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         margin-bottom: 20px;
+        color: white;
+        border-radius: 0; /* Flat di print */
       }
       .ruangan-body {
         display: block !important;
@@ -279,23 +327,39 @@
         break-inside: avoid;
         page-break-inside: avoid;
         border: 1px solid #ddd;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
+        border-radius: 8px;
       }
       .ruangan-header {
-        background: #f0f0f0;
+        background: #f1f5f9;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+        border-bottom: 1px solid #ccc;
+        color: #000;
       }
+      .ruangan-header h4 { color: #000; }
+      .ruangan-header i { color: #000; }
+      
       .table-barang {
         font-size: 10pt;
       }
-      .table-footer {
-        background: #f8fafc;
+      .table-barang th { background: #eee !important; color: #000; border-bottom: 1px solid #000; }
+      .table-barang td { border-bottom: 1px solid #eee; }
+      
+      /* Print Footer Styling (Menyesuaikan layout layar: Kiri) */
+      .total-footer {
+        background: #f8fafc !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+        border-top: 1px solid #ddd;
+        padding: 10px 15px;
+        display: flex !important;
+        justify-content: flex-start !important; /* Kiri */
+        align-items: center;
+        gap: 10px;
       }
+      .total-footer i { display: none; } /* Sembunyikan ikon di print agar bersih */
       
-      /* Timestamp di pojok kanan bawah setiap halaman */
       .print-footer {
         position: fixed;
         bottom: 0;
@@ -306,25 +370,20 @@
         color: #94a3b8;
         z-index: 1000;
       }
-      .print-footer span {
-        letter-spacing: 0.3px;
-      }
     }
     
-    /* Untuk tampilan layar (hidden) */
-    .print-footer {
+    /* Hidden elements for screen */
+    .print-footer, .toast-placeholder {
       display: none;
     }
 
     .loading-state, .empty-state {
-      padding: 3rem;
+      padding: 4rem 2rem;
       text-align: center;
       color: #9ca3af;
-    }
-
-    /* Hapus total-footer lama jika ada, kita pakai table-footer */
-    .total-footer {
-      display: none;
+      background: #f8fafc;
+      border-radius: 16px;
+      margin: 1rem 0;
     }
   </style>
 </head>
@@ -351,34 +410,38 @@
         </button>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <span id="userInfo" class="small text-muted"></span>
-        <button class="btn btn-sm btn-outline-danger" onclick="doLogout()">
+        <span id="userInfo" class="small text-muted fw-medium"></span>
+        <button class="btn btn-sm btn-outline-danger" onclick="doLogout()" title="Logout">
           <i class="bi bi-box-arrow-right"></i>
         </button>
       </div>
     </div>
 
-    <div class="hero-gedung">
+    <div class="hero-gedung shadow-sm">
       <div>
         <a href="gedung-ruangan.html" class="btn-back btn-sm">
           <i class="bi bi-arrow-left"></i> Kembali
         </a>
         <h2 id="gedungNama" class="mt-2">Memuat...</h2>
-        <p id="gedungInfo"></p>
+        <p id="gedungInfo" class="mb-0"></p>
       </div>
       <button class="btn-print-all" onclick="printSemuaRuangan()">
-        <i class="bi bi-printer"></i> Cetak Semua Ruangan
+        <i class="bi bi-printer-fill"></i> Cetak Semua Ruangan
       </button>
     </div>
 
     <div id="ruanganContainer">
       <div class="loading-state">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2">Memuat data ruangan...</p>
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 mb-0 text-muted">Memuat data ruangan...</p>
       </div>
     </div>
   </main>
 </div>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <div id="modalFoto" class="modal-foto" onclick="closeModalFoto()">
   <img id="modalFotoImg" src="" alt="Foto Barang">
@@ -401,6 +464,35 @@ let currentUser = {
   nama: '',
   role: ''
 };
+
+// Fungsi Toast Pengganti Alert
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'custom-toast';
+  
+  let iconClass = 'bi-info-circle-fill';
+  let color = '#667eea';
+  
+  if(type === 'error') { iconClass = 'bi-exclamation-circle-fill'; color = '#ef4444'; }
+  if(type === 'success') { iconClass = 'bi-check-circle-fill'; color = '#10b981'; }
+  
+  toast.style.borderLeftColor = color;
+  toast.innerHTML = `
+    <i class="bi ${iconClass}" style="color: ${color}; font-size: 1.2rem;"></i>
+    <span class="small fw-medium text-dark">${message}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 function getCurrentDateTime() {
   const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -446,8 +538,8 @@ function getBadge(status) {
 }
 
 function showFoto(fotoUrl) {
-  if (!fotoUrl || fotoUrl === '-') {
-    alert('Tidak ada foto untuk barang ini');
+  if (!fotoUrl || fotoUrl === '-' || fotoUrl === '') {
+    showToast('Tidak ada foto untuk barang ini', 'error');
     return;
   }
   const modal = document.getElementById('modalFoto');
@@ -459,7 +551,9 @@ function showFoto(fotoUrl) {
 function closeModalFoto() {
   const modal = document.getElementById('modalFoto');
   modal.classList.remove('show');
-  document.getElementById('modalFotoImg').src = '';
+  setTimeout(() => {
+    document.getElementById('modalFotoImg').src = '';
+  }, 300);
 }
 
 async function loadData() {
@@ -535,9 +629,9 @@ async function loadData() {
     const totalBarang = barangDiGedung.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
     document.getElementById('gedungNama').textContent = gedung.nama;
     document.getElementById('gedungInfo').innerHTML = `
-      <i class="bi bi-building"></i> ${gedung.kode} | 
-      <i class="bi bi-box"></i> ${totalBarang} barang | 
-      <i class="bi bi-door-open"></i> ${ruanganData.length} ruangan
+      <i class="bi bi-building me-1"></i> ${gedung.kode} | 
+      <i class="bi bi-box-seam me-1"></i> ${totalBarang} barang | 
+      <i class="bi bi-door-open me-1"></i> ${ruanganData.length} ruangan
     `;
 
     renderRuanganCards(ruanganData);
@@ -575,17 +669,17 @@ function renderRuanganCards(ruanganData) {
     const barangRows = ruang.barang.map((b, no) => {
       const fotoHtml = b.foto ? 
         `<button class="btn-foto" onclick="event.stopPropagation(); showFoto('${b.foto.replace(/'/g, "\\'")}')">
-           <i class="bi bi-image"></i> Lihat
+           <i class="bi bi-image-fill"></i> Lihat
          </button>` : '-';
       
       return `
         <tr>
           <td>${no + 1}</td>
-          <td>${b.id}</td>
-          <td><strong>${b.nama}</strong></td>
+          <td><span class="text-muted small">${b.id}</span></td>
+          <td><strong class="text-dark">${b.nama}</strong></td>
           <td>${b.kategori || '-'}</td>
           <td>${b.merk || '-'}</td>
-          <td>${b.jumlah || 1}</td>
+          <td class="text-center">${b.jumlah || 1}</td>
           <td>${b.satuan || 'Unit'}</td>
           <td>${getBadge(b.status)}</td>
           <td>${formatDate(b.tglMasuk)}</td>
@@ -594,26 +688,24 @@ function renderRuanganCards(ruanganData) {
       `;
     }).join('');
     
-    // satuan utama (jika ada)
-    const mainSatuan = ruang.barang[0]?.satuan || 'unit';
-    
+    // HTML BARU UNTUK TOTAL FOOTER (Rapi & Kiri Bawah)
     const cardHtml = `
       <div class="ruangan-card" id="card_${cardId}">
         <div class="ruangan-header" onclick="toggleRuangan('${cardId}')">
           <h4>
             <i class="bi bi-door-open"></i>
             ${ruang.nama}
-            <i class="bi bi-chevron-down" id="icon_${cardId}" style="font-size:0.8rem;"></i>
+            <i class="bi bi-chevron-down ms-2 text-muted" id="icon_${cardId}" style="font-size:0.8rem; transition: transform 0.2s;"></i>
           </h4>
           <div class="d-flex align-items-center gap-3">
             <div class="ruangan-stats">
-              <span><i class="bi bi-box"></i> ${ruang.stats.total}</span>
-              <span class="text-success"><i class="bi bi-check-circle"></i> ${ruang.stats.aktif}</span>
-              <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${ruang.stats.perawatan}</span>
-              <span class="text-danger"><i class="bi bi-x-circle"></i> ${ruang.stats.rusak}</span>
+              <span title="Total Barang"><i class="bi bi-box-seam"></i> ${ruang.stats.total}</span>
+              <span class="text-success" title="Aktif"><i class="bi bi-check-circle"></i> ${ruang.stats.aktif}</span>
+              <span class="text-warning" title="Perawatan"><i class="bi bi-exclamation-triangle"></i> ${ruang.stats.perawatan}</span>
+              <span class="text-danger" title="Rusak"><i class="bi bi-x-circle"></i> ${ruang.stats.rusak}</span>
             </div>
             <button class="btn-print-ruangan" onclick="event.stopPropagation(); printRuangan('${ruang.nama}', ${JSON.stringify(ruang.barang).replace(/"/g, '&quot;')})">
-              <i class="bi bi-printer"></i> Cetak
+              <i class="bi bi-printer-fill"></i> Cetak
             </button>
           </div>
         </div>
@@ -621,32 +713,29 @@ function renderRuanganCards(ruanganData) {
           <table class="table-barang">
             <thead>
               <tr>
-                <th>No</th>
-                <th>ID</th>
-                <th>Nama Barang</th>
-                <th>Kategori</th>
-                <th>Merk</th>
-                <th>Jumlah</th>
-                <th>Satuan</th>
-                <th>Status</th>
-                <th>Tgl Masuk</th>
-                <th>Foto</th>
+                <th style="width: 5%">No</th>
+                <th style="width: 10%">ID</th>
+                <th style="width: 20%">Nama Barang</th>
+                <th style="width: 15%">Kategori</th>
+                <th style="width: 10%">Merk</th>
+                <th style="width: 8%; text-align:center;">Jml</th>
+                <th style="width: 8%">Satuan</th>
+                <th style="width: 10%">Status</th>
+                <th style="width: 10%">Tgl Masuk</th>
+                <th style="width: 8%">Foto</th>
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="10" class="text-center text-muted">Belum ada barang</td</tr>'}
+              ${barangRows || '<tr><td colspan="10" class="text-center text-muted py-4">Belum ada barang</td></tr>'}
             </tbody>
           </table>
-          <!-- FOOTER TABEL: Total Barang di KIRI BAWAH (lebih rapi) -->
-          <div class="table-footer">
-            <div class="total-left">
-              <i class="bi bi-box-seam"></i> 
-              Total Barang: ${ruang.stats.total} ${mainSatuan}
-            </div>
-            <div class="info-right">
-              <span><i class="bi bi-check-circle-fill text-success"></i> Aktif: ${ruang.stats.aktif}</span>
-              <span><i class="bi bi-tools text-warning"></i> Perawatan: ${ruang.stats.perawatan}</span>
-              <span><i class="bi bi-exclamation-octagon-fill text-danger"></i> Rusak: ${ruang.stats.rusak}</span>
+          
+          <!-- TOTAL FOOTER YANG SUDAH DIPERBAIKI -->
+          <div class="total-footer">
+            <i class="bi bi-stack icon-box"></i>
+            <div class="total-info">
+              <span class="total-label">Total Barang</span>
+              <span class="total-number">${ruang.stats.total} ${ruang.barang[0]?.satuan || 'Unit'}</span>
             </div>
           </div>
         </div>
@@ -748,18 +837,19 @@ function printRuangan(ruanganNama, barangData) {
           background: #f1f5f9;
           font-weight: 600;
         }
-        .table-footer-print {
+        /* STYLE FOOTER PRINT (Kiri Bawah) */
+        .total-footer {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-start; /* KIRI */
           align-items: center;
+          font-size: 10pt;
+          padding: 10px 15px;
           background: #f8fafc;
-          padding: 0.6rem 1rem;
           border: 1px solid #ddd;
           border-top: none;
-          font-size: 9pt;
-          font-weight: 500;
+          margin-bottom: 20px;
         }
-        .total-left-print {
+        .total-footer .total-text {
           font-weight: bold;
           color: #1e293b;
         }
@@ -798,6 +888,9 @@ function printRuangan(ruanganNama, barangData) {
           font-size: 7.5pt;
           color: #94a3b8;
         }
+        .print-footer span {
+          letter-spacing: 0.3px;
+        }
         @media print {
           body { padding: 0; margin: 0; }
           .print-footer { position: fixed; bottom: 0; right: 0; }
@@ -810,23 +903,46 @@ function printRuangan(ruanganNama, barangData) {
       <div class="print-footer">
         <span>Dicetak: ${dateTime}</span>
       </div>
+
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
+      
       <table>
         <thead>
-          <tr><th>No</th><th>ID</th><th>Nama Barang</th><th>Kategori</th><th>Merk</th><th>Jumlah</th><th>Satuan</th><th>Status</th><th>Tgl Masuk</th></tr>
+          <tr>
+            <th>No</th>
+            <th>ID</th>
+            <th>Nama Barang</th>
+            <th>Kategori</th>
+            <th>Merk</th>
+            <th>Jumlah</th>
+            <th>Satuan</th>
+            <th>Status</th>
+            <th>Tgl Masuk</th>
+          </tr>
         </thead>
-        <tbody>${barangRows}</tbody>
-      8侠
-      <div class="table-footer-print">
-        <div class="total-left-print">Total Barang: ${totalQuantity} ${satuan}</div>
-        <div></div>
+        <tbody>
+          ${barangRows}
+        </tbody>
+      </table>
+      
+      <div class="total-footer">
+        <span class="total-text">Total Barang: ${totalQuantity} ${satuan}</span>
       </div>
+      
       <div class="ttd-container">
-        <div class="ttd-box"><div class="ttd-label">Mengetahui,<br>Penanggungjawab</div><div class="ttd-line"></div><div class="ttd-name">_________________</div></div>
-        <div class="ttd-box"><div class="ttd-label">Petugas</div><div class="ttd-line"></div><div class="ttd-name">${currentUser.nama || '_________________'}</div></div>
+        <div class="ttd-box">
+          <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
+          <div class="ttd-line"></div>
+          <div class="ttd-name">_________________</div>
+        </div>
+        <div class="ttd-box">
+          <div class="ttd-label">Petugas</div>
+          <div class="ttd-line"></div>
+          <div class="ttd-name">${currentUser.nama || '_________________'}</div>
+        </div>
       </div>
     </body>
     </html>
@@ -839,7 +955,7 @@ function printSemuaRuangan() {
   let semuaHtml = '';
   const dateTime = getCurrentDateTime();
   
-  currentGedung.ruanganList.forEach((ruang) => {
+  currentGedung.ruanganList.forEach((ruang, idx) => {
     const totalQuantity = ruang.barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
     const satuan = ruang.barang[0]?.satuan || 'unit';
     
@@ -858,19 +974,48 @@ function printSemuaRuangan() {
     `).join('');
     
     semuaHtml += `
-      <div style="margin-bottom: 40px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px;">
-        <div style="background: #f1f5f9; padding: 10px 15px; border-bottom: 1px solid #ddd;"><h4 style="margin:0;">${ruang.nama}</h4></div>
-        <table style="width:100%; border-collapse:collapse;">
-          <thead><tr><th>No</th><th>ID</th><th>Nama</th><th>Kategori</th><th>Merk</th><th>Jumlah</th><th>Satuan</th><th>Status</th><th>Tgl Masuk</th></tr></thead>
-          <tbody>${barangRows || '<tr><td colspan="9">Tidak ada data</td></tr>'}</tbody>
-        </table>
-        <div style="display: flex; justify-content: space-between; align-items: center; background:#f8fafc; padding: 8px 15px; border-top:1px solid #ddd;">
-          <div style="font-weight:bold;">Total Barang: ${totalQuantity} ${satuan}</div>
-          <div style="font-size:9pt; color:#475569;"><i class="bi bi-printer"></i> </div>
+      <div style="margin-bottom: 50px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+        <div style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
+          <h4 style="margin:0;">${ruang.nama}</h4>
+          <div style="margin-top:5px; font-size: 9pt; color: #555;">
+            <span>Total: ${totalQuantity} ${satuan} | Aktif: ${ruang.stats.aktif} | Perawatan: ${ruang.stats.perawatan} | Rusak: ${ruang.stats.rusak}</span>
+          </div>
         </div>
-        <div style="display:flex; justify-content:space-between; margin-top: 12px; padding:0 15px 20px 15px;">
-          <div style="text-align:center; width:45%;"><div style="font-size:10px; margin-bottom: 30px;">Mengetahui,<br>Penanggungjawab</div><div style="border-top:2px solid #000; width:180px; margin:auto;"></div><div style="margin-top:8px;">_________________</div></div>
-          <div style="text-align:center; width:45%;"><div style="font-size:10px; margin-bottom: 30px;">Petugas</div><div style="border-top:2px solid #000; width:180px; margin:auto;"></div><div style="margin-top:8px;">${currentUser.nama || '_________________'}</div></div>
+        <div style="display:block; padding: 0;">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>ID</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Merk</th>
+                <th>Jumlah</th>
+                <th>Satuan</th>
+                <th>Status</th>
+                <th>Tgl Masuk</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td></tr>'}
+            </tbody>
+          </table>
+          <!-- FOOTER PRINT (Kiri) -->
+          <div style="display:flex; justify-content:flex-start; align-items:center; padding: 10px 15px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:10pt;">
+            <span style="font-weight:bold; color:#1e293b;">Total Barang: ${totalQuantity} ${satuan}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top: 15px; padding:0 15px 20px 15px;">
+            <div style="text-align:center; width:45%;">
+              <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
+              <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
+              <div style="margin-top:10px; font-size:11px; font-weight:600;">_________________</div>
+            </div>
+            <div style="text-align:center; width:45%;">
+              <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Petugas</div>
+              <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
+              <div style="margin-top:10px; font-size:11px; font-weight:600;">${currentUser.nama || '_________________'}</div>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -880,20 +1025,79 @@ function printSemuaRuangan() {
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
-    <head><title>Laporan Semua Ruangan</title>
-    <style>
-      @page { size: A4 landscape; margin: 12mm 15mm 22mm 15mm; }
-      body { font-family: 'Inter', sans-serif; margin:0; padding:0; }
-      .print-header { text-align:center; margin-bottom:20px; border-bottom:2px solid #667eea; padding-bottom:10px; }
-      table { width:100%; border-collapse:collapse; font-size:10pt; }
-      th, td { border:1px solid #ddd; padding:6px; }
-      th { background:#f1f5f9; }
-      .print-footer { position:fixed; bottom:0; right:0; font-size:7.5pt; color:#94a3b8; padding-right:2mm; }
-    </style>
+    <head>
+      <title>Laporan Inventaris</title>
+      <style>
+        @page {
+          size: A4 landscape;
+          margin: 12mm 15mm 22mm 15mm;
+        }
+        body {
+          font-family: 'Inter', system-ui, sans-serif;
+          padding: 0;
+          margin: 0;
+          position: relative;
+          min-height: 100vh;
+        }
+        .print-header {
+          margin-bottom: 20px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid #667eea;
+          text-align: center;
+        }
+        .print-header h2 {
+          margin: 0 0 5px 0;
+          color: #1e293b;
+          font-size: 18pt;
+        }
+        .print-header p {
+          margin: 0;
+          color: #64748b;
+          font-size: 11pt;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 10pt;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 6px;
+          text-align: left;
+        }
+        th {
+          background: #f1f5f9;
+        }
+        .print-footer {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          text-align: right;
+          padding: 6px 2mm 4px 0;
+          font-size: 7.5pt;
+          color: #94a3b8;
+        }
+        .print-footer span {
+          letter-spacing: 0.3px;
+        }
+        @media print {
+          body { padding: 0; margin: 0; }
+          .print-footer { position: fixed; bottom: 0; right: 0; }
+          thead { display: table-header-group; }
+          tr { page-break-inside: avoid; }
+        }
+      </style>
     </head>
     <body>
-      <div class="print-footer"><span>Dicetak: ${dateTime}</span></div>
-      <div class="print-header"><h2>${currentGedung.nama}</h2><p>Laporan Inventaris Barang - Semua Ruangan</p></div>
+      <div class="print-footer">
+        <span>Dicetak: ${dateTime}</span>
+      </div>
+      
+      <div class="print-header">
+        <h2>${currentGedung.nama}</h2>
+        <p>Laporan Inventaris Barang</p>
+      </div>
+      
       ${semuaHtml}
     </body>
     </html>
