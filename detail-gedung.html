@@ -248,19 +248,15 @@
       display: flex;
     }
 
-    /* --- PERUBAHAN STYLE TOTAL FOOTER (Rapi & Kiri Bawah) --- */
+    /* --- STYLE TOTAL FOOTER (Rapi & Kiri Bawah) --- */
     .total-footer {
       background: #f8fafc;
       padding: 1rem 1.5rem;
       border-top: 1px solid #eef2ff;
-      
-      /* Flexbox Layout untuk rapi */
       display: flex;
       align-items: center;
-      justify-content: flex-start; /* Pindah ke kiri */
+      justify-content: flex-start;
       gap: 1rem;
-      
-      /* Sudut membulat di bawah */
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
     }
@@ -318,7 +314,7 @@
         print-color-adjust: exact;
         margin-bottom: 20px;
         color: white;
-        border-radius: 0; /* Flat di print */
+        border-radius: 0;
       }
       .ruangan-body {
         display: block !important;
@@ -346,7 +342,6 @@
       .table-barang th { background: #eee !important; color: #000; border-bottom: 1px solid #000; }
       .table-barang td { border-bottom: 1px solid #eee; }
       
-      /* Print Footer Styling (Menyesuaikan layout layar: Kiri) */
       .total-footer {
         background: #f8fafc !important;
         -webkit-print-color-adjust: exact;
@@ -354,11 +349,11 @@
         border-top: 1px solid #ddd;
         padding: 10px 15px;
         display: flex !important;
-        justify-content: flex-start !important; /* Kiri */
+        justify-content: flex-start !important;
         align-items: center;
         gap: 10px;
       }
-      .total-footer i { display: none; } /* Sembunyikan ikon di print agar bersih */
+      .total-footer i { display: none; }
       
       .print-footer {
         position: fixed;
@@ -372,7 +367,6 @@
       }
     }
     
-    /* Hidden elements for screen */
     .print-footer, .toast-placeholder {
       display: none;
     }
@@ -485,7 +479,6 @@ function showToast(message, type = 'info') {
   
   container.appendChild(toast);
   
-  // Auto remove after 3 seconds
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
@@ -688,7 +681,6 @@ function renderRuanganCards(ruanganData) {
       `;
     }).join('');
     
-    // HTML BARU UNTUK TOTAL FOOTER (Rapi & Kiri Bawah)
     const cardHtml = `
       <div class="ruangan-card" id="card_${cardId}">
         <div class="ruangan-header" onclick="toggleRuangan('${cardId}')">
@@ -730,7 +722,6 @@ function renderRuanganCards(ruanganData) {
             </tbody>
           </table>
           
-          <!-- TOTAL FOOTER YANG SUDAH DIPERBAIKI -->
           <div class="total-footer">
             <i class="bi bi-stack icon-box"></i>
             <div class="total-info">
@@ -774,6 +765,9 @@ function printRuangan(ruanganNama, barangData) {
   const satuan = barangList[0]?.satuan || 'unit';
   const dateTime = getCurrentDateTime();
   
+  // FORMAT JUDUL BARU: Laporan Inventaris - Gedung Troso - Kamar Mandi Staff I
+  const judulLaporan = `Laporan Inventaris - ${currentGedung.nama} - ${ruanganNama}`;
+  
   const barangRows = barangList.map((b, no) => `
     <tr>
       <td>${no + 1}</td>
@@ -793,7 +787,8 @@ function printRuangan(ruanganNama, barangData) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris</title>
+      <!-- Title ini yang menjadi nama file saat di save -->
+      <title>${judulLaporan}</title>
       <style>
         @page {
           size: A4 landscape;
@@ -815,7 +810,7 @@ function printRuangan(ruanganNama, barangData) {
         .print-header h2 {
           margin: 0 0 5px 0;
           color: #1e293b;
-          font-size: 18pt;
+          font-size: 16pt; /* Font size disesuaikan agar judul panjang muat */
         }
         .print-header p {
           margin: 0;
@@ -837,10 +832,9 @@ function printRuangan(ruanganNama, barangData) {
           background: #f1f5f9;
           font-weight: 600;
         }
-        /* STYLE FOOTER PRINT (Kiri Bawah) */
         .total-footer {
           display: flex;
-          justify-content: flex-start; /* KIRI */
+          justify-content: flex-start;
           align-items: center;
           font-size: 10pt;
           padding: 10px 15px;
@@ -905,8 +899,9 @@ function printRuangan(ruanganNama, barangData) {
       </div>
 
       <div class="print-header">
-        <h2>${currentGedung.nama}</h2>
-        <p><strong>Ruangan:</strong> ${ruanganNama}</p>
+        <!-- Judul Visual Mengikuti Format yang diminta -->
+        <h2>${judulLaporan}</h2>
+        <p>${dateTime}</p>
       </div>
       
       <table>
@@ -955,6 +950,9 @@ function printSemuaRuangan() {
   let semuaHtml = '';
   const dateTime = getCurrentDateTime();
   
+  // FORMAT JUDUL UNTUK SEMUA RUANGAN
+  const judulLaporan = `Laporan Inventaris - ${currentGedung.nama} - Semua Ruangan`;
+  
   currentGedung.ruanganList.forEach((ruang, idx) => {
     const totalQuantity = ruang.barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
     const satuan = ruang.barang[0]?.satuan || 'unit';
@@ -1000,7 +998,6 @@ function printSemuaRuangan() {
               ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td></tr>'}
             </tbody>
           </table>
-          <!-- FOOTER PRINT (Kiri) -->
           <div style="display:flex; justify-content:flex-start; align-items:center; padding: 10px 15px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:10pt;">
             <span style="font-weight:bold; color:#1e293b;">Total Barang: ${totalQuantity} ${satuan}</span>
           </div>
@@ -1026,7 +1023,8 @@ function printSemuaRuangan() {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris</title>
+      <!-- Title ini yang menjadi nama file saat di save -->
+      <title>${judulLaporan}</title>
       <style>
         @page {
           size: A4 landscape;
@@ -1048,7 +1046,7 @@ function printSemuaRuangan() {
         .print-header h2 {
           margin: 0 0 5px 0;
           color: #1e293b;
-          font-size: 18pt;
+          font-size: 16pt;
         }
         .print-header p {
           margin: 0;
@@ -1094,8 +1092,9 @@ function printSemuaRuangan() {
       </div>
       
       <div class="print-header">
-        <h2>${currentGedung.nama}</h2>
-        <p>Laporan Inventaris Barang</p>
+        <!-- Judul Visual Mengikuti Format yang diminta -->
+        <h2>${judulLaporan}</h2>
+        <p>${dateTime}</p>
       </div>
       
       ${semuaHtml}
