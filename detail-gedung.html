@@ -659,12 +659,19 @@ function printRuangan(ruanganNama, barangData) {
           color: #64748b;
           font-size: 11pt;
         }
-        .date-info {
-          font-size: 10pt;
-          color: #64748b;
-          margin-top: 5px;
-          margin-bottom: 20px;
-          text-align: center;
+        .print-header .date-inline {
+          font-size: 9pt;
+          color: #94a3b8;
+          margin-top: 4px;
+        }
+        /* Footer pojok kanan bawah — muncul di setiap halaman */
+        .page-footer {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          font-size: 8pt;
+          color: #94a3b8;
+          padding: 4px 0;
         }
         table {
           width: 100%;
@@ -722,14 +729,15 @@ function printRuangan(ruanganNama, barangData) {
       </style>
     </head>
     <body>
-      <!-- 1. HEADER (nama gedung, ruangan) -->
+      <!-- Footer pojok kanan bawah — muncul di setiap halaman -->
+      <div class="page-footer">Dicetak: ${dateTime}</div>
+
+      <!-- 1. HEADER (nama gedung, ruangan, tanggal) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
+        <div class="date-inline">Dicetak: ${dateTime}</div>
       </div>
-      
-      <!-- 2. TANGGAL CETAK -->
-      <div class="date-info">Dicetak: ${dateTime}</div>
       
       <!-- 3. TABEL BARANG -->
       <table>
@@ -875,12 +883,24 @@ function printSemuaRuangan() {
           color: #1e293b;
           font-size: 18pt;
         }
-        .date-info {
-          font-size: 10pt;
+        .print-header p {
+          margin: 0;
           color: #64748b;
-          margin-top: 5px;
-          margin-bottom: 20px;
-          text-align: center;
+          font-size: 11pt;
+        }
+        .print-header .date-inline {
+          font-size: 9pt;
+          color: #94a3b8;
+          margin-top: 4px;
+        }
+        /* Footer pojok kanan bawah — muncul di setiap halaman */
+        .page-footer {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          font-size: 8pt;
+          color: #94a3b8;
+          padding: 4px 0;
         }
         table {
           width: 100%;
@@ -901,16 +921,17 @@ function printSemuaRuangan() {
       </style>
     </head>
     <body>
-      <!-- 1. HEADER (nama gedung) -->
+      <!-- Footer pojok kanan bawah — muncul di setiap halaman -->
+      <div class="page-footer">Dicetak: ${dateTime}</div>
+
+      <!-- 1. HEADER (nama gedung, tanggal) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p>Laporan Inventaris Barang</p>
+        <div class="date-inline">Dicetak: ${dateTime}</div>
       </div>
       
-      <!-- 2. TANGGAL CETAK -->
-      <div class="date-info">Dicetak: ${dateTime}</div>
-      
-      <!-- 3. TABEL BARANG PER RUANGAN + TOTAL + TTD -->
+      <!-- 2. TABEL BARANG PER RUANGAN + TOTAL + TTD -->
       ${semuaHtml}
     </body>
     </html>
