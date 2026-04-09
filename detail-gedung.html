@@ -214,7 +214,7 @@
     @media print {
       @page {
         size: A4 landscape;
-        margin: 15mm;
+        margin: 12mm 15mm 22mm 15mm;
       }
       body {
         background: white;
@@ -259,11 +259,9 @@
         bottom: 0;
         right: 0;
         text-align: right;
-        padding: 8px 0 5px 2mm;
-        border-top: 0.5pt solid #cbd5e1;
+        padding: 6px 2mm 4px 0;
         font-size: 7.5pt;
         color: #94a3b8;
-        background: white;
         z-index: 1000;
       }
       .print-footer span {
@@ -659,7 +657,7 @@ function printRuangan(ruanganNama, barangData) {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 12mm 15mm 22mm 15mm;
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
@@ -740,24 +738,21 @@ function printRuangan(ruanganNama, barangData) {
           font-size: 12px;
           font-weight: 600;
         }
-        /* Timestamp di pojok kanan bawah setiap halaman */
+        /* Timestamp pojok kanan bawah */
         .print-footer {
           position: fixed;
           bottom: 0;
           right: 0;
           text-align: right;
-          padding: 8px 0 5px 0;
-          border-top: 0.5pt solid #cbd5e1;
+          padding: 6px 2mm 4px 0;
           font-size: 7.5pt;
           color: #94a3b8;
-          background: white;
-          padding-right: 2mm;
         }
         .print-footer span {
           letter-spacing: 0.3px;
         }
         @media print {
-          body { padding: 0; margin: 0; padding-bottom: 25px; }
+          body { padding: 0; margin: 0; }
           .print-footer {
             position: fixed;
             bottom: 0;
@@ -905,7 +900,7 @@ function printSemuaRuangan() {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 12mm 15mm 22mm 15mm;
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
@@ -943,24 +938,21 @@ function printSemuaRuangan() {
         th {
           background: #f1f5f9;
         }
-        /* Timestamp di pojok kanan bawah setiap halaman */
+        /* Timestamp pojok kanan bawah */
         .print-footer {
           position: fixed;
           bottom: 0;
           right: 0;
           text-align: right;
-          padding: 8px 0 5px 0;
-          border-top: 0.5pt solid #cbd5e1;
+          padding: 6px 2mm 4px 0;
           font-size: 7.5pt;
           color: #94a3b8;
-          background: white;
-          padding-right: 2mm;
         }
         .print-footer span {
           letter-spacing: 0.3px;
         }
         @media print {
-          body { padding: 0; margin: 0; padding-bottom: 25px; }
+          body { padding: 0; margin: 0; }
           .print-footer {
             position: fixed;
             bottom: 0;
