@@ -636,7 +636,7 @@ function printRuangan(ruanganNama, barangData) {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 15mm 15mm 25mm 15mm;
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
@@ -659,15 +659,9 @@ function printRuangan(ruanganNama, barangData) {
           color: #64748b;
           font-size: 11pt;
         }
-        .print-header .date-inline {
-          font-size: 9pt;
-          color: #94a3b8;
-          margin-top: 4px;
-        }
-        /* Footer pojok kanan bawah — muncul di setiap halaman */
         .page-footer {
           position: fixed;
-          bottom: 0;
+          bottom: 5mm;
           right: 0;
           font-size: 8pt;
           color: #94a3b8;
@@ -729,16 +723,13 @@ function printRuangan(ruanganNama, barangData) {
       </style>
     </head>
     <body>
-      <!-- Footer pojok kanan bawah — muncul di setiap halaman -->
       <div class="page-footer">Dicetak: ${dateTime}</div>
 
-      <!-- 1. HEADER (nama gedung, ruangan, tanggal) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
       
-      <!-- 3. TABEL BARANG -->
       <table>
         <thead>
           <tr>
@@ -758,12 +749,10 @@ function printRuangan(ruanganNama, barangData) {
         </tbody>
       </table>
       
-      <!-- 4. TOTAL BARANG -->
       <div class="total-footer">
         Total Barang: ${totalQuantity} ${satuan}
       </div>
       
-      <!-- 5. TTD -->
       <div class="ttd-container">
         <div class="ttd-box">
           <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
@@ -814,7 +803,6 @@ function printSemuaRuangan() {
           </div>
         </div>
         <div style="display:block; padding: 0;">
-          <!-- TABEL BARANG -->
           <table style="width:100%; border-collapse:collapse;">
             <thead>
               <tr>
@@ -833,11 +821,9 @@ function printSemuaRuangan() {
               ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td</tr>'}
             </tbody>
           </table>
-          <!-- TOTAL BARANG -->
           <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
             Total Barang: ${totalQuantity} ${satuan}
           </div>
-          <!-- TTD -->
           <div style="display:flex; justify-content:space-between; margin-top: 40px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
               <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
@@ -864,7 +850,7 @@ function printSemuaRuangan() {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 15mm 15mm 25mm 15mm;
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
@@ -887,15 +873,9 @@ function printSemuaRuangan() {
           color: #64748b;
           font-size: 11pt;
         }
-        .print-header .date-inline {
-          font-size: 9pt;
-          color: #94a3b8;
-          margin-top: 4px;
-        }
-        /* Footer pojok kanan bawah — muncul di setiap halaman */
         .page-footer {
           position: fixed;
-          bottom: 0;
+          bottom: 5mm;
           right: 0;
           font-size: 8pt;
           color: #94a3b8;
@@ -920,16 +900,13 @@ function printSemuaRuangan() {
       </style>
     </head>
     <body>
-      <!-- Footer pojok kanan bawah — muncul di setiap halaman -->
       <div class="page-footer">Dicetak: ${dateTime}</div>
 
-      <!-- 1. HEADER (nama gedung, tanggal) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p>Laporan Inventaris Barang</p>
       </div>
       
-      <!-- 2. TABEL BARANG PER RUANGAN + TOTAL + TTD -->
       ${semuaHtml}
     </body>
     </html>
