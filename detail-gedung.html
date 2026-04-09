@@ -147,6 +147,43 @@
       vertical-align: middle;
     }
 
+    /* Footer tabel yang lebih rapi: flex row dengan posisi kiri dan kanan */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid #eef2ff;
+      font-size: 0.8rem;
+      font-weight: 500;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .total-left {
+      color: #1e293b;
+      font-weight: 600;
+      background: #eef2ff;
+      padding: 0.25rem 1rem;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .total-left i {
+      font-size: 0.85rem;
+      color: #4f46e5;
+    }
+
+    .info-right {
+      color: #64748b;
+      font-size: 0.7rem;
+      display: flex;
+      gap: 1rem;
+    }
+
     .badge-status {
       padding: 0.2rem 0.6rem;
       border-radius: 20px;
@@ -252,6 +289,11 @@
       .table-barang {
         font-size: 10pt;
       }
+      .table-footer {
+        background: #f8fafc;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       
       /* Timestamp di pojok kanan bawah setiap halaman */
       .print-footer {
@@ -280,12 +322,9 @@
       color: #9ca3af;
     }
 
+    /* Hapus total-footer lama jika ada, kita pakai table-footer */
     .total-footer {
-      background: #f8fafc;
-      padding: 0.75rem 1.5rem;
-      text-align: right;
-      font-weight: 600;
-      border-top: 1px solid #eef2ff;
+      display: none;
     }
   </style>
 </head>
@@ -555,6 +594,9 @@ function renderRuanganCards(ruanganData) {
       `;
     }).join('');
     
+    // satuan utama (jika ada)
+    const mainSatuan = ruang.barang[0]?.satuan || 'unit';
+    
     const cardHtml = `
       <div class="ruangan-card" id="card_${cardId}">
         <div class="ruangan-header" onclick="toggleRuangan('${cardId}')">
@@ -595,8 +637,17 @@ function renderRuanganCards(ruanganData) {
               ${barangRows || '<tr><td colspan="10" class="text-center text-muted">Belum ada barang</td</tr>'}
             </tbody>
           </table>
-          <div class="total-footer">
-            Total Barang: ${ruang.stats.total} ${ruang.barang[0]?.satuan || 'unit'}
+          <!-- FOOTER TABEL: Total Barang di KIRI BAWAH (lebih rapi) -->
+          <div class="table-footer">
+            <div class="total-left">
+              <i class="bi bi-box-seam"></i> 
+              Total Barang: ${ruang.stats.total} ${mainSatuan}
+            </div>
+            <div class="info-right">
+              <span><i class="bi bi-check-circle-fill text-success"></i> Aktif: ${ruang.stats.aktif}</span>
+              <span><i class="bi bi-tools text-warning"></i> Perawatan: ${ruang.stats.perawatan}</span>
+              <span><i class="bi bi-exclamation-octagon-fill text-danger"></i> Rusak: ${ruang.stats.rusak}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -697,18 +748,18 @@ function printRuangan(ruanganNama, barangData) {
           background: #f1f5f9;
           font-weight: 600;
         }
-        .total-footer {
+        .table-footer-print {
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
           align-items: center;
-          font-size: 9pt;
-          padding: 8px 10px;
           background: #f8fafc;
+          padding: 0.6rem 1rem;
           border: 1px solid #ddd;
           border-top: none;
-          margin-bottom: 20px;
+          font-size: 9pt;
+          font-weight: 500;
         }
-        .total-footer .total-text {
+        .total-left-print {
           font-weight: bold;
           color: #1e293b;
         }
@@ -738,7 +789,6 @@ function printRuangan(ruanganNama, barangData) {
           font-size: 12px;
           font-weight: 600;
         }
-        /* Timestamp pojok kanan bawah */
         .print-footer {
           position: fixed;
           bottom: 0;
@@ -748,70 +798,35 @@ function printRuangan(ruanganNama, barangData) {
           font-size: 7.5pt;
           color: #94a3b8;
         }
-        .print-footer span {
-          letter-spacing: 0.3px;
-        }
         @media print {
           body { padding: 0; margin: 0; }
-          .print-footer {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-          }
+          .print-footer { position: fixed; bottom: 0; right: 0; }
           thead { display: table-header-group; }
           tr { page-break-inside: avoid; }
         }
       </style>
     </head>
     <body>
-      <!-- Fixed footer untuk timestamp di setiap halaman -->
       <div class="print-footer">
         <span>Dicetak: ${dateTime}</span>
       </div>
-
-      <!-- HEADER -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
-      
-      <!-- TABEL BARANG -->
       <table>
         <thead>
-          <tr>
-            <th>No</th>
-            <th>ID</th>
-            <th>Nama Barang</th>
-            <th>Kategori</th>
-            <th>Merk</th>
-            <th>Jumlah</th>
-            <th>Satuan</th>
-            <th>Status</th>
-            <th>Tgl Masuk</th>
-          </tr>
+          <tr><th>No</th><th>ID</th><th>Nama Barang</th><th>Kategori</th><th>Merk</th><th>Jumlah</th><th>Satuan</th><th>Status</th><th>Tgl Masuk</th></tr>
         </thead>
-        <tbody>
-          ${barangRows}
-        </tbody>
-      </table>
-      
-      <!-- TOTAL BARANG (tanpa timestamp) -->
-      <div class="total-footer">
-        <span class="total-text">Total Barang: ${totalQuantity} ${satuan}</span>
+        <tbody>${barangRows}</tbody>
+      8侠
+      <div class="table-footer-print">
+        <div class="total-left-print">Total Barang: ${totalQuantity} ${satuan}</div>
+        <div></div>
       </div>
-      
-      <!-- TTD -->
       <div class="ttd-container">
-        <div class="ttd-box">
-          <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
-          <div class="ttd-line"></div>
-          <div class="ttd-name">_________________</div>
-        </div>
-        <div class="ttd-box">
-          <div class="ttd-label">Petugas</div>
-          <div class="ttd-line"></div>
-          <div class="ttd-name">${currentUser.nama || '_________________'}</div>
-        </div>
+        <div class="ttd-box"><div class="ttd-label">Mengetahui,<br>Penanggungjawab</div><div class="ttd-line"></div><div class="ttd-name">_________________</div></div>
+        <div class="ttd-box"><div class="ttd-label">Petugas</div><div class="ttd-line"></div><div class="ttd-name">${currentUser.nama || '_________________'}</div></div>
       </div>
     </body>
     </html>
@@ -824,7 +839,7 @@ function printSemuaRuangan() {
   let semuaHtml = '';
   const dateTime = getCurrentDateTime();
   
-  currentGedung.ruanganList.forEach((ruang, idx) => {
+  currentGedung.ruanganList.forEach((ruang) => {
     const totalQuantity = ruang.barang.reduce((sum, b) => sum + (parseInt(b.jumlah) || 1), 0);
     const satuan = ruang.barang[0]?.satuan || 'unit';
     
@@ -843,49 +858,19 @@ function printSemuaRuangan() {
     `).join('');
     
     semuaHtml += `
-      <div style="margin-bottom: 50px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-        <div style="background: #f1f5f9; padding: 12px 15px; border-bottom: 1px solid #ddd;">
-          <h4 style="margin:0;">${ruang.nama}</h4>
-          <div style="margin-top:5px;">
-            <span>Total: ${totalQuantity} ${satuan} | Aktif: ${ruang.stats.aktif} | Perawatan: ${ruang.stats.perawatan} | Rusak: ${ruang.stats.rusak}</span>
-          </div>
+      <div style="margin-bottom: 40px; break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px;">
+        <div style="background: #f1f5f9; padding: 10px 15px; border-bottom: 1px solid #ddd;"><h4 style="margin:0;">${ruang.nama}</h4></div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr><th>No</th><th>ID</th><th>Nama</th><th>Kategori</th><th>Merk</th><th>Jumlah</th><th>Satuan</th><th>Status</th><th>Tgl Masuk</th></tr></thead>
+          <tbody>${barangRows || '<tr><td colspan="9">Tidak ada data</td></tr>'}</tbody>
+        </table>
+        <div style="display: flex; justify-content: space-between; align-items: center; background:#f8fafc; padding: 8px 15px; border-top:1px solid #ddd;">
+          <div style="font-weight:bold;">Total Barang: ${totalQuantity} ${satuan}</div>
+          <div style="font-size:9pt; color:#475569;"><i class="bi bi-printer"></i> </div>
         </div>
-        <div style="display:block; padding: 0;">
-          <table style="width:100%; border-collapse:collapse;">
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>ID</th>
-                <th>Nama Barang</th>
-                <th>Kategori</th>
-                <th>Merk</th>
-                <th>Jumlah</th>
-                <th>Satuan</th>
-                <th>Status</th>
-                <th>Tgl Masuk</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td</tr>'}
-            </tbody>
-          </table>
-          <!-- Total Barang (tanpa timestamp) -->
-          <div style="display:flex; justify-content:flex-end; align-items:center; padding: 8px 10px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:9pt;">
-            <span style="font-weight:bold; color:#1e293b;">Total Barang: ${totalQuantity} ${satuan}</span>
-          </div>
-          <!-- TTD -->
-          <div style="display:flex; justify-content:space-between; margin-top: 15px; padding:0 15px 20px 15px;">
-            <div style="text-align:center; width:45%;">
-              <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
-              <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
-              <div style="margin-top:10px; font-size:11px; font-weight:600;">_________________</div>
-            </div>
-            <div style="text-align:center; width:45%;">
-              <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Petugas</div>
-              <div style="border-top:2px solid #000; width:200px; margin-left:auto; margin-right:auto;"></div>
-              <div style="margin-top:10px; font-size:11px; font-weight:600;">${currentUser.nama || '_________________'}</div>
-            </div>
-          </div>
+        <div style="display:flex; justify-content:space-between; margin-top: 12px; padding:0 15px 20px 15px;">
+          <div style="text-align:center; width:45%;"><div style="font-size:10px; margin-bottom: 30px;">Mengetahui,<br>Penanggungjawab</div><div style="border-top:2px solid #000; width:180px; margin:auto;"></div><div style="margin-top:8px;">_________________</div></div>
+          <div style="text-align:center; width:45%;"><div style="font-size:10px; margin-bottom: 30px;">Petugas</div><div style="border-top:2px solid #000; width:180px; margin:auto;"></div><div style="margin-top:8px;">${currentUser.nama || '_________________'}</div></div>
         </div>
       </div>
     `;
@@ -895,87 +880,20 @@ function printSemuaRuangan() {
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
-    <head>
-      <title>Laporan Inventaris</title>
-      <style>
-        @page {
-          size: A4 landscape;
-          margin: 12mm 15mm 22mm 15mm;
-        }
-        body {
-          font-family: 'Inter', system-ui, sans-serif;
-          padding: 0;
-          margin: 0;
-          position: relative;
-          min-height: 100vh;
-        }
-        .print-header {
-          margin-bottom: 20px;
-          padding-bottom: 15px;
-          border-bottom: 2px solid #667eea;
-          text-align: center;
-        }
-        .print-header h2 {
-          margin: 0 0 5px 0;
-          color: #1e293b;
-          font-size: 18pt;
-        }
-        .print-header p {
-          margin: 0;
-          color: #64748b;
-          font-size: 11pt;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 10pt;
-        }
-        th, td {
-          border: 1px solid #ddd;
-          padding: 6px;
-          text-align: left;
-        }
-        th {
-          background: #f1f5f9;
-        }
-        /* Timestamp pojok kanan bawah */
-        .print-footer {
-          position: fixed;
-          bottom: 0;
-          right: 0;
-          text-align: right;
-          padding: 6px 2mm 4px 0;
-          font-size: 7.5pt;
-          color: #94a3b8;
-        }
-        .print-footer span {
-          letter-spacing: 0.3px;
-        }
-        @media print {
-          body { padding: 0; margin: 0; }
-          .print-footer {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-          }
-          thead { display: table-header-group; }
-          tr { page-break-inside: avoid; }
-        }
-      </style>
+    <head><title>Laporan Semua Ruangan</title>
+    <style>
+      @page { size: A4 landscape; margin: 12mm 15mm 22mm 15mm; }
+      body { font-family: 'Inter', sans-serif; margin:0; padding:0; }
+      .print-header { text-align:center; margin-bottom:20px; border-bottom:2px solid #667eea; padding-bottom:10px; }
+      table { width:100%; border-collapse:collapse; font-size:10pt; }
+      th, td { border:1px solid #ddd; padding:6px; }
+      th { background:#f1f5f9; }
+      .print-footer { position:fixed; bottom:0; right:0; font-size:7.5pt; color:#94a3b8; padding-right:2mm; }
+    </style>
     </head>
     <body>
-      <!-- Fixed footer untuk timestamp di setiap halaman -->
-      <div class="print-footer">
-        <span>Dicetak: ${dateTime}</span>
-      </div>
-      
-      <!-- HEADER -->
-      <div class="print-header">
-        <h2>${currentGedung.nama}</h2>
-        <p>Laporan Inventaris Barang</p>
-      </div>
-      
-      <!-- SEMUA RUANGAN -->
+      <div class="print-footer"><span>Dicetak: ${dateTime}</span></div>
+      <div class="print-header"><h2>${currentGedung.nama}</h2><p>Laporan Inventaris Barang - Semua Ruangan</p></div>
       ${semuaHtml}
     </body>
     </html>
