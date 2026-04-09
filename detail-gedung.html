@@ -258,12 +258,17 @@
         position: fixed;
         bottom: 0;
         right: 0;
-        font-size: 8pt;
-        color: #6c757d;
-        text-align: right;
-        padding: 5px 10px;
-        background: transparent;
+        left: 0;
+        text-align: center;
+        padding: 8px 0 5px 0;
+        border-top: 0.5pt solid #cbd5e1;
+        font-size: 7.5pt;
+        color: #94a3b8;
+        background: white;
         z-index: 1000;
+      }
+      .print-footer span {
+        letter-spacing: 0.3px;
       }
     }
     
@@ -739,18 +744,26 @@ function printRuangan(ruanganNama, barangData) {
         /* Timestamp di pojok kanan bawah setiap halaman */
         .print-footer {
           position: fixed;
-          bottom: 10px;
-          right: 15mm;
-          font-size: 8pt;
-          color: #6c757d;
-          text-align: right;
+          bottom: 0;
+          right: 0;
+          left: 0;
+          text-align: center;
+          padding: 8px 0 5px 0;
+          border-top: 0.5pt solid #cbd5e1;
+          font-size: 7.5pt;
+          color: #94a3b8;
+          background: white;
+        }
+        .print-footer span {
+          letter-spacing: 0.3px;
         }
         @media print {
           body { padding: 0; margin: 0; }
           .print-footer {
             position: fixed;
-            bottom: 10px;
-            right: 15mm;
+            bottom: 0;
+            right: 0;
+            left: 0;
           }
         }
       </style>
@@ -758,9 +771,9 @@ function printRuangan(ruanganNama, barangData) {
     <body>
       <!-- Fixed footer untuk timestamp di setiap halaman -->
       <div class="print-footer">
-        Dicetak: ${dateTime}
+        <span>Dicetak: ${dateTime}</span>
       </div>
-      
+
       <!-- HEADER -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
@@ -933,18 +946,26 @@ function printSemuaRuangan() {
         /* Timestamp di pojok kanan bawah setiap halaman */
         .print-footer {
           position: fixed;
-          bottom: 10px;
-          right: 15mm;
-          font-size: 8pt;
-          color: #6c757d;
-          text-align: right;
+          bottom: 0;
+          right: 0;
+          left: 0;
+          text-align: center;
+          padding: 8px 0 5px 0;
+          border-top: 0.5pt solid #cbd5e1;
+          font-size: 7.5pt;
+          color: #94a3b8;
+          background: white;
+        }
+        .print-footer span {
+          letter-spacing: 0.3px;
         }
         @media print {
           body { padding: 0; margin: 0; }
           .print-footer {
             position: fixed;
-            bottom: 10px;
-            right: 15mm;
+            bottom: 0;
+            right: 0;
+            left: 0;
           }
         }
       </style>
@@ -952,7 +973,7 @@ function printSemuaRuangan() {
     <body>
       <!-- Fixed footer untuk timestamp di setiap halaman -->
       <div class="print-footer">
-        Dicetak: ${dateTime}
+        <span>Dicetak: ${dateTime}</span>
       </div>
       
       <!-- HEADER -->
