@@ -640,7 +640,7 @@ function printRuangan(ruanganNama, barangData) {
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
-          padding: 0;
+          padding: 0 0 20px 0;
           margin: 0;
         }
         .print-header {
@@ -659,11 +659,6 @@ function printRuangan(ruanganNama, barangData) {
           color: #64748b;
           font-size: 11pt;
         }
-        .print-header .date-inline {
-          font-size: 9pt;
-          color: #94a3b8;
-          margin-top: 4px;
-        }
         /* Footer pojok kanan bawah — muncul di setiap halaman */
         .page-footer {
           position: fixed;
@@ -671,7 +666,9 @@ function printRuangan(ruanganNama, barangData) {
           right: 0;
           font-size: 8pt;
           color: #94a3b8;
-          padding: 4px 0;
+          background: #ffffff;
+          padding: 4px 0 0 12px;
+          line-height: 1;
         }
         table {
           width: 100%;
@@ -868,7 +865,7 @@ function printSemuaRuangan() {
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
-          padding: 0;
+          padding: 0 0 20px 0;
           margin: 0;
         }
         .print-header {
@@ -887,11 +884,6 @@ function printSemuaRuangan() {
           color: #64748b;
           font-size: 11pt;
         }
-        .print-header .date-inline {
-          font-size: 9pt;
-          color: #94a3b8;
-          margin-top: 4px;
-        }
         /* Footer pojok kanan bawah — muncul di setiap halaman */
         .page-footer {
           position: fixed;
@@ -899,7 +891,9 @@ function printSemuaRuangan() {
           right: 0;
           font-size: 8pt;
           color: #94a3b8;
-          padding: 4px 0;
+          background: #ffffff;
+          padding: 4px 0 0 12px;
+          line-height: 1;
         }
         table {
           width: 100%;
