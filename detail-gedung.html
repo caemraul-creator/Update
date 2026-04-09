@@ -636,11 +636,17 @@ function printRuangan(ruanganNama, barangData) {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 15mm 15mm 20mm 15mm;
+          @bottom-right {
+            content: "Dicetak: ${dateTime}";
+            font-size: 8pt;
+            color: #94a3b8;
+            font-family: system-ui, sans-serif;
+          }
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
-          padding: 0 0 20px 0;
+          padding: 0;
           margin: 0;
         }
         .print-header {
@@ -658,17 +664,6 @@ function printRuangan(ruanganNama, barangData) {
           margin: 0;
           color: #64748b;
           font-size: 11pt;
-        }
-        /* Footer pojok kanan bawah — muncul di setiap halaman */
-        .page-footer {
-          position: fixed;
-          bottom: 0;
-          right: 0;
-          font-size: 8pt;
-          color: #94a3b8;
-          background: #ffffff;
-          padding: 4px 0 0 12px;
-          line-height: 1;
         }
         table {
           width: 100%;
@@ -726,9 +721,6 @@ function printRuangan(ruanganNama, barangData) {
       </style>
     </head>
     <body>
-      <!-- Footer pojok kanan bawah — muncul di setiap halaman -->
-      <div class="page-footer">Dicetak: ${dateTime}</div>
-
       <!-- 1. HEADER (nama gedung, ruangan, tanggal) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
@@ -861,11 +853,17 @@ function printSemuaRuangan() {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm;
+          margin: 15mm 15mm 20mm 15mm;
+          @bottom-right {
+            content: "Dicetak: ${dateTime}";
+            font-size: 8pt;
+            color: #94a3b8;
+            font-family: system-ui, sans-serif;
+          }
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
-          padding: 0 0 20px 0;
+          padding: 0;
           margin: 0;
         }
         .print-header {
@@ -914,9 +912,6 @@ function printSemuaRuangan() {
       </style>
     </head>
     <body>
-      <!-- Footer pojok kanan bawah — muncul di setiap halaman -->
-      <div class="page-footer">Dicetak: ${dateTime}</div>
-
       <!-- 1. HEADER (nama gedung, tanggal) -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
