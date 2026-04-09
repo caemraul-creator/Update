@@ -636,13 +636,7 @@ function printRuangan(ruanganNama, barangData) {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm 15mm 35mm 15mm;
-          @bottom-right {
-            content: "Dicetak: ${dateTime}";
-            font-size: 8pt;
-            color: #94a3b8;
-            font-family: system-ui, sans-serif;
-          }
+          margin: 15mm;
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
@@ -669,7 +663,7 @@ function printRuangan(ruanganNama, barangData) {
           width: 100%;
           border-collapse: collapse;
           font-size: 10pt;
-          margin-bottom: 15px;
+          margin-bottom: 0;
         }
         th, td {
           border: 1px solid #ddd;
@@ -681,13 +675,23 @@ function printRuangan(ruanganNama, barangData) {
           font-weight: 600;
         }
         .total-footer {
-          text-align: right;
-          font-weight: bold;
-          padding: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 9pt;
+          padding: 8px 10px;
           background: #f8fafc;
           border: 1px solid #ddd;
           border-top: none;
           margin-bottom: 20px;
+        }
+        .total-footer .date-print {
+          color: #94a3b8;
+          font-weight: 400;
+        }
+        .total-footer .total-text {
+          font-weight: bold;
+          color: #1e293b;
         }
         .ttd-container {
           display: flex;
@@ -721,13 +725,13 @@ function printRuangan(ruanganNama, barangData) {
       </style>
     </head>
     <body>
-      <!-- 1. HEADER (nama gedung, ruangan, tanggal) -->
+      <!-- 1. HEADER -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
       
-      <!-- 3. TABEL BARANG -->
+      <!-- 2. TABEL BARANG -->
       <table>
         <thead>
           <tr>
@@ -747,12 +751,13 @@ function printRuangan(ruanganNama, barangData) {
         </tbody>
       </table>
       
-      <!-- 4. TOTAL BARANG -->
+      <!-- 3. TOTAL + TANGGAL CETAK dalam satu baris -->
       <div class="total-footer">
-        Total Barang: ${totalQuantity} ${satuan}
+        <span class="date-print">Dicetak: ${dateTime}</span>
+        <span class="total-text">Total Barang: ${totalQuantity} ${satuan}</span>
       </div>
       
-      <!-- 5. TTD -->
+      <!-- 4. TTD -->
       <div class="ttd-container">
         <div class="ttd-box">
           <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
@@ -823,8 +828,9 @@ function printSemuaRuangan() {
             </tbody>
           </table>
           <!-- TOTAL BARANG -->
-          <div style="padding: 8px 15px; text-align: right; font-weight: bold; background: #f8fafc; border-top: 1px solid #ddd;">
-            Total Barang: ${totalQuantity} ${satuan}
+          <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 10px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:9pt; margin-bottom:20px;">
+            <span style="color:#94a3b8; font-weight:400;">Dicetak: ${dateTime}</span>
+            <span style="font-weight:bold; color:#1e293b;">Total Barang: ${totalQuantity} ${satuan}</span>
           </div>
           <!-- TTD -->
           <div style="display:flex; justify-content:space-between; margin-top: 40px; padding:0 15px 20px 15px;">
@@ -853,13 +859,7 @@ function printSemuaRuangan() {
       <style>
         @page {
           size: A4 landscape;
-          margin: 15mm 15mm 35mm 15mm;
-          @bottom-right {
-            content: "Dicetak: ${dateTime}";
-            font-size: 8pt;
-            color: #94a3b8;
-            font-family: system-ui, sans-serif;
-          }
+          margin: 15mm;
         }
         body {
           font-family: 'Inter', system-ui, sans-serif;
@@ -881,17 +881,6 @@ function printSemuaRuangan() {
           margin: 0;
           color: #64748b;
           font-size: 11pt;
-        }
-        /* Footer pojok kanan bawah — muncul di setiap halaman */
-        .page-footer {
-          position: fixed;
-          bottom: 0;
-          right: 0;
-          font-size: 8pt;
-          color: #94a3b8;
-          background: #ffffff;
-          padding: 4px 0 0 12px;
-          line-height: 1;
         }
         table {
           width: 100%;
