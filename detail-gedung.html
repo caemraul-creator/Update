@@ -210,7 +210,7 @@
       display: flex;
     }
 
-    /* STYLE UNTUK CETAK - TIMESTAMP DI POJOK KANAN BAWAH SETIAP HALAMAN */
+    /* STYLE UNTUK CETAK */
     @media print {
       @page {
         size: A4 landscape;
@@ -253,7 +253,7 @@
         font-size: 10pt;
       }
       
-      /* Container untuk timestamp di pojok kanan bawah setiap halaman */
+      /* Timestamp di pojok kanan bawah setiap halaman */
       .print-footer {
         position: fixed;
         bottom: 0;
@@ -262,30 +262,14 @@
         color: #6c757d;
         text-align: right;
         padding: 5px 10px;
-        width: auto;
         background: transparent;
         z-index: 1000;
-      }
-      
-      /* Pastikan footer tidak menimpa konten */
-      body {
-        margin-bottom: 20px;
       }
     }
     
     /* Untuk tampilan layar (hidden) */
     .print-footer {
       display: none;
-    }
-    
-    /* Untuk cetak per ruangan */
-    .print-only-timestamp {
-      text-align: right;
-      font-size: 8pt;
-      color: #6c757d;
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px solid #e5e7eb;
     }
 
     .loading-state, .empty-state {
@@ -565,7 +549,7 @@ function renderRuanganCards(ruanganData) {
           <td>${getBadge(b.status)}</td>
           <td>${formatDate(b.tglMasuk)}</td>
           <td>${fotoHtml}</td>
-         </tr>
+        </tr>
       `;
     }).join('');
     
@@ -606,7 +590,7 @@ function renderRuanganCards(ruanganData) {
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="10" class="text-center text-muted">Belum ada barang</td></tr>'}
+              ${barangRows || '<tr><td colspan="10" class="text-center text-muted">Belum ada barang</td</tr>'}
             </tbody>
           </table>
           <div class="total-footer">
@@ -677,6 +661,8 @@ function printRuangan(ruanganNama, barangData) {
           font-family: 'Inter', system-ui, sans-serif;
           padding: 0;
           margin: 0;
+          position: relative;
+          min-height: 100vh;
         }
         .print-header {
           margin-bottom: 20px;
@@ -711,7 +697,7 @@ function printRuangan(ruanganNama, barangData) {
         }
         .total-footer {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-end;
           align-items: center;
           font-size: 9pt;
           padding: 8px 10px;
@@ -719,10 +705,6 @@ function printRuangan(ruanganNama, barangData) {
           border: 1px solid #ddd;
           border-top: none;
           margin-bottom: 20px;
-        }
-        .total-footer .date-print {
-          color: #94a3b8;
-          font-weight: 400;
         }
         .total-footer .total-text {
           font-weight: bold;
@@ -779,13 +761,13 @@ function printRuangan(ruanganNama, barangData) {
         Dicetak: ${dateTime}
       </div>
       
-      <!-- 1. HEADER -->
+      <!-- HEADER -->
       <div class="print-header">
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
       
-      <!-- 2. TABEL BARANG -->
+      <!-- TABEL BARANG -->
       <table>
         <thead>
           <tr>
@@ -805,13 +787,12 @@ function printRuangan(ruanganNama, barangData) {
         </tbody>
       </table>
       
-      <!-- 3. TOTAL + TANGGAL CETAK dalam satu baris -->
+      <!-- TOTAL BARANG (tanpa timestamp) -->
       <div class="total-footer">
-        <span class="date-print">Dicetak: ${dateTime}</span>
         <span class="total-text">Total Barang: ${totalQuantity} ${satuan}</span>
       </div>
       
-      <!-- 4. TTD -->
+      <!-- TTD -->
       <div class="ttd-container">
         <div class="ttd-box">
           <div class="ttd-label">Mengetahui,<br>Penanggungjawab</div>
@@ -877,14 +858,14 @@ function printSemuaRuangan() {
               </tr>
             </thead>
             <tbody>
-              ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td></tr>'}
+              ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td</tr>'}
             </tbody>
           </table>
-          <!-- TTD per ruangan -->
-          <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 10px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:9pt;">
-            <span style="color:#94a3b8; font-weight:400;">&nbsp;</span>
+          <!-- Total Barang (tanpa timestamp) -->
+          <div style="display:flex; justify-content:flex-end; align-items:center; padding: 8px 10px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:9pt;">
             <span style="font-weight:bold; color:#1e293b;">Total Barang: ${totalQuantity} ${satuan}</span>
           </div>
+          <!-- TTD -->
           <div style="display:flex; justify-content:space-between; margin-top: 15px; padding:0 15px 20px 15px;">
             <div style="text-align:center; width:45%;">
               <div style="font-size:10px; margin-bottom: 40px; font-weight:500;">Mengetahui,<br>Penanggungjawab</div>
@@ -917,6 +898,8 @@ function printSemuaRuangan() {
           font-family: 'Inter', system-ui, sans-serif;
           padding: 0;
           margin: 0;
+          position: relative;
+          min-height: 100vh;
         }
         .print-header {
           margin-bottom: 20px;
