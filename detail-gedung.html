@@ -782,15 +782,15 @@ function printRuangan(ruanganNama, barangData) {
   
   const printWindow = window.open('', '_blank');
   
-  // --- PENTING: Baris ini HANYA mengatur nama file saat Save/Print, TIDAK mengubah tampilan HTML ---
-  printWindow.document.title = 'Laporan Inventaris - ' + currentGedung.nama + ' - ' + ruanganNama;
-  // -------------------------------------------------------------------------------------------
+  // Kita menyusun judul file dinamis di dalam string HTML
+  const dynamicTitle = 'Laporan Inventaris - ' + currentGedung.nama + ' - ' + ruanganNama;
 
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris</title>
+      <!-- TITLE DIUBAH MENJADI DINAMIS DI SINI -->
+      <title>${dynamicTitle}</title>
       <style>
         @page {
           size: A4 landscape;
@@ -901,6 +901,7 @@ function printRuangan(ruanganNama, barangData) {
       </div>
 
       <div class="print-header">
+        <!-- Tampilan di kertas tetap bersih -->
         <h2>${currentGedung.nama}</h2>
         <p><strong>Ruangan:</strong> ${ruanganNama}</p>
       </div>
@@ -1018,15 +1019,14 @@ function printSemuaRuangan() {
   
   const printWindow = window.open('', '_blank');
   
-  // --- PENTING: Baris ini HANYA mengatur nama file saat Save/Print ---
-  printWindow.document.title = 'Laporan Inventaris - ' + currentGedung.nama + ' - Semua Ruangan';
-  // ----------------------------------------------------------------
+  // TITLE DIUBAH MENJADI DINAMIS DI SINI
+  const dynamicTitle = 'Laporan Inventaris - ' + currentGedung.nama + ' - Semua Ruangan';
 
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Laporan Inventaris</title>
+      <title>${dynamicTitle}</title>
       <style>
         @page {
           size: A4 landscape;
