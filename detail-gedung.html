@@ -253,14 +253,10 @@
       background: #f8fafc;
       padding: 1rem 1.5rem;
       border-top: 1px solid #eef2ff;
-      
-      /* Flexbox Layout untuk rapi */
       display: flex;
       align-items: center;
-      justify-content: flex-start; /* Pindah ke kiri */
+      justify-content: flex-start;
       gap: 1rem;
-      
-      /* Sudut membulat di bawah */
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
     }
@@ -318,7 +314,7 @@
         print-color-adjust: exact;
         margin-bottom: 20px;
         color: white;
-        border-radius: 0; /* Flat di print */
+        border-radius: 0;
       }
       .ruangan-body {
         display: block !important;
@@ -346,7 +342,6 @@
       .table-barang th { background: #eee !important; color: #000; border-bottom: 1px solid #000; }
       .table-barang td { border-bottom: 1px solid #eee; }
       
-      /* Print Footer Styling (Menyesuaikan layout layar: Kiri) */
       .total-footer {
         background: #f8fafc !important;
         -webkit-print-color-adjust: exact;
@@ -354,11 +349,11 @@
         border-top: 1px solid #ddd;
         padding: 10px 15px;
         display: flex !important;
-        justify-content: flex-start !important; /* Kiri */
+        justify-content: flex-start !important;
         align-items: center;
         gap: 10px;
       }
-      .total-footer i { display: none; } /* Sembunyikan ikon di print agar bersih */
+      .total-footer i { display: none; }
       
       .print-footer {
         position: fixed;
@@ -372,7 +367,6 @@
       }
     }
     
-    /* Hidden elements for screen */
     .print-footer, .toast-placeholder {
       display: none;
     }
@@ -485,7 +479,6 @@ function showToast(message, type = 'info') {
   
   container.appendChild(toast);
   
-  // Auto remove after 3 seconds
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
@@ -688,7 +681,6 @@ function renderRuanganCards(ruanganData) {
       `;
     }).join('');
     
-    // HTML BARU UNTUK TOTAL FOOTER (Rapi & Kiri Bawah)
     const cardHtml = `
       <div class="ruangan-card" id="card_${cardId}">
         <div class="ruangan-header" onclick="toggleRuangan('${cardId}')">
@@ -789,6 +781,11 @@ function printRuangan(ruanganNama, barangData) {
   `).join('');
   
   const printWindow = window.open('', '_blank');
+  
+  // --- PENTING: Baris ini HANYA mengatur nama file saat Save/Print, TIDAK mengubah tampilan HTML ---
+  printWindow.document.title = 'Laporan Inventaris - ' + currentGedung.nama + ' - ' + ruanganNama;
+  // -------------------------------------------------------------------------------------------
+
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
@@ -837,10 +834,9 @@ function printRuangan(ruanganNama, barangData) {
           background: #f1f5f9;
           font-weight: 600;
         }
-        /* STYLE FOOTER PRINT (Kiri Bawah) */
         .total-footer {
           display: flex;
-          justify-content: flex-start; /* KIRI */
+          justify-content: flex-start;
           align-items: center;
           font-size: 10pt;
           padding: 10px 15px;
@@ -1000,7 +996,6 @@ function printSemuaRuangan() {
               ${barangRows || '<tr><td colspan="9" class="text-center">Belum ada barang</td></tr>'}
             </tbody>
           </table>
-          <!-- FOOTER PRINT (Kiri) -->
           <div style="display:flex; justify-content:flex-start; align-items:center; padding: 10px 15px; background:#f8fafc; border:1px solid #ddd; border-top:none; font-size:10pt;">
             <span style="font-weight:bold; color:#1e293b;">Total Barang: ${totalQuantity} ${satuan}</span>
           </div>
@@ -1022,6 +1017,11 @@ function printSemuaRuangan() {
   });
   
   const printWindow = window.open('', '_blank');
+  
+  // --- PENTING: Baris ini HANYA mengatur nama file saat Save/Print ---
+  printWindow.document.title = 'Laporan Inventaris - ' + currentGedung.nama + ' - Semua Ruangan';
+  // ----------------------------------------------------------------
+
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
